@@ -17,7 +17,7 @@ const cartSlice = createSlice({
       if (existing) {
         existing.quantity += 1;
       } else {
-        state.items.push({ product: action.payload, quantity: 1 });
+        state.items.push({ product: action.payload, unitId: action.payload.baseUnitId, quantity: 1 });
       }
     },
     incrementItem(state, action: PayloadAction<string>) {
@@ -45,7 +45,7 @@ export const { addItem, incrementItem, decrementItem, removeItem, clearCart } = 
 export default cartSlice.reducer;
 
 export const selectCartTotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  state.cart.items.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
 
 export const selectCartCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);

@@ -1,19 +1,16 @@
 import * as SecureStore from 'expo-secure-store';
 
-// expo-secure-store backs onto Keychain (iOS) / Keystore-encrypted SharedPreferences
-// (Android), so OAuth tokens never touch plain-text storage on device.
-const ACCESS_TOKEN_KEY = 'cassierq.oauth.accessToken';
-const REFRESH_TOKEN_KEY = 'cassierq.oauth.refreshToken';
-const EXPIRES_AT_KEY = 'cassierq.oauth.expiresAt';
+const ACCESS_TOKEN_KEY = 'cassierq.auth.accessToken';
+const REFRESH_TOKEN_KEY = 'cassierq.auth.refreshToken';
+const EXPIRES_AT_KEY = 'cassierq.auth.expiresAt';
 
-export type OAuthTokenSet = {
+export type TokenSet = {
   accessToken: string;
   refreshToken: string;
-  /** epoch milliseconds */
   expiresAt: number;
 };
 
-export async function saveTokens(tokens: OAuthTokenSet): Promise<void> {
+export async function saveTokens(tokens: TokenSet): Promise<void> {
   await Promise.all([
     SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken),
     SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken),
@@ -21,7 +18,7 @@ export async function saveTokens(tokens: OAuthTokenSet): Promise<void> {
   ]);
 }
 
-export async function loadTokens(): Promise<OAuthTokenSet | null> {
+export async function loadTokens(): Promise<TokenSet | null> {
   const [accessToken, refreshToken, expiresAt] = await Promise.all([
     SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
     SecureStore.getItemAsync(REFRESH_TOKEN_KEY),

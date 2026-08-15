@@ -1,7 +1,9 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import * as authApi from '../../api/authApi';
+import { loadPersistedApiEnvOverride } from '../../api/client';
 import { loadTokens } from '../../api/tokenStorage';
+import type { RegisterPayload } from '../../api/authApi';
 import type { User } from '../../types/models';
 
 type AuthState = {
@@ -17,6 +19,7 @@ const initialState: AuthState = {
 };
 
 export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
+  await loadPersistedApiEnvOverride();
   const tokens = await loadTokens();
   if (!tokens) return null;
   return authApi.fetchCurrentUser();
@@ -24,7 +27,12 @@ export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
 
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }: { email: string; password: string }) => authApi.login(email, password),
+  async ({ username, password }: { username: string; password: string }) =>
+    authApi.login(username, password),
+);
+
+export const register = createAsyncThunk('auth/register', async (payload: RegisterPayload) =>
+  authApi.register(payload),
 );
 
 export const logout = createAsyncThunk('auth/logout', async () => {
@@ -64,6 +72,18 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.status = 'unauthenticated';
         state.error = action.error.message ?? 'Login gagal';
+      })
+      .addCase(register.pending, (state) => {
+        state.status = 'authenticating';
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state, action: PayloadAction<User>) => {
+        state.user = action.payload;
+        state.status = 'authenticated';
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.status = 'unauthenticated';
+        state.error = action.error.message ?? 'Pendaftaran gagal';
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;

@@ -1,8 +1,15 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
-// APP_VARIANT is set by EAS build profiles (see eas.json) so dev/preview/prod
-// builds can install side-by-side on the same device.
+import { isApiEnvName } from './src/config/apiEnvironments';
 const VARIANT = process.env.APP_VARIANT ?? 'production';
+
+const API_ENV = isApiEnvName(process.env.APP_ENV)
+  ? process.env.APP_ENV
+  : VARIANT === 'production'
+    ? 'production'
+    : VARIANT === 'preview'
+      ? 'uat'
+      : 'development';
 
 const BUNDLE_ID: Record<string, string> = {
   development: 'com.cassierq.pos.dev',
@@ -67,8 +74,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-status-bar',
   ],
   extra: {
-    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://api.caissier.app/v1',
-    oauthClientId: process.env.EXPO_PUBLIC_OAUTH_CLIENT_ID ?? 'cassier-q-mobile',
+    apiEnv: API_ENV,
+    apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
     appVariant: VARIANT,
     eas: {
       projectId: process.env.EAS_PROJECT_ID ?? 'REPLACE_WITH_EAS_PROJECT_ID',
