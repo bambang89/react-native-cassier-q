@@ -1,9 +1,10 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
-import { isApiEnvName } from './src/config/apiEnvironments';
+const API_ENV_NAMES = ['development', 'sit', 'uat', 'production'];
+
 const VARIANT = process.env.APP_VARIANT ?? 'production';
 
-const API_ENV = isApiEnvName(process.env.APP_ENV)
+const API_ENV = API_ENV_NAMES.includes(process.env.APP_ENV ?? '')
   ? process.env.APP_ENV
   : VARIANT === 'production'
     ? 'production'
