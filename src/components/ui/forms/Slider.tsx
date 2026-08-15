@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { PanResponder, StyleSheet, View } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
 
-import { colors, radii } from '../../../theme';
+import { colors, radii } from '@/theme';
 
 export interface SliderProps {
   value: number;
@@ -21,8 +21,6 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
-// Slider dibangun dari nol dengan PanResponder (bagian dari react-native
-// core) karena @react-native-community/slider belum jadi dependency project.
 export function Slider({
   value,
   onChange,

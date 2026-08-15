@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { CashierSession } from '../types/models';
+import type { CashierSession } from '@/types/models';
 
 export async function fetchCurrentSession(): Promise<CashierSession | null> {
   try {

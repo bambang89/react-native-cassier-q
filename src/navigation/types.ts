@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { Product } from '../types/models';
+import type { Product } from '@/types/models';
 
 export type AuthStackParamList = {
   Login: undefined;

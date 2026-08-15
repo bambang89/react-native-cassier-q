@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as productsApi from '../../api/productsApi';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchCategories } from '../../store/slices/categoriesSlice';
-import type { RootStackParamList } from '../../navigation/types';
-import { spacing } from '../../theme';
-import { Button, FormControl, Input, Select, TextArea } from '../../components/ui/forms';
-import { AppBar } from '../../components/ui/recipes';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchCategories } from '@/store/slices/categoriesSlice';
+import { createProduct, updateProduct } from '@/store/slices/productsSlice';
+import type { RootStackParamList } from '@/navigation/types';
+import { spacing } from '@/theme';
+import { Button, FormControl, Input, Select, TextArea } from '@/components/ui/forms';
+import { AppBar } from '@/components/ui/recipes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
@@ -50,9 +50,9 @@ export default function ProductFormScreen({ navigation, route }: Props) {
         costPrice: costPrice ? Number(costPrice) : undefined,
       };
       if (editing) {
-        await productsApi.updateProduct(editing.id, payload);
+        await dispatch(updateProduct({ id: editing.id, payload })).unwrap();
       } else {
-        await productsApi.createProduct(payload);
+        await dispatch(createProduct(payload)).unwrap();
       }
       navigation.goBack();
     } catch {

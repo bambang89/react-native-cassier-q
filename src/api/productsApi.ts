@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Page, Product, Stock } from '../types/models';
+import type { Page, Product, Stock } from '@/types/models';
 
 export interface FetchProductsParams {
   search?: string;

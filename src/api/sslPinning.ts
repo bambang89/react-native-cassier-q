@@ -3,7 +3,7 @@ import {
   initializeSslPinning,
 } from 'react-native-ssl-public-key-pinning';
 
-import { env } from '../config/env';
+import { env } from '@/config/env';
 
 const API_HOSTNAME = new URL(env.apiBaseUrl).hostname;
 

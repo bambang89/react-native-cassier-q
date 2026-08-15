@@ -2,8 +2,8 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { colors, radii, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, radii, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 import type { PressableProps } from './Pressable';
 

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { FlatList, Modal, Pressable as RNPressable, SafeAreaView, StyleSheet, View } from 'react-native';
 
-import { colors, radii, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, radii, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 
 export interface SelectOption<T extends string = string> {
@@ -19,9 +19,6 @@ export interface SelectProps<T extends string = string> {
   isInvalid?: boolean;
 }
 
-// Select sederhana: field yang membuka daftar pilihan lewat modal bottom
-// sheet-lite. Dipakai untuk dropdown singkat (mis. kategori produk, metode
-// pembayaran) tanpa perlu library picker tambahan.
 export function Select<T extends string = string>({
   value,
   onChange,

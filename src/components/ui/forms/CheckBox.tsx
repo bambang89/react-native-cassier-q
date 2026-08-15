@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, radii, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, radii, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 
 export interface CheckBoxProps {
@@ -13,8 +13,6 @@ export interface CheckBoxProps {
   isInvalid?: boolean;
 }
 
-// Tidak pakai `expo-checkbox` (belum jadi dependency project) supaya kotak
-// centang tetap konsisten dengan token warna/radius di theme kita sendiri.
 export function CheckBox({ value, onChange, label, isDisabled, isInvalid }: CheckBoxProps) {
   return (
     <Pressable

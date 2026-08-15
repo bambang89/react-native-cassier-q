@@ -1,8 +1,8 @@
 import { Text as RNText } from 'react-native';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
 
-import { colors, fontFamily, fontSizes, fontWeights, lineHeights } from '../../../theme';
-import type { FontSizeToken, FontWeightToken } from '../../../theme';
+import { colors, fontFamily, fontSizes, fontWeights, lineHeights } from '@/theme';
+import type { FontSizeToken, FontWeightToken } from '@/theme';
 
 export type TextColorToken = keyof typeof colors.text | 'success' | 'warning' | 'error';
 
@@ -27,8 +27,6 @@ function resolveColor(color: TextColorToken): string {
   }
 }
 
-// Komponen Text dasar: semua teks di app sebaiknya lewat sini (bukan RN
-// Text langsung) supaya ukuran/berat/warna selalu konsisten dengan theme.
 export function Text({
   size = 'base',
   weight = 'regular',

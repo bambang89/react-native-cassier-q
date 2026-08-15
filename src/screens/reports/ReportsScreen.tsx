@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
-import * as reportsApi from '../../api/reportsApi';
-import type { SalesSummary } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Button } from '../../components/ui/forms';
-import { Divider } from '../../components/ui/dataDisplay';
-import { Card, Header } from '../../components/ui/recipes';
-import { Heading, Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchSalesSummary } from '@/store/slices/reportsSlice';
+import { colors, spacing } from '@/theme';
+import { Button } from '@/components/ui/forms';
+import { Divider } from '@/components/ui/dataDisplay';
+import { Card, Header } from '@/components/ui/recipes';
+import { Heading, Text } from '@/components/ui/typography';
 
 type RangeOption = 7 | 30;
 
@@ -23,17 +23,14 @@ function rangeParams(days: RangeOption) {
 }
 
 export default function ReportsScreen() {
+  const dispatch = useAppDispatch();
   const [range, setRange] = useState<RangeOption>(7);
-  const [summary, setSummary] = useState<SalesSummary | null>(null);
-  const [loading, setLoading] = useState(false);
+  const summary = useAppSelector((state) => state.reports.summary);
+  const status = useAppSelector((state) => state.reports.status);
+  const loading = status === 'loading';
 
-  const load = async (days: RangeOption) => {
-    setLoading(true);
-    try {
-      setSummary(await reportsApi.fetchSalesSummary(rangeParams(days)));
-    } finally {
-      setLoading(false);
-    }
+  const load = (days: RangeOption) => {
+    dispatch(fetchSalesSummary(rangeParams(days)));
   };
 
   useEffect(() => {

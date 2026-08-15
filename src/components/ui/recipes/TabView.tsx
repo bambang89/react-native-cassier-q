@@ -3,9 +3,9 @@ import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 import type { NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, spacing } from '../../../theme';
-import { Pressable } from '../forms/Pressable';
-import { Text } from '../typography/Text';
+import { colors, spacing } from '@/theme';
+import { Pressable } from '@/components/ui/forms/Pressable';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface TabViewRoute {
   key: string;
@@ -19,9 +19,6 @@ export interface TabViewProps {
   onIndexChange: (index: number) => void;
 }
 
-// Tab view swipeable tanpa dependency `react-native-tab-view`: header tab
-// + ScrollView horizontal dengan paging, disinkronkan lewat state `index`.
-// Cocok untuk mis. tab "Detail / Riwayat" di layar Reports atau Orders.
 export function TabView({ routes, index, onIndexChange }: TabViewProps) {
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);

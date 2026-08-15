@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { createCategory, deleteCategory, fetchCategories } from '../../store/slices/categoriesSlice';
-import type { RootStackParamList } from '../../navigation/types';
-import type { Category } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Button, FormControl, Input } from '../../components/ui/forms';
-import { Divider } from '../../components/ui/dataDisplay';
-import { AlertDialog, Modal } from '../../components/ui/overlay';
-import { AppBar, Card } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createCategory, deleteCategory, fetchCategories } from '@/store/slices/categoriesSlice';
+import type { RootStackParamList } from '@/navigation/types';
+import type { Category } from '@/types/models';
+import { colors, spacing } from '@/theme';
+import { Button, FormControl, Input } from '@/components/ui/forms';
+import { Divider } from '@/components/ui/dataDisplay';
+import { AlertDialog, Modal } from '@/components/ui/overlay';
+import { AppBar, Card } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Categories'>;
 

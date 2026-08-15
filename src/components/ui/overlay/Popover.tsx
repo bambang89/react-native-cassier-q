@@ -2,10 +2,9 @@ import { cloneElement, isValidElement, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import type { ReactElement, ReactNode } from 'react';
 
-import { colors, radii, shadows, spacing } from '../../../theme';
+import { colors, radii, shadows, spacing } from '@/theme';
 
 export interface PopoverProps {
-  /** Elemen pemicu, biasanya <Pressable> atau <Button>. Harus meneruskan ref & onPress. */
   trigger: ReactElement;
   children: ReactNode;
   placement?: 'top' | 'bottom';
@@ -18,8 +17,6 @@ interface Anchor {
   height: number;
 }
 
-// Popover generik: konten mengambang di dekat trigger-nya. Menu & Tooltip
-// dibangun di atas pola pengukuran posisi yang sama seperti ini.
 export function Popover({ trigger, children, placement = 'bottom' }: PopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
@@ -37,16 +34,12 @@ export function Popover({ trigger, children, placement = 'bottom' }: PopoverProp
 
   if (!isValidElement(trigger)) return null;
 
-  // Ref ditaruh di View pembungkus (bukan di-clone ke trigger) supaya tidak
-  // bergantung pada trigger meneruskan ref ke node native-nya.
   const triggerElement = (
     <View ref={triggerRef} collapsable={false}>
       {cloneElement(trigger as ReactElement<{ onPress?: () => void }>, { onPress: open })}
     </View>
   );
 
-  // Untuk placement "top" kita tidak tahu tinggi konten sebelum di-render,
-  // jadi dipakai perkiraan offset yang cukup untuk konten pendek (menu/tooltip).
   const ESTIMATED_TOP_OFFSET = 60;
   const top = anchor
     ? placement === 'bottom'

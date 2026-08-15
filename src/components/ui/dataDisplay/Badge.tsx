@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, radii, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, radii, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 
 export type BadgeVariant = 'primary' | 'success' | 'warning' | 'error' | 'neutral';
 

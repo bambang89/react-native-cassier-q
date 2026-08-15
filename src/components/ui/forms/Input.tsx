@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import type { ReactNode } from 'react';
 import type { TextInput as RNTextInputRef, TextInputProps } from 'react-native';
 
-import { colors, fontFamily, fontSizes, radii, spacing } from '../../../theme';
+import { colors, fontFamily, fontSizes, radii, spacing } from '@/theme';
 
 export interface InputProps extends TextInputProps {
   isInvalid?: boolean;
@@ -12,7 +12,6 @@ export interface InputProps extends TextInputProps {
   rightElement?: ReactNode;
 }
 
-// Input teks standar. Bungkus dengan <FormControl> untuk label/helper/error.
 export const Input = forwardRef<RNTextInputRef, InputProps>(function Input(
   { isInvalid, isDisabled, leftElement, rightElement, style, editable, ...rest },
   ref,

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 
 export interface RadioOption<T extends string = string> {
@@ -17,8 +17,6 @@ export interface RadioGroupProps<T extends string = string> {
   direction?: 'column' | 'row';
 }
 
-// RadioGroup: satu komponen yang me-render seluruh pilihan, dipakai
-// menggantikan pola "custom radio buttons" yang biasa ditulis manual per layar.
 export function RadioGroup<T extends string = string>({
   value,
   onChange,

@@ -2,10 +2,10 @@ import { Fragment } from 'react';
 import { StyleSheet } from 'react-native';
 import type { ReactElement } from 'react';
 
-import { spacing } from '../../../theme';
-import { Pressable } from '../forms/Pressable';
-import { Divider } from '../dataDisplay/Divider';
-import { Text } from '../typography/Text';
+import { spacing } from '@/theme';
+import { Pressable } from '@/components/ui/forms/Pressable';
+import { Divider } from '@/components/ui/dataDisplay/Divider';
+import { Text } from '@/components/ui/typography/Text';
 import { Popover } from './Popover';
 
 export interface MenuItemConfig {
@@ -22,8 +22,6 @@ export interface MenuProps {
   placement?: 'top' | 'bottom';
 }
 
-// Menu dropdown untuk aksi kontekstual (mis. tombol "..." di baris produk:
-// Edit / Duplikat / Hapus). Dibangun di atas Popover.
 export function Menu({ trigger, items, placement = 'bottom' }: MenuProps) {
   return (
     <Popover trigger={trigger} placement={placement}>

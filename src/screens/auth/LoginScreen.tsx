@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { login } from '../../store/slices/authSlice';
-import type { AuthStackParamList } from '../../navigation/types';
-import { spacing } from '../../theme';
-import { Button, FormControl, Input, Link } from '../../components/ui/forms';
-import { Heading, Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { login } from '@/store/slices/authSlice';
+import type { AuthStackParamList } from '@/navigation/types';
+import { spacing } from '@/theme';
+import { Button, FormControl, Input, Link } from '@/components/ui/forms';
+import { Heading, Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 

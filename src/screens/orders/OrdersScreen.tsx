@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { fetchOrders } from '../../api/ordersApi';
-import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
-import type { Order, OrderStatus } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Badge } from '../../components/ui/dataDisplay';
-import { Card, Header } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchOrders } from '@/store/slices/ordersSlice';
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
+import type { OrderStatus } from '@/types/models';
+import { colors, spacing } from '@/theme';
+import { Badge } from '@/components/ui/dataDisplay';
+import { Card, Header } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Orders'>,
@@ -32,37 +33,23 @@ function statusLabel(status: OrderStatus) {
 }
 
 export default function OrdersScreen({ navigation }: Props) {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(false);
-
-  const load = useCallback(async (nextPage = 0) => {
-    setLoading(true);
-    try {
-      const result = await fetchOrders({ page: nextPage });
-      setOrders((prev) => (nextPage === 0 ? result.content : [...prev, ...result.content]));
-      setPage(result.page);
-      setTotalPages(result.totalPages);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const dispatch = useAppDispatch();
+  const { items, page, totalPages, status } = useAppSelector((state) => state.orders);
 
   useEffect(() => {
-    load(0);
-  }, [load]);
+    dispatch(fetchOrders({ page: 0 }));
+  }, [dispatch]);
 
   return (
     <View style={styles.container}>
       <Header title="Riwayat Transaksi" />
       <FlatList
-        data={orders}
+        data={items}
         keyExtractor={(item) => item.id}
-        onRefresh={() => load(0)}
-        refreshing={loading && page === 0}
+        onRefresh={() => dispatch(fetchOrders({ page: 0 }))}
+        refreshing={status === 'loading' && page === 0}
         onEndReached={() => {
-          if (!loading && page + 1 < totalPages) load(page + 1);
+          if (status !== 'loading' && page + 1 < totalPages) dispatch(fetchOrders({ page: page + 1 }));
         }}
         onEndReachedThreshold={0.4}
         contentContainerStyle={styles.list}
@@ -88,7 +75,7 @@ export default function OrdersScreen({ navigation }: Props) {
         )}
         ListEmptyComponent={
           <Text color="muted" align="center" style={styles.empty}>
-            {loading ? 'Memuat transaksi...' : 'Belum ada transaksi'}
+            {status === 'loading' ? 'Memuat transaksi...' : 'Belum ada transaksi'}
           </Text>
         }
       />

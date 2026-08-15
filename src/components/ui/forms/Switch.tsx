@@ -1,12 +1,10 @@
 import { Switch as RNSwitch } from 'react-native';
 import type { SwitchProps as RNSwitchProps } from 'react-native';
 
-import { colors } from '../../../theme';
+import { colors } from '@/theme';
 
 export interface SwitchProps extends Omit<RNSwitchProps, 'trackColor' | 'thumbColor'> {}
 
-// Tipis di atas RN Switch supaya warna on/off selalu ambil dari theme,
-// bukan di-hardcode ulang di tiap layar yang butuh toggle.
 export function Switch(props: SwitchProps) {
   return (
     <RNSwitch

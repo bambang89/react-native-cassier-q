@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as ordersApi from '../../api/ordersApi';
-import type { RootStackParamList } from '../../navigation/types';
-import type { Order } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Button, FormControl, TextArea } from '../../components/ui/forms';
-import { Badge, Divider } from '../../components/ui/dataDisplay';
-import { Modal } from '../../components/ui/overlay';
-import { AppBar } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { clearCurrentOrder, fetchOrder, voidOrder } from '@/store/slices/ordersSlice';
+import type { RootStackParamList } from '@/navigation/types';
+import { colors, spacing } from '@/theme';
+import { Button, FormControl, TextArea } from '@/components/ui/forms';
+import { Badge, Divider } from '@/components/ui/dataDisplay';
+import { Modal } from '@/components/ui/overlay';
+import { AppBar } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 
@@ -22,29 +22,23 @@ function money(value: number) {
 
 export default function OrderDetailScreen({ navigation, route }: Props) {
   const { orderId } = route.params;
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const order = useAppSelector((state) => state.orders.current);
+  const currentStatus = useAppSelector((state) => state.orders.currentStatus);
   const [voidModalVisible, setVoidModalVisible] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      setOrder(await ordersApi.fetchOrder(orderId));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]);
+    dispatch(fetchOrder(orderId));
+    return () => {
+      dispatch(clearCurrentOrder());
+    };
+  }, [dispatch, orderId]);
 
   return (
     <View style={styles.container}>
       <AppBar title={order?.transactionNumber ?? 'Detail Transaksi'} onBack={navigation.goBack} />
 
-      {loading || !order ? (
+      {currentStatus === 'loading' || !order ? (
         <View style={styles.center}>
           <ActivityIndicator />
         </View>
@@ -102,10 +96,7 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
       <Modal isOpen={voidModalVisible} onClose={() => setVoidModalVisible(false)}>
         <VoidForm
           orderId={orderId}
-          onDone={(updated) => {
-            setOrder(updated);
-            setVoidModalVisible(false);
-          }}
+          onDone={() => setVoidModalVisible(false)}
           onCancel={() => setVoidModalVisible(false)}
         />
       </Modal>
@@ -130,9 +121,10 @@ function VoidForm({
   onCancel,
 }: {
   orderId: string;
-  onDone: (order: Order) => void;
+  onDone: () => void;
   onCancel: () => void;
 }) {
+  const dispatch = useAppDispatch();
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -140,8 +132,8 @@ function VoidForm({
     if (!reason.trim()) return;
     setSubmitting(true);
     try {
-      const updated = await ordersApi.voidOrder(orderId, reason.trim());
-      onDone(updated);
+      await dispatch(voidOrder({ id: orderId, reason: reason.trim() })).unwrap();
+      onDone();
     } catch {
       Alert.alert('Gagal', 'Transaksi tidak bisa dibatalkan.');
     } finally {

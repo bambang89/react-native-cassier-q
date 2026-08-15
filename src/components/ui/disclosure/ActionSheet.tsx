@@ -2,9 +2,9 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
-import { colors, radii, shadows, spacing } from '../../../theme';
-import { Pressable as UiPressable } from '../forms/Pressable';
-import { Text } from '../typography/Text';
+import { colors, radii, shadows, spacing } from '@/theme';
+import { Pressable as UiPressable } from '@/components/ui/forms/Pressable';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface ActionSheetAction {
   key: string;
@@ -21,8 +21,6 @@ export interface ActionSheetProps {
   children?: ReactNode;
 }
 
-// Sheet yang naik dari bawah layar, dipakai untuk daftar aksi (mis. pilihan
-// metode pembayaran saat checkout) atau konten bebas lewat `children`.
 export function ActionSheet({ isOpen, onClose, title, actions, children }: ActionSheetProps) {
   return (
     <Modal visible={isOpen} transparent animationType="slide" onRequestClose={onClose}>

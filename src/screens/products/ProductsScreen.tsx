@@ -4,17 +4,16 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as productsApi from '../../api/productsApi';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchProducts, setSearch } from '../../store/slices/productsSlice';
-import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
-import type { Product } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Button, FormControl, Input, Link } from '../../components/ui/forms';
-import { Badge } from '../../components/ui/dataDisplay';
-import { AlertDialog, Modal } from '../../components/ui/overlay';
-import { Card, Header, SwipeList } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { deleteProduct, fetchProducts, restockProduct, setSearch } from '@/store/slices/productsSlice';
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
+import type { Product } from '@/types/models';
+import { colors, spacing } from '@/theme';
+import { Button, FormControl, Input, Link } from '@/components/ui/forms';
+import { Badge } from '@/components/ui/dataDisplay';
+import { AlertDialog, Modal } from '@/components/ui/overlay';
+import { Card, Header, SwipeList } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Products'>,
@@ -43,9 +42,8 @@ export default function ProductsScreen({ navigation }: Props) {
 
   const onDelete = async (product: Product) => {
     try {
-      await productsApi.deleteProduct(product.id);
+      await dispatch(deleteProduct(product.id)).unwrap();
       setDeleteTarget(null);
-      dispatch(fetchProducts({ search }));
     } catch {
       Alert.alert('Gagal', 'Produk tidak bisa dinonaktifkan, coba lagi.');
     }
@@ -124,10 +122,7 @@ export default function ProductsScreen({ navigation }: Props) {
         {restockTarget ? (
           <RestockForm
             product={restockTarget}
-            onDone={() => {
-              setRestockTarget(null);
-              dispatch(fetchProducts({ search }));
-            }}
+            onDone={() => setRestockTarget(null)}
             onCancel={() => setRestockTarget(null)}
           />
         ) : null}
@@ -155,6 +150,7 @@ function RestockForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const dispatch = useAppDispatch();
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -164,11 +160,12 @@ function RestockForm({
     if (!parsed || parsed <= 0) return;
     setSubmitting(true);
     try {
-      await productsApi.restockProduct(product.id, {
-        unitId: product.baseUnitId,
-        quantity: parsed,
-        notes: notes || undefined,
-      });
+      await dispatch(
+        restockProduct({
+          id: product.id,
+          payload: { unitId: product.baseUnitId, quantity: parsed, notes: notes || undefined },
+        }),
+      ).unwrap();
       onDone();
     } catch {
       Alert.alert('Gagal', 'Restock gagal, coba lagi.');

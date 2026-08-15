@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as authApi from '../../api/authApi';
-import type { AuthStackParamList } from '../../navigation/types';
-import { spacing } from '../../theme';
-import { Button, FormControl, Input } from '../../components/ui/forms';
-import { AppBar } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch } from '@/store/hooks';
+import { resetPassword } from '@/store/slices/authSlice';
+import type { AuthStackParamList } from '@/navigation/types';
+import { spacing } from '@/theme';
+import { Button, FormControl, Input } from '@/components/ui/forms';
+import { AppBar } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
 export default function ResetPasswordScreen({ navigation }: Props) {
+  const dispatch = useAppDispatch();
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -21,7 +23,7 @@ export default function ResetPasswordScreen({ navigation }: Props) {
   const onSubmit = async () => {
     setSubmitting(true);
     try {
-      await authApi.resetPassword(token, newPassword);
+      await dispatch(resetPassword({ token, newPassword })).unwrap();
       Alert.alert('Berhasil', 'Kata sandi sudah diganti, silakan masuk.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') },
       ]);

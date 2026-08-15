@@ -2,9 +2,9 @@ import { StyleSheet, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, radii, shadows, spacing } from '../../../theme';
-import type { ShadowToken } from '../../../theme';
-import { Pressable } from '../forms/Pressable';
+import { colors, radii, shadows, spacing } from '@/theme';
+import type { ShadowToken } from '@/theme';
+import { Pressable } from '@/components/ui/forms/Pressable';
 
 export interface CardProps {
   children: ReactNode;
@@ -14,8 +14,6 @@ export interface CardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-// Card generik dipakai untuk daftar produk, ringkasan laporan, dsb.
-// Kalau diberi `onPress` otomatis jadi bisa ditekan (mis. kartu produk POS).
 export function Card({ children, onPress, padding = 'base', shadow = 'sm', style }: CardProps) {
   const content = [styles.base, { padding: spacing[padding] }, shadows[shadow], style];
 

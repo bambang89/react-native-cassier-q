@@ -4,19 +4,19 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as ordersApi from '../../api/ordersApi';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchProducts } from '../../store/slices/productsSlice';
-import { openSession, fetchCurrentSession } from '../../store/slices/cashierSessionSlice';
-import { addItem, clearCart, selectCartCount, selectCartTotal } from '../../store/slices/cartSlice';
-import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
-import type { CartItem, Product } from '../../types/models';
-import { PAYMENT_METHODS, type PaymentMethod } from '../../types/models';
-import { colors, spacing } from '../../theme';
-import { Button, FormControl, Input, Select } from '../../components/ui/forms';
-import { Modal } from '../../components/ui/overlay';
-import { Card, Header } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchProducts } from '@/store/slices/productsSlice';
+import { openSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
+import { createOrder } from '@/store/slices/ordersSlice';
+import { addItem, clearCart, selectCartCount, selectCartTotal } from '@/store/slices/cartSlice';
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
+import type { CartItem, Product } from '@/types/models';
+import { PAYMENT_METHODS, type PaymentMethod } from '@/types/models';
+import { colors, spacing } from '@/theme';
+import { Button, FormControl, Input, Select } from '@/components/ui/forms';
+import { Modal } from '@/components/ui/overlay';
+import { Card, Header } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'POS'>,
@@ -185,6 +185,7 @@ function CheckoutForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const dispatch = useAppDispatch();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>('CASH');
   const [paymentAmount, setPaymentAmount] = useState(String(total));
   const [submitting, setSubmitting] = useState(false);
@@ -200,7 +201,7 @@ function CheckoutForm({
     }
     setSubmitting(true);
     try {
-      await ordersApi.createOrder(cartItems, { paymentMethod, paymentAmount: amount });
+      await dispatch(createOrder({ items: cartItems, payload: { paymentMethod, paymentAmount: amount } })).unwrap();
       Alert.alert('Berhasil', 'Transaksi selesai.');
       onDone();
     } catch {

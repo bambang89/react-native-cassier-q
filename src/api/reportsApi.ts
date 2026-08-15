@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { SalesSummary } from '../types/models';
+import type { SalesSummary } from '@/types/models';
 
 export interface FetchSalesSummaryParams {
   from?: string;

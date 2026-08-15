@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
-import { colors, spacing } from '../../../theme';
+import { colors, spacing } from '@/theme';
 
 export interface DividerProps {
   orientation?: 'horizontal' | 'vertical';

@@ -5,10 +5,10 @@ import { CodeScanner, type Barcode } from 'react-native-vision-camera-barcode-sc
 import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { fetchProductByBarcode } from '../../api/productsApi';
-import { useAppDispatch } from '../../store/hooks';
-import { addItem } from '../../store/slices/cartSlice';
-import type { RootStackParamList } from '../../navigation/types';
+import { useAppDispatch } from '@/store/hooks';
+import { addItem } from '@/store/slices/cartSlice';
+import { fetchProductByBarcode } from '@/store/slices/productsSlice';
+import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Scanner'>;
 
@@ -28,7 +28,7 @@ export default function ScannerScreen({ navigation }: Props) {
       lastScannedRef.current = value;
       setLookingUp(true);
       try {
-        const product = await fetchProductByBarcode(value);
+        const product = await dispatch(fetchProductByBarcode(value)).unwrap();
         if (product) {
           dispatch(addItem(product));
           navigation.goBack();

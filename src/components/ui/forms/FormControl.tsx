@@ -1,8 +1,8 @@
 import { StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface FormControlProps {
   label?: string;
@@ -13,8 +13,6 @@ export interface FormControlProps {
   children: ReactNode;
 }
 
-// Pembungkus label + helper/error text yang konsisten untuk Input, TextArea,
-// Select, CheckBox, Radio, Switch, dsb. Mirip pola FormControl NativeBase.
 export function FormControl({
   label,
   helperText,

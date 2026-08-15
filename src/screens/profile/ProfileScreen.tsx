@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
-import * as authApi from '../../api/authApi';
-import { getActiveApiEnv, setActiveApiEnv } from '../../api/client';
-import { API_ENVIRONMENTS, API_ENV_NAMES } from '../../config/apiEnvironments';
-import type { ApiEnvName } from '../../config/apiEnvironments';
-import { env } from '../../config/env';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { logout } from '../../store/slices/authSlice';
-import { closeSession, fetchCurrentSession } from '../../store/slices/cashierSessionSlice';
-import { colors, spacing } from '../../theme';
-import { Button, FormControl, Input, Select } from '../../components/ui/forms';
-import { Badge, Divider } from '../../components/ui/dataDisplay';
-import { AlertDialog, Modal } from '../../components/ui/overlay';
-import { Card, Header } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { getActiveApiEnv, setActiveApiEnv } from '@/api/client';
+import { API_ENVIRONMENTS, API_ENV_NAMES } from '@/config/apiEnvironments';
+import type { ApiEnvName } from '@/config/apiEnvironments';
+import { env } from '@/config/env';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { changePassword, logout } from '@/store/slices/authSlice';
+import { closeSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
+import { colors, spacing } from '@/theme';
+import { Button, FormControl, Input, Select } from '@/components/ui/forms';
+import { Badge, Divider } from '@/components/ui/dataDisplay';
+import { AlertDialog, Modal } from '@/components/ui/overlay';
+import { Card, Header } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
@@ -177,6 +176,7 @@ function CloseSessionForm({
 }
 
 function ChangePasswordForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+  const dispatch = useAppDispatch();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -184,7 +184,7 @@ function ChangePasswordForm({ onDone, onCancel }: { onDone: () => void; onCancel
   const onSubmit = async () => {
     setSubmitting(true);
     try {
-      await authApi.changePassword(currentPassword, newPassword);
+      await dispatch(changePassword({ currentPassword, newPassword })).unwrap();
       Alert.alert('Berhasil', 'Kata sandi sudah diganti.');
       onDone();
     } catch {

@@ -2,20 +2,17 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
-import { colors, fontSizes, spacing } from '../../../theme';
-import { Pressable } from '../forms/Pressable';
-import { Text } from '../typography/Text';
+import { colors, fontSizes, spacing } from '@/theme';
+import { Pressable } from '@/components/ui/forms/Pressable';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface AppBarProps {
   title: string;
   onBack?: () => void;
   rightElement?: ReactNode;
-  /** Aksi tambahan di kiri, dipakai kalau tidak butuh tombol back (mis. ikon menu drawer). */
   leftElement?: ReactNode;
 }
 
-// Bar navigasi atas: judul di tengah, tombol back opsional di kiri, slot aksi
-// di kanan (mis. ikon scan/notifikasi). Sudah aware terhadap safe-area atas.
 export function AppBar({ title, onBack, rightElement, leftElement }: AppBarProps) {
   const insets = useSafeAreaInsets();
 

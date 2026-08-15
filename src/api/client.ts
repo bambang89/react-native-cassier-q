@@ -1,16 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-import { defaultBaseUrlFor, env } from '../config/env';
-import { isApiEnvName } from '../config/apiEnvironments';
-import type { ApiEnvName } from '../config/apiEnvironments';
+import { defaultBaseUrlFor, env } from '@/config/env';
+import { isApiEnvName } from '@/config/apiEnvironments';
+import type { ApiEnvName } from '@/config/apiEnvironments';
 import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
 
-/**
- * Fired after a refresh-token attempt fails outright (refresh token itself
- * expired/revoked). The Redux auth slice subscribes to this to force a
- * logout + redirect to the login screen without api/store importing each other.
- */
 type SessionExpiredHandler = () => void;
 let onSessionExpired: SessionExpiredHandler | null = null;
 export function setSessionExpiredHandler(handler: SessionExpiredHandler | null): void {
@@ -122,11 +117,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-// --- Runtime API environment switcher ------------------------------------
-// Selain env var (APP_ENV / EXPO_PUBLIC_API_BASE_URL, di-resolve saat build/
-// start — lihat src/config/env.ts), environment API juga bisa di-switch dari
-// dalam app (mis. menu di ProfileScreen) tanpa perlu rebuild. Pilihan
-// tersimpan di SecureStore supaya bertahan lintas restart app.
 const API_ENV_OVERRIDE_KEY = 'cassierq.apiEnvOverride';
 
 let activeApiEnv: ApiEnvName = env.apiEnv;

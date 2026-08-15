@@ -3,23 +3,16 @@ import { Animated, Pressable, StyleSheet, View, useWindowDimensions } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
-import { colors, shadows, spacing } from '../../../theme';
+import { colors, shadows, spacing } from '@/theme';
 
 export interface DrawerNavigationProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Konten panel drawer (biasanya daftar menu/navigasi). */
   drawer: ReactNode;
-  /** Konten utama layar, tetap di-render di belakang drawer. */
   children: ReactNode;
   drawerWidth?: number;
 }
 
-// Recipe drawer navigation ringan tanpa dependency `@react-navigation/drawer`
-// (belum terpasang di project). Kalau butuh drawer terintegrasi dengan route
-// stack React Navigation, install `@react-navigation/drawer` dan pakai
-// `createDrawerNavigator` alih-alih komponen ini. Ini cocok untuk drawer
-// tunggal, mis. menu akun/pengaturan dari POSScreen.
 export function DrawerNavigation({ isOpen, onClose, drawer, children, drawerWidth = 280 }: DrawerNavigationProps) {
   const { width: windowWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();

@@ -2,23 +2,25 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import * as authApi from '../../api/authApi';
-import type { AuthStackParamList } from '../../navigation/types';
-import { spacing } from '../../theme';
-import { Button, FormControl, Input } from '../../components/ui/forms';
-import { AppBar } from '../../components/ui/recipes';
-import { Text } from '../../components/ui/typography';
+import { useAppDispatch } from '@/store/hooks';
+import { forgotPassword } from '@/store/slices/authSlice';
+import type { AuthStackParamList } from '@/navigation/types';
+import { spacing } from '@/theme';
+import { Button, FormControl, Input } from '@/components/ui/forms';
+import { AppBar } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
 export default function ForgotPasswordScreen({ navigation }: Props) {
+  const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async () => {
     setSubmitting(true);
     try {
-      await authApi.forgotPassword(username);
+      await dispatch(forgotPassword(username)).unwrap();
       Alert.alert(
         'Terkirim',
         'Kalau username terdaftar, token reset sudah dikirim ke email toko.',

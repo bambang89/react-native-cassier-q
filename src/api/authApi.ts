@@ -1,6 +1,6 @@
 import { apiClient } from './client';
 import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
-import type { AuthResponse, User } from '../types/models';
+import type { AuthResponse, User } from '@/types/models';
 
 async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
   const tokens: TokenSet = {

@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { spacing } from '../../../theme';
-import { Heading } from '../typography/Heading';
-import { Text } from '../typography/Text';
+import { spacing } from '@/theme';
+import { Heading } from '@/components/ui/typography/Heading';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface HeaderProps {
   title: string;
@@ -11,9 +11,6 @@ export interface HeaderProps {
   rightElement?: ReactNode;
 }
 
-// Header konten halaman (bukan bar navigasi) — dipakai di atas daftar/isi
-// layar, mis. judul "Produk" di ProductsScreen atau "Kasir" di POSScreen,
-// dengan slot aksi opsional di kanan (mis. tombol "Scan Barcode").
 export function Header({ title, subtitle, rightElement }: HeaderProps) {
   return (
     <View style={styles.container}>

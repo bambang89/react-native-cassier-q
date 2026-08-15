@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
-import { spacing } from '../../../theme';
-import { Button } from '../forms/Button';
-import { Heading } from '../typography/Heading';
-import { Text } from '../typography/Text';
+import { spacing } from '@/theme';
+import { Button } from '@/components/ui/forms/Button';
+import { Heading } from '@/components/ui/typography/Heading';
+import { Text } from '@/components/ui/typography/Text';
 import { Modal } from './Modal';
 
 export interface AlertDialogProps {
@@ -18,9 +18,6 @@ export interface AlertDialogProps {
   isConfirmLoading?: boolean;
 }
 
-// Dialog konfirmasi generik (mis. "Batalkan pesanan?", "Hapus produk?").
-// Menggantikan pola `Alert.alert(...)` bawaan RN dengan tampilan yang bisa
-// dikustomisasi dan konsisten dengan theme.
 export function AlertDialog({
   isOpen,
   onClose,

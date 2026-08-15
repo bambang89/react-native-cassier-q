@@ -2,13 +2,12 @@ import { cloneElement, isValidElement, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import type { ReactElement } from 'react';
 
-import { colors, radii, spacing } from '../../../theme';
-import { Text } from '../typography/Text';
+import { colors, radii, spacing } from '@/theme';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface TooltipProps {
   label: string;
   children: ReactElement;
-  /** Berapa lama tooltip tampil sebelum otomatis hilang, dalam ms. */
   duration?: number;
 }
 
@@ -18,10 +17,6 @@ interface Anchor {
   width: number;
 }
 
-// Tooltip muncul lewat long-press pada trigger-nya lalu hilang otomatis.
-// Cocok untuk memberi penjelasan singkat pada ikon-only button.
-// Catatan: karena dibangun di atas RN Modal, selama tampil ia bisa
-// menangkap sentuhan di area layar itu sampai auto-hide (durasi pendek).
 export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
   const [anchor, setAnchor] = useState<Anchor | null>(null);
   const triggerRef = useRef<View>(null);

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { CartItem, Order, Page, PaymentMethod } from '../types/models';
+import type { CartItem, Order, Page, PaymentMethod } from '@/types/models';
 
 export interface CreateOrderPayload {
   paymentMethod: PaymentMethod;

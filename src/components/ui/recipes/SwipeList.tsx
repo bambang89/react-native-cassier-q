@@ -3,9 +3,9 @@ import { Swipeable } from 'react-native-gesture-handler';
 import type { FlatListProps } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { colors, spacing } from '../../../theme';
-import { Pressable } from '../forms/Pressable';
-import { Text } from '../typography/Text';
+import { colors, spacing } from '@/theme';
+import { Pressable } from '@/components/ui/forms/Pressable';
+import { Text } from '@/components/ui/typography/Text';
 
 export interface SwipeListAction {
   label: string;
@@ -20,9 +20,6 @@ export interface SwipeListProps<T> extends Omit<FlatListProps<T>, 'renderItem'> 
   keyExtractor: FlatListProps<T>['keyExtractor'];
 }
 
-// List dengan baris yang bisa di-swipe untuk memunculkan aksi (mis. "Hapus"
-// pada item keranjang atau produk). Dibangun di atas Swipeable dari
-// react-native-gesture-handler (sudah jadi dependency project).
 export function SwipeList<T>({ data, renderItem, rightActions, keyExtractor, ...rest }: SwipeListProps<T>) {
   return (
     <FlatList
