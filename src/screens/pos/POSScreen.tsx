@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Image, StyleSheet, View } from 'react-native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchProducts } from '@/store/slices/productsSlice';
+import { fetchProductUnits } from '@/store/slices/productUnitsSlice';
 import { openSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
 import { createOrder } from '@/store/slices/ordersSlice';
 import { addItem, clearCart, selectCartCount, selectCartTotal } from '@/store/slices/cartSlice';
+import type { AddItemPayload } from '@/store/slices/cartSlice';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
-import type { CartItem, Product } from '@/types/models';
+import type { CartItem, Order, Product, ProductUnit } from '@/types/models';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/types/models';
+import { resolveSaleUnitChoices } from '@/utils/productUnits';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Modal } from '@/components/ui/overlay';
@@ -31,24 +34,48 @@ export default function POSScreen({ navigation }: Props) {
   const cartTotal = useAppSelector(selectCartTotal);
   const session = useAppSelector((state) => state.cashierSession.current);
   const sessionStatus = useAppSelector((state) => state.cashierSession.status);
+  const productUnitsById = useAppSelector((state) => state.productUnits.byProductId);
   const [openSessionModalVisible, setOpenSessionModalVisible] = useState(false);
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [unitPicker, setUnitPicker] = useState<{ product: Product; choices: ProductUnit[] } | null>(null);
 
   useEffect(() => {
     if (status === 'idle') dispatch(fetchProducts({}));
     dispatch(fetchCurrentSession());
   }, [status, dispatch]);
 
-  const onAddToCart = (product: Product) => {
+  const addToCartWithUnit = (product: Product, unit: ProductUnit) => {
+    const payload: AddItemPayload = {
+      product,
+      unit: { unitId: unit.unitId, unitName: unit.unitName, conversionToBase: unit.conversionToBase },
+    };
+    dispatch(addItem(payload));
+  };
+
+  const onAddToCart = async (product: Product) => {
     if (!session) {
       Alert.alert('Sesi kasir belum dibuka', 'Buka sesi kasir dulu sebelum mencatat penjualan.');
       return;
     }
-    dispatch(addItem(product));
+    let units = productUnitsById[product.id];
+    if (!units) {
+      try {
+        units = await dispatch(fetchProductUnits(product.id)).unwrap().then((r) => r.items);
+      } catch {
+        units = [];
+      }
+    }
+    const choices = resolveSaleUnitChoices(units, product);
+    if (choices.length === 1) {
+      addToCartWithUnit(product, choices[0]);
+    } else {
+      setUnitPicker({ product, choices });
+    }
   };
 
   const renderProduct = ({ item }: { item: Product }) => (
     <Card onPress={() => onAddToCart(item)} style={styles.card}>
+      {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.cardImage} /> : null}
       <Text weight="semibold" numberOfLines={2}>
         {item.productName}
       </Text>
@@ -66,7 +93,14 @@ export default function POSScreen({ navigation }: Props) {
       <Header
         title="Kasir"
         rightElement={
-          <Button size="sm" onPress={() => navigation.navigate('Scanner')}>
+          <Button
+            size="sm"
+            onPress={() =>
+              navigation.navigate('Scanner', {
+                onFound: (product) => onAddToCart(product),
+              })
+            }
+          >
             Scan Barcode
           </Button>
         }
@@ -124,12 +158,36 @@ export default function POSScreen({ navigation }: Props) {
         <CheckoutForm
           total={cartTotal}
           cartItems={cartItems}
-          onDone={() => {
+          onDone={(order) => {
             setCheckoutModalVisible(false);
             dispatch(clearCart());
+            navigation.navigate('Receipt', { orderId: order.id });
           }}
           onCancel={() => setCheckoutModalVisible(false)}
         />
+      </Modal>
+
+      <Modal isOpen={!!unitPicker} onClose={() => setUnitPicker(null)}>
+        {unitPicker ? (
+          <View>
+            <Text weight="semibold" size="lg" style={styles.modalTitle}>
+              Pilih satuan — {unitPicker.product.productName}
+            </Text>
+            {unitPicker.choices.map((unit) => (
+              <Button
+                key={unit.unitId}
+                variant="outline"
+                style={styles.unitChoice}
+                onPress={() => {
+                  addToCartWithUnit(unitPicker.product, unit);
+                  setUnitPicker(null);
+                }}
+              >
+                {`${unit.unitName} — Rp ${(unitPicker.product.sellingPrice * unit.conversionToBase).toLocaleString('id-ID')}`}
+              </Button>
+            ))}
+          </View>
+        ) : null}
       </Modal>
     </View>
   );
@@ -182,7 +240,7 @@ function CheckoutForm({
 }: {
   total: number;
   cartItems: CartItem[];
-  onDone: () => void;
+  onDone: (order: Order) => void;
   onCancel: () => void;
 }) {
   const dispatch = useAppDispatch();
@@ -201,9 +259,10 @@ function CheckoutForm({
     }
     setSubmitting(true);
     try {
-      await dispatch(createOrder({ items: cartItems, payload: { paymentMethod, paymentAmount: amount } })).unwrap();
-      Alert.alert('Berhasil', 'Transaksi selesai.');
-      onDone();
+      const order = await dispatch(
+        createOrder({ items: cartItems, payload: { paymentMethod, paymentAmount: amount } }),
+      ).unwrap();
+      onDone(order);
     } catch {
       Alert.alert('Gagal', 'Transaksi gagal, coba lagi.');
     } finally {
@@ -258,6 +317,7 @@ const styles = StyleSheet.create({
   grid: { paddingHorizontal: spacing.md, paddingBottom: 80 },
   gridRow: { gap: spacing.md },
   card: { flex: 1, minHeight: 90, justifyContent: 'space-between', marginBottom: spacing.md },
+  cardImage: { width: '100%', height: 64, borderRadius: 8, marginBottom: spacing.sm, backgroundColor: colors.gray[100] },
   cardPrice: { marginTop: spacing.sm },
   empty: { marginTop: spacing['3xl'] },
   cartBar: {
@@ -273,6 +333,7 @@ const styles = StyleSheet.create({
   },
   cartText: { color: colors.white },
   modalTitle: { marginBottom: spacing.base },
+  unitChoice: { marginBottom: spacing.sm },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },
   checkoutTotal: { marginBottom: spacing.base },

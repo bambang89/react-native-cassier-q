@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { CartItem, Order, Page, PaymentMethod } from '@/types/models';
+import type { CartItem, Order, Page, PaymentMethod, Receipt } from '@/types/models';
 
 export interface CreateOrderPayload {
   paymentMethod: PaymentMethod;
@@ -37,5 +37,11 @@ export async function fetchOrder(id: string): Promise<Order> {
 
 export async function voidOrder(id: string, reason: string): Promise<Order> {
   const { data } = await apiClient.post<Order>(`/orders/${id}/void`, { reason });
+  return data;
+}
+
+/** Data struk resmi (nama toko, metode bayar, status utang) — buat dicetak/dibagikan. */
+export async function fetchReceipt(id: string): Promise<Receipt> {
+  const { data } = await apiClient.get<Receipt>(`/orders/${id}/receipt`);
   return data;
 }

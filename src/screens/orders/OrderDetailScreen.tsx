@@ -85,6 +85,14 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
             </Text>
           ) : null}
 
+          <Button
+            variant="outline"
+            style={styles.receiptButton}
+            onPress={() => navigation.navigate('Receipt', { orderId: order.id })}
+          >
+            Cetak Ulang Struk
+          </Button>
+
           {order.status === 'PAID' ? (
             <Button variant="danger" style={styles.voidButton} onPress={() => setVoidModalVisible(true)}>
               Batalkan Transaksi
@@ -171,7 +179,8 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1, marginRight: spacing.sm },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs },
   voidReason: { marginTop: spacing.base },
-  voidButton: { marginTop: spacing.xl },
+  receiptButton: { marginTop: spacing.xl },
+  voidButton: { marginTop: spacing.sm },
   modalTitle: { marginBottom: spacing.base },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },

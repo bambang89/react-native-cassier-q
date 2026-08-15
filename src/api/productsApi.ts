@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Page, Product, Stock } from '@/types/models';
+import type { Page, Product, ProductUnit, Stock } from '@/types/models';
 
 export interface FetchProductsParams {
   search?: string;
@@ -38,6 +38,7 @@ export interface ProductPayload {
   categoryId: string;
   brand?: string;
   description?: string;
+  imageUrl?: string;
   baseUnitId: string;
   sellingPrice: number;
   costPrice?: number;
@@ -65,5 +66,27 @@ export interface RestockPayload {
 
 export async function restockProduct(id: string, payload: RestockPayload): Promise<Stock> {
   const { data } = await apiClient.post<Stock>(`/products/${id}/restock`, payload);
+  return data;
+}
+
+/** Daftar satuan berlaku (dasar + alternatif) utk 1 produk. */
+export async function fetchProductUnits(productId: string): Promise<ProductUnit[]> {
+  const { data } = await apiClient.get<ProductUnit[]>(`/products/${productId}/units`);
+  return data;
+}
+
+export interface RegisterProductUnitPayload {
+  unitId: string;
+  conversionToBase: number;
+  purchaseUnit?: boolean;
+  saleUnit?: boolean;
+}
+
+/** Daftarkan satuan alternatif + rasio konversinya (pasangan tulis dari /convert). */
+export async function registerProductUnit(
+  productId: string,
+  payload: RegisterProductUnitPayload,
+): Promise<ProductUnit> {
+  const { data } = await apiClient.post<ProductUnit>(`/products/${productId}/units`, payload);
   return data;
 }

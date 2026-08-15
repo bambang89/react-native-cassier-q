@@ -6,13 +6,17 @@ import { useIsFocused } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch } from '@/store/hooks';
-import { addItem } from '@/store/slices/cartSlice';
 import { fetchProductByBarcode } from '@/store/slices/productsSlice';
 import type { RootStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Scanner'>;
 
-export default function ScannerScreen({ navigation }: Props) {
+// Scanner generik: cari produk lewat barcode lalu serahkan hasilnya ke
+// pemanggil (route.params.onFound/onNotFound) — layar ini sendiri cuma
+// urusan kamera, debounce, dan lookup, bukan keputusan bisnis "produk
+// ketemu/tidak ngapain".
+export default function ScannerScreen({ navigation, route }: Props) {
+  const { onFound, onNotFound } = route.params;
   const { hasPermission, requestPermission } = useCameraPermission();
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
@@ -30,7 +34,10 @@ export default function ScannerScreen({ navigation }: Props) {
       try {
         const product = await dispatch(fetchProductByBarcode(value)).unwrap();
         if (product) {
-          dispatch(addItem(product));
+          onFound(product);
+          navigation.goBack();
+        } else if (onNotFound) {
+          onNotFound(value);
           navigation.goBack();
         } else {
           Alert.alert('Tidak ditemukan', `Produk dengan barcode ${value} tidak ada.`, [
@@ -45,7 +52,7 @@ export default function ScannerScreen({ navigation }: Props) {
         setLookingUp(false);
       }
     },
-    [dispatch, lookingUp, navigation],
+    [dispatch, lookingUp, navigation, onFound, onNotFound],
   );
 
   if (!hasPermission) {

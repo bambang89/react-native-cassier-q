@@ -8,16 +8,31 @@ type CartState = {
 
 const initialState: CartState = { items: [] };
 
+export interface AddItemPayload {
+  product: Product;
+  /** Kalau tidak diisi, dianggap dijual dalam base unit produknya. */
+  unit?: { unitId: string; unitName: string; conversionToBase: number };
+}
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addItem(state, action: PayloadAction<Product>) {
-      const existing = state.items.find((item) => item.product.id === action.payload.id);
+    addItem(state, action: PayloadAction<AddItemPayload>) {
+      const { product, unit } = action.payload;
+      const existing = state.items.find((item) => item.product.id === product.id);
       if (existing) {
+        // Produk yang sama sudah ada di keranjang — satuan yang dipilih pertama kali
+        // yang dipakai (belum ada dukungan 1 produk dalam 2 satuan sekaligus di keranjang).
         existing.quantity += 1;
       } else {
-        state.items.push({ product: action.payload, unitId: action.payload.baseUnitId, quantity: 1 });
+        state.items.push({
+          product,
+          unitId: unit?.unitId ?? product.baseUnitId,
+          unitName: unit?.unitName ?? product.baseUnitName,
+          unitConversionToBase: unit?.conversionToBase ?? 1,
+          quantity: 1,
+        });
       }
     },
     incrementItem(state, action: PayloadAction<string>) {
@@ -45,7 +60,10 @@ export const { addItem, incrementItem, decrementItem, removeItem, clearCart } = 
 export default cartSlice.reducer;
 
 export const selectCartTotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
+  state.cart.items.reduce(
+    (sum, item) => sum + item.product.sellingPrice * item.unitConversionToBase * item.quantity,
+    0,
+  );
 
 export const selectCartCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);

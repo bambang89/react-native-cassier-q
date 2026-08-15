@@ -10,8 +10,11 @@ import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import ScannerScreen from '@/screens/pos/ScannerScreen';
 import CategoriesScreen from '@/screens/products/CategoriesScreen';
+import UnitsScreen from '@/screens/products/UnitsScreen';
 import ProductFormScreen from '@/screens/products/ProductFormScreen';
 import OrderDetailScreen from '@/screens/orders/OrderDetailScreen';
+import ReceiptScreen from '@/screens/orders/ReceiptScreen';
+import StoreProfileScreen from '@/screens/profile/StoreProfileScreen';
 import type { RootStackParamList } from './types';
 import { colors } from '@/theme';
 
@@ -49,8 +52,11 @@ export default function RootNavigator() {
               options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
             />
             <Stack.Screen name="Categories" component={CategoriesScreen} />
+            <Stack.Screen name="Units" component={UnitsScreen} />
             <Stack.Screen name="ProductForm" component={ProductFormScreen} />
             <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
+            <Stack.Screen name="Receipt" component={ReceiptScreen} />
+            <Stack.Screen name="StoreProfile" component={StoreProfileScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

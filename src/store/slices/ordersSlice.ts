@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import * as ordersApi from '@/api/ordersApi';
 import type { CreateOrderPayload, FetchOrdersParams } from '@/api/ordersApi';
-import type { CartItem, Order } from '@/types/models';
+import type { CartItem, Order, Receipt } from '@/types/models';
 
 type AsyncStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
@@ -20,6 +20,10 @@ type OrdersState = {
   createError: string | null;
   voidStatus: AsyncStatus;
   voidError: string | null;
+  /** Data struk resmi (GET /orders/{id}/receipt) untuk ReceiptScreen. */
+  receipt: Receipt | null;
+  receiptStatus: AsyncStatus;
+  receiptError: string | null;
 };
 
 const initialState: OrdersState = {
@@ -35,6 +39,9 @@ const initialState: OrdersState = {
   createError: null,
   voidStatus: 'idle',
   voidError: null,
+  receipt: null,
+  receiptStatus: 'idle',
+  receiptError: null,
 };
 
 export const fetchOrders = createAsyncThunk('orders/fetchAll', async (params: FetchOrdersParams = {}) =>
@@ -54,6 +61,8 @@ export const voidOrder = createAsyncThunk(
   async ({ id, reason }: { id: string; reason: string }) => ordersApi.voidOrder(id, reason),
 );
 
+export const fetchReceipt = createAsyncThunk('orders/fetchReceipt', async (id: string) => ordersApi.fetchReceipt(id));
+
 const ordersSlice = createSlice({
   name: 'orders',
   initialState,
@@ -62,6 +71,11 @@ const ordersSlice = createSlice({
       state.current = null;
       state.currentStatus = 'idle';
       state.currentError = null;
+    },
+    clearReceipt(state) {
+      state.receipt = null;
+      state.receiptStatus = 'idle';
+      state.receiptError = null;
     },
   },
   extraReducers: (builder) => {
@@ -99,6 +113,10 @@ const ordersSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.createStatus = 'succeeded';
         state.items.unshift(action.payload);
+        // Langsung isi `current` juga — ReceiptScreen dibuka tepat setelah
+        // checkout dan butuh order ini tanpa nunggu fetch ulang.
+        state.current = action.payload;
+        state.currentStatus = 'succeeded';
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.createStatus = 'failed';
@@ -117,9 +135,21 @@ const ordersSlice = createSlice({
       .addCase(voidOrder.rejected, (state, action) => {
         state.voidStatus = 'failed';
         state.voidError = action.error.message ?? 'Transaksi tidak bisa dibatalkan';
+      })
+      .addCase(fetchReceipt.pending, (state) => {
+        state.receiptStatus = 'loading';
+        state.receiptError = null;
+      })
+      .addCase(fetchReceipt.fulfilled, (state, action) => {
+        state.receiptStatus = 'succeeded';
+        state.receipt = action.payload;
+      })
+      .addCase(fetchReceipt.rejected, (state, action) => {
+        state.receiptStatus = 'failed';
+        state.receiptError = action.error.message ?? 'Gagal memuat struk';
       });
   },
 });
 
-export const { clearCurrentOrder } = ordersSlice.actions;
+export const { clearCurrentOrder, clearReceipt } = ordersSlice.actions;
 export default ordersSlice.reducer;

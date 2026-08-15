@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { getActiveApiEnv, setActiveApiEnv } from '@/api/client';
 import { API_ENVIRONMENTS, API_ENV_NAMES } from '@/config/apiEnvironments';
@@ -8,6 +11,7 @@ import { env } from '@/config/env';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { changePassword, logout, logoutAll } from '@/store/slices/authSlice';
 import { closeSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
@@ -15,7 +19,12 @@ import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { Card, Header } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
-export default function ProfileScreen() {
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Profile'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+
+export default function ProfileScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const session = useAppSelector((state) => state.cashierSession.current);
@@ -46,6 +55,15 @@ export default function ProfileScreen() {
               </Badge>
             ))}
           </View>
+        </Card>
+
+        <Text weight="semibold" style={styles.sectionTitle}>
+          Toko
+        </Text>
+        <Card padding="none">
+          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StoreProfile')}>
+            Profil Toko
+          </Button>
         </Card>
 
         <Text weight="semibold" style={styles.sectionTitle}>

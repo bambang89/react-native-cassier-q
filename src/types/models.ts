@@ -52,6 +52,7 @@ export type Product = {
   categoryName: string;
   brand: string | null;
   description: string | null;
+  imageUrl: string | null;
   baseUnitId: string;
   baseUnitName: string;
   status: ProductStatus;
@@ -59,6 +60,29 @@ export type Product = {
   costPrice: number | null;
   /** Stok di toko user yang sedang login, dalam base unit. */
   stockQuantity: number;
+};
+
+/** Hasil konversi jumlah dari satuan lain ke satuan dasar produk (GET /products/{id}/convert). */
+export type UnitConversion = {
+  productId: string;
+  fromUnitId: string;
+  fromUnitName: string;
+  quantity: number;
+  baseUnitId: string;
+  baseUnitName: string;
+  conversionToBase: number;
+  quantityBaseUnit: number;
+};
+
+/** Satuan yang berlaku utk 1 produk (dasar + alternatif), dari GET/POST /products/{id}/units. */
+export type ProductUnit = {
+  unitId: string;
+  unitName: string;
+  /** Berapa unit dasar per 1 satuan ini, mis. DUS punya conversionToBase 24 kalau 1 DUS = 24 PCS. */
+  conversionToBase: number;
+  baseUnit: boolean;
+  purchaseUnit: boolean;
+  saleUnit: boolean;
 };
 
 export type Stock = {
@@ -69,6 +93,13 @@ export type Stock = {
   minimumStock: number | null;
   maximumStock: number | null;
   updatedAt: string;
+};
+
+/** Satuan produk (pcs, dus, kg, ...) — katalog global, bukan per-toko. */
+export type Unit = {
+  id: string;
+  unitCode: string;
+  unitName: string;
 };
 
 // --- Orders (sales_transactions) -----------------------------------------
@@ -114,13 +145,51 @@ export type Order = {
   status: OrderStatus;
   voidReason: string | null;
   items: OrderItem[];
+  /** Diisi kalau transaksi dijual ke pelanggan terdaftar (fitur hutang/piutang). */
+  customerId: string | null;
+  /** Sisa yang belum dibayar, kalau transaksi ini sebagian/seluruhnya kredit. */
+  debtAmount: number | null;
+};
+
+/** Data resmi struk dari backend (GET /orders/{id}/receipt) — sudah termasuk
+ * profil toko & metode pembayaran, jadi lebih lengkap daripada OrderResponse. */
+export type ReceiptItem = {
+  productName: string;
+  quantity: number;
+  unitName: string;
+  unitPrice: number;
+  subtotal: number;
+};
+
+export type Receipt = {
+  orderId: string;
+  transactionNumber: string;
+  transactionDate: string;
+  status: OrderStatus;
+  storeName: string | null;
+  storeAddress: string | null;
+  storePhone: string | null;
+  cashierName: string;
+  items: ReceiptItem[];
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  paymentMethod: PaymentMethod | string;
+  paymentAmount: number;
+  changeAmount: number;
+  customerName: string | null;
+  debtAmount: number | null;
 };
 
 /** Keranjang lokal sebelum dikirim ke POST /orders. */
 export type CartItem = {
   product: Product;
-  /** Default = product.baseUnitId — backend belum punya endpoint konversi unit. */
+  /** Default = product.baseUnitId kalau cashier tidak pilih satuan lain. */
   unitId: string;
+  unitName: string;
+  /** Rasio unit ini ke base unit produk — dipakai hitung subtotal LOKAL sebelum checkout (server yang hitung angka final). */
+  unitConversionToBase: number;
   quantity: number;
 };
 
@@ -158,6 +227,21 @@ export type SalesSummary = {
   orderCount: number;
   grossSales: number;
   topSellers: BestSellerItem[];
+};
+
+// --- Store profile -----------------------------------------------------
+
+export type StoreProfile = {
+  id: string;
+  storeCode: string;
+  storeName: string;
+  address: string | null;
+  province: string | null;
+  city: string | null;
+  phone: string | null;
+  status: string;
+  headOffice: boolean;
+  settings: Record<string, string>;
 };
 
 // --- Pagination --------------------------------------------------------
