@@ -4,7 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 import { defaultBaseUrlFor, env } from '@/config/env';
 import { isApiEnvName } from '@/config/apiEnvironments';
 import type { ApiEnvName } from '@/config/apiEnvironments';
-import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
+import { appVersion, deviceOsVersion, deviceType } from '@/config/deviceInfo';
+import { clearTokens, loadDeviceId, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
 
 type SessionExpiredHandler = () => void;
 let onSessionExpired: SessionExpiredHandler | null = null;
@@ -26,10 +27,6 @@ export const apiClient = axios.create({
   },
 });
 
-// Endpoint auth yang tidak butuh (atau belum punya) access token — jangan
-// pernah nempelin bearer token yang mungkin sudah kedaluwarsa ke sini.
-// `/auth/me` dan `/auth/change-password` SENGAJA tidak masuk daftar ini
-// karena keduanya butuh bearer token (lihat security di /v3/api-docs).
 const PUBLIC_AUTH_PATHS = [
   '/auth/login',
   '/auth/register',
@@ -39,21 +36,8 @@ const PUBLIC_AUTH_PATHS = [
   '/auth/reset-password',
 ];
 
-// --- Bearer token attachment --------------------------------------------
-apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  if (PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path))) {
-    return config;
-  }
-  const tokens = await loadTokens();
-  if (tokens?.accessToken) {
-    config.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
-  }
-  return config;
-});
+const AUTH_API_PREFIX = '/auth/';
 
-// --- Refresh token on 401, with request queueing ------------------------
-// Axios instance terpisah dari apiClient supaya panggilan refresh tidak
-// pernah re-enter response interceptor di bawah (hindari infinite loop).
 const refreshClient = axios.create({ baseURL: env.apiBaseUrl, timeout: 15000 });
 
 let refreshPromise: Promise<TokenSet> | null = null;
@@ -82,6 +66,61 @@ async function refreshAccessToken(): Promise<TokenSet> {
   await saveTokens(tokens);
   return tokens;
 }
+
+function isTokenExpired(tokens: TokenSet): boolean {
+  return tokens.expiresAt <= Date.now();
+}
+
+let forceLogoutPromise: Promise<void> | null = null;
+
+async function forceLogoutOnExpiry(): Promise<void> {
+  forceLogoutPromise ??= (async () => {
+    const current = await loadTokens();
+    try {
+      if (current?.refreshToken) {
+        await refreshClient.post('/auth/logout', { refreshToken: current.refreshToken });
+      }
+    } catch {
+      // Server mungkin sudah menganggap refresh token itu mati juga — tetap
+      // lanjut bersihkan sesi lokal, jangan biarkan user nyangkut.
+    } finally {
+      await clearTokens();
+      onSessionExpired?.();
+    }
+  })().finally(() => {
+    forceLogoutPromise = null;
+  });
+  return forceLogoutPromise;
+}
+
+apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const isAuthApi = config.url?.includes(AUTH_API_PREFIX) ?? false;
+  if (!isAuthApi) {
+    const deviceId = await loadDeviceId();
+    if (deviceId) config.headers.set('X-Device-Id', deviceId);
+    config.headers.set('X-Device-OS', deviceOsVersion);
+    config.headers.set('X-App-Version', appVersion);
+    config.headers.set('X-Device-Type', deviceType);
+  }
+  return config;
+});
+
+// --- Bearer token attachment --------------------------------------------
+apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  if (PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path))) {
+    return config;
+  }
+  const tokens = await loadTokens();
+  if (tokens && isTokenExpired(tokens)) {
+    await forceLogoutOnExpiry();
+    // Batalkan request ini — tidak ada gunanya lanjut kirim tanpa token valid.
+    return Promise.reject(new axios.Cancel('Session expired (expiresAt lewat, sesi sudah di-revoke)'));
+  }
+  if (tokens?.accessToken) {
+    config.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
+  }
+  return config;
+});
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -139,7 +178,6 @@ export async function setActiveApiEnv(nextEnv: ApiEnvName): Promise<void> {
   activeApiEnv = nextEnv;
   applyBaseUrl(defaultBaseUrlFor(nextEnv));
   await SecureStore.setItemAsync(API_ENV_OVERRIDE_KEY, nextEnv);
-  // Ganti backend = identitas sesi lama (token) sudah tidak relevan.
   await clearTokens();
   onSessionExpired?.();
 }

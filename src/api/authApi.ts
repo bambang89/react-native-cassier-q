@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
+import { clearTokens, loadTokens, saveDeviceId, saveTokens, type TokenSet } from './tokenStorage';
+import { generateDeviceId } from '@/config/deviceInfo';
 import type { AuthResponse, User } from '@/types/models';
 
 async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
@@ -9,6 +10,7 @@ async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
     expiresAt: Date.now() + data.expiresInSeconds * 1000,
   };
   await saveTokens(tokens);
+  await saveDeviceId(generateDeviceId());
   return tokens;
 }
 
@@ -42,6 +44,18 @@ export async function logout(): Promise<void> {
   } finally {
     await clearTokens();
   }
+}
+
+export async function logoutAll(): Promise<void> {
+  try {
+    await apiClient.post('/auth/logout-all');
+  } finally {
+    await clearTokens();
+  }
+}
+
+export async function revokeUserSessions(userId: string): Promise<void> {
+  await apiClient.post(`/auth/revoke/${userId}`);
 }
 
 export async function fetchCurrentUser(): Promise<User> {

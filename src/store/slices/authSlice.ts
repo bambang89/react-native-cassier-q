@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 
 import * as authApi from '@/api/authApi';
 import { loadPersistedApiEnvOverride } from '@/api/client';
-import { loadTokens } from '@/api/tokenStorage';
+import { loadDeviceId, loadTokens, saveDeviceId } from '@/api/tokenStorage';
+import { generateDeviceId } from '@/config/deviceInfo';
 import type { RegisterPayload } from '@/api/authApi';
 import type { User } from '@/types/models';
 
@@ -12,8 +13,8 @@ type AuthState = {
   user: User | null;
   status: 'idle' | 'checking' | 'authenticating' | 'authenticated' | 'unauthenticated';
   error: string | null;
-  /** Status untuk alur lupa/reset/ganti kata sandi — independen dari sesi login utama. */
   passwordAction: { status: AsyncStatus; error: string | null };
+  revokeUserAction: { status: AsyncStatus; error: string | null };
 };
 
 const initialState: AuthState = {
@@ -21,14 +22,16 @@ const initialState: AuthState = {
   status: 'idle',
   error: null,
   passwordAction: { status: 'idle', error: null },
+  revokeUserAction: { status: 'idle', error: null },
 };
 
 export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
-  // Override environment API tersimpan (lihat setActiveApiEnv) harus kepasang
-  // sebelum request pertama, termasuk /auth/me di bawah ini.
   await loadPersistedApiEnvOverride();
   const tokens = await loadTokens();
   if (!tokens) return null;
+  if (!(await loadDeviceId())) {
+    await saveDeviceId(generateDeviceId());
+  }
   return authApi.fetchCurrentUser();
 });
 
@@ -38,8 +41,6 @@ export const login = createAsyncThunk(
     authApi.login(username, password),
 );
 
-// /auth/register langsung membalas access+refresh token, jadi mendaftar =
-// langsung masuk (tidak perlu login manual setelahnya).
 export const register = createAsyncThunk('auth/register', async (payload: RegisterPayload) =>
   authApi.register(payload),
 );
@@ -47,6 +48,18 @@ export const register = createAsyncThunk('auth/register', async (payload: Regist
 export const logout = createAsyncThunk('auth/logout', async () => {
   await authApi.logout();
 });
+
+export const logoutAll = createAsyncThunk('auth/logoutAll', async () => {
+  await authApi.logoutAll();
+});
+
+export const revokeUserSessions = createAsyncThunk(
+  'auth/revokeUserSessions',
+  async (userId: string) => {
+    await authApi.revokeUserSessions(userId);
+    return userId;
+  },
+);
 
 export const forgotPassword = createAsyncThunk('auth/forgotPassword', async (username: string) => {
   await authApi.forgotPassword(username);
@@ -118,6 +131,19 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.status = 'unauthenticated';
+      })
+      .addCase(logoutAll.fulfilled, (state) => {
+        state.user = null;
+        state.status = 'unauthenticated';
+      })
+      .addCase(revokeUserSessions.pending, (state) => {
+        state.revokeUserAction = { status: 'loading', error: null };
+      })
+      .addCase(revokeUserSessions.fulfilled, (state) => {
+        state.revokeUserAction = { status: 'succeeded', error: null };
+      })
+      .addCase(revokeUserSessions.rejected, (state, action) => {
+        state.revokeUserAction = { status: 'failed', error: action.error.message ?? 'Gagal memaksa logout user' };
       })
       .addCase(forgotPassword.pending, (state) => {
         state.passwordAction = { status: 'loading', error: null };

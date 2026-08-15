@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 const ACCESS_TOKEN_KEY = 'cassierq.auth.accessToken';
 const REFRESH_TOKEN_KEY = 'cassierq.auth.refreshToken';
 const EXPIRES_AT_KEY = 'cassierq.auth.expiresAt';
+const DEVICE_ID_KEY = 'cassierq.session.deviceId';
 
 export type TokenSet = {
   accessToken: string;
@@ -37,5 +38,14 @@ export async function clearTokens(): Promise<void> {
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
     SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
     SecureStore.deleteItemAsync(EXPIRES_AT_KEY),
+    SecureStore.deleteItemAsync(DEVICE_ID_KEY),
   ]);
+}
+
+export async function saveDeviceId(deviceId: string): Promise<void> {
+  await SecureStore.setItemAsync(DEVICE_ID_KEY, deviceId);
+}
+
+export async function loadDeviceId(): Promise<string | null> {
+  return SecureStore.getItemAsync(DEVICE_ID_KEY);
 }

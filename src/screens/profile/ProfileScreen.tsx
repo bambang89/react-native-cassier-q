@@ -6,7 +6,7 @@ import { API_ENVIRONMENTS, API_ENV_NAMES } from '@/config/apiEnvironments';
 import type { ApiEnvName } from '@/config/apiEnvironments';
 import { env } from '@/config/env';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { changePassword, logout } from '@/store/slices/authSlice';
+import { changePassword, logout, logoutAll } from '@/store/slices/authSlice';
 import { closeSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Select } from '@/components/ui/forms';
@@ -22,6 +22,7 @@ export default function ProfileScreen() {
   const [closeSessionVisible, setCloseSessionVisible] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
+  const [logoutAllConfirmVisible, setLogoutAllConfirmVisible] = useState(false);
 
   useEffect(() => {
     dispatch(fetchCurrentSession());
@@ -93,6 +94,9 @@ export default function ProfileScreen() {
         <Button variant="danger" style={styles.logoutButton} onPress={() => setLogoutConfirmVisible(true)}>
           Keluar
         </Button>
+        <Button variant="outline" style={styles.logoutAllButton} onPress={() => setLogoutAllConfirmVisible(true)}>
+          Keluar dari Semua Perangkat
+        </Button>
       </ScrollView>
 
       <Modal isOpen={closeSessionVisible} onClose={() => setCloseSessionVisible(false)}>
@@ -118,6 +122,19 @@ export default function ProfileScreen() {
         onConfirm={() => {
           setLogoutConfirmVisible(false);
           dispatch(logout());
+        }}
+      />
+
+      <AlertDialog
+        isOpen={logoutAllConfirmVisible}
+        onClose={() => setLogoutAllConfirmVisible(false)}
+        title="Keluar dari semua perangkat?"
+        description="Semua sesi login akun ini — di HP manapun — akan langsung dicabut."
+        confirmText="Keluar Semua"
+        isDanger
+        onConfirm={() => {
+          setLogoutAllConfirmVisible(false);
+          dispatch(logoutAll());
         }}
       />
     </View>
@@ -261,6 +278,7 @@ const styles = StyleSheet.create({
   closeSessionButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },
   rowButton: { alignItems: 'flex-start', paddingHorizontal: spacing.base, paddingVertical: spacing.md },
   logoutButton: { marginTop: spacing['2xl'] },
+  logoutAllButton: { marginTop: spacing.sm },
   modalTitle: { marginBottom: spacing.base },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },
