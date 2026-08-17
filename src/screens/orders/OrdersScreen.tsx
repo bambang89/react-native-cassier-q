@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -41,7 +42,7 @@ export default function OrdersScreen({ navigation }: Props) {
   }, [dispatch]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header title="Riwayat Transaksi" />
 
       {totalElements > 0 ? (
@@ -99,7 +100,7 @@ export default function OrdersScreen({ navigation }: Props) {
           )
         }
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchSalesSummary } from '@/store/slices/reportsSlice';
@@ -39,7 +40,7 @@ export default function ReportsScreen() {
   }, [range]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header title="Laporan Penjualan" />
 
       <View style={styles.rangeRow}>
@@ -122,7 +123,7 @@ export default function ReportsScreen() {
           </Card>
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

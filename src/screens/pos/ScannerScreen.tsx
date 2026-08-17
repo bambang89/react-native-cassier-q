@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { CodeScanner, type Barcode } from 'react-native-vision-camera-barcode-scanner';
 import { useIsFocused } from '@react-navigation/native';
@@ -17,6 +18,7 @@ export default function ScannerScreen({ navigation, route }: Props) {
   const { hasPermission, requestPermission } = useCameraPermission();
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const [lookingUp, setLookingUp] = useState(false);
   const lastScannedRef = useRef<string | null>(null);
 
@@ -75,7 +77,7 @@ export default function ScannerScreen({ navigation, route }: Props) {
           <ActivityIndicator color={colors.white} size="large" />
         </View>
       ) : null}
-      <Pressable style={styles.closeButton} onPress={() => navigation.goBack()}>
+      <Pressable style={[styles.closeButton, { top: insets.top + 12 }]} onPress={() => navigation.goBack()}>
         <Text style={styles.closeButtonText}>Tutup</Text>
       </Pressable>
     </View>
@@ -96,7 +98,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 56,
     right: 20,
     backgroundColor: colors.overlayStrong,
     borderRadius: radii.full,

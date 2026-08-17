@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -75,7 +76,7 @@ export default function ProductsScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
         title="Produk"
         rightElement={
@@ -206,7 +207,7 @@ export default function ProductsScreen({ navigation }: Props) {
         isDanger
         onConfirm={() => deleteTarget && onDelete(deleteTarget)}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

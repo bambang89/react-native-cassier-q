@@ -7,7 +7,7 @@ import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 import type { PressableProps } from './Pressable';
 
-export type ButtonVariant = 'solid' | 'outline' | 'ghost' | 'danger';
+export type ButtonVariant = 'solid' | 'outline' | 'ghost' | 'danger' | 'dangerOutline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'children'> {
@@ -50,6 +50,15 @@ function variantStyle(variant: ButtonVariant): { container: ViewStyle; textColor
     case 'danger':
       // Sedikit shadow biar tombol "solid" kelihatan bisa ditekan, bukan cuma blok warna datar.
       return { container: { backgroundColor: colors.error[600], ...shadows.sm }, textColor: 'inverse' };
+    case 'dangerOutline':
+      return {
+        container: {
+          backgroundColor: colors.transparent,
+          borderWidth: 1.5,
+          borderColor: colors.error[600],
+        },
+        textColor: 'danger',
+      };
     case 'solid':
     default:
       return { container: { backgroundColor: colors.primary[600], ...shadows.sm }, textColor: 'inverse' };

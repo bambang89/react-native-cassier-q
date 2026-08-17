@@ -5,7 +5,9 @@ import POSScreen from '@/screens/pos/POSScreen';
 import ProductsScreen from '@/screens/products/ProductsScreen';
 import OrdersScreen from '@/screens/orders/OrdersScreen';
 import ReportsScreen from '@/screens/reports/ReportsScreen';
+import ExpensesScreen from '@/screens/expenses/ExpensesScreen';
 import ProfileScreen from '@/screens/profile/ProfileScreen';
+import SidebarTabBar from './SidebarTabBar';
 import type { MainTabParamList } from './types';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, fontFamilies, radii, spacing } from '@/theme';
@@ -17,6 +19,7 @@ const TAB_ICONS: Record<keyof MainTabParamList, string> = {
   Products: '📦',
   Orders: '🧾',
   Reports: '📊',
+  Expenses: '💸',
   Profile: '👤',
 };
 
@@ -33,6 +36,7 @@ export default function MainTabNavigator() {
 
   return (
     <Tab.Navigator
+      tabBar={isTabletLandscape ? (props) => <SidebarTabBar {...props} /> : undefined}
       screenOptions={{
         headerShown: false,
         tabBarPosition: isTabletLandscape ? 'left' : 'bottom',
@@ -54,12 +58,12 @@ export default function MainTabNavigator() {
       <Tab.Screen
         name="Products"
         component={ProductsScreen}
-        options={{ title: 'Produk', tabBarIcon: ({ focused }) => <TabIcon name="Products" focused={focused} /> }}
+        options={{ title: 'Barang & Stok', tabBarIcon: ({ focused }) => <TabIcon name="Products" focused={focused} /> }}
       />
       <Tab.Screen
         name="Orders"
         component={OrdersScreen}
-        options={{ title: 'Riwayat', tabBarIcon: ({ focused }) => <TabIcon name="Orders" focused={focused} /> }}
+        options={{ title: 'Riwayat Transaksi', tabBarIcon: ({ focused }) => <TabIcon name="Orders" focused={focused} /> }}
       />
       <Tab.Screen
         name="Reports"
@@ -67,9 +71,14 @@ export default function MainTabNavigator() {
         options={{ title: 'Laporan', tabBarIcon: ({ focused }) => <TabIcon name="Reports" focused={focused} /> }}
       />
       <Tab.Screen
+        name="Expenses"
+        component={ExpensesScreen}
+        options={{ title: 'Pengeluaran', tabBarIcon: ({ focused }) => <TabIcon name="Expenses" focused={focused} /> }}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ title: 'Akun', tabBarIcon: ({ focused }) => <TabIcon name="Profile" focused={focused} /> }}
+        options={{ title: 'Pengaturan', tabBarIcon: ({ focused }) => <TabIcon name="Profile" focused={focused} /> }}
       />
     </Tab.Navigator>
   );

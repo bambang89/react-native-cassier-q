@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -38,7 +39,7 @@ export default function ProfileScreen({ navigation }: Props) {
   }, [dispatch]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header title="Akun" />
       <ScrollView contentContainerStyle={styles.body}>
         <Card>
@@ -193,7 +194,7 @@ export default function ProfileScreen({ navigation }: Props) {
           dispatch(logoutAll());
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
