@@ -80,6 +80,28 @@ export default function ProfileScreen({ navigation }: Props) {
         </Card>
 
         <Text weight="bold" style={styles.sectionTitle}>
+          📦 Pembelian
+        </Text>
+        <Card padding="none">
+          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Suppliers')}>
+            🚚 Pemasok
+          </Button>
+          <Divider />
+          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('PurchaseOrders')}>
+            🧾 Purchase Order
+          </Button>
+        </Card>
+
+        <Text weight="bold" style={styles.sectionTitle}>
+          👥 Tim
+        </Text>
+        <Card padding="none">
+          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Employees')}>
+            Karyawan
+          </Button>
+        </Card>
+
+        <Text weight="bold" style={styles.sectionTitle}>
           🧾 Sesi Kasir
         </Text>
         <Card>

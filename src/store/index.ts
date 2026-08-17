@@ -11,6 +11,10 @@ import ordersReducer from './slices/ordersSlice';
 import reportsReducer from './slices/reportsSlice';
 import storeProfileReducer from './slices/storeProfileSlice';
 import customersReducer from './slices/customersSlice';
+import suppliersReducer from './slices/suppliersSlice';
+import purchaseOrdersReducer from './slices/purchaseOrdersSlice';
+import employeesReducer from './slices/employeesSlice';
+import rolesReducer from './slices/rolesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +29,10 @@ export const store = configureStore({
     reports: reportsReducer,
     storeProfile: storeProfileReducer,
     customers: customersReducer,
+    suppliers: suppliersReducer,
+    purchaseOrders: purchaseOrdersReducer,
+    employees: employeesReducer,
+    roles: rolesReducer,
   },
 });
 

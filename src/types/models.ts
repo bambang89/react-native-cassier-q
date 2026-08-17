@@ -211,6 +211,70 @@ export type LedgerEntry = {
   createdAt: string;
 };
 
+// --- Supplier & Purchase Order ----------------------------------------------
+
+export type Supplier = {
+  id: string;
+  supplierCode: string;
+  supplierName: string;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  active: boolean;
+};
+
+/** String bebas dari backend (mis. ORDERED/PARTIALLY_RECEIVED/RECEIVED/CANCELLED) — ditampilkan lewat pemetaan label. */
+export type PurchaseOrderStatus = 'ORDERED' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED' | string;
+
+export type PurchaseOrderItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  unitId: string;
+  unitName: string;
+  quantity: number;
+  quantityBaseUnit: number;
+  unitCost: number;
+  receivedQuantityBaseUnit: number;
+  subtotal: number;
+};
+
+export type PurchaseOrder = {
+  id: string;
+  poNumber: string;
+  storeId: string;
+  supplierId: string;
+  supplierName: string;
+  orderDate: string;
+  expectedDate: string | null;
+  status: PurchaseOrderStatus;
+  notes: string | null;
+  totalCost: number;
+  items: PurchaseOrderItem[];
+};
+
+// --- Karyawan & Role ---------------------------------------------------------
+
+export type Employee = {
+  employeeId: string;
+  userId: string;
+  employeeCode: string;
+  name: string;
+  username: string;
+  email: string | null;
+  phone: string | null;
+  active: boolean;
+  roles: string[];
+};
+
+export type Role = {
+  id: string;
+  roleCode: string;
+  roleName: string;
+  description: string | null;
+};
+
 // --- Cashier sessions ------------------------------------------------------
 
 export type CashierSessionStatus = 'OPEN' | 'CLOSED' | string;

@@ -31,6 +31,11 @@ export type RootStackParamList = {
   StoreProfile: undefined;
   Customers: undefined;
   CustomerDetail: { customerId: string };
+  Suppliers: undefined;
+  PurchaseOrders: undefined;
+  PurchaseOrderForm: undefined;
+  PurchaseOrderDetail: { purchaseOrderId: string };
+  Employees: undefined;
 };
 
 declare global {
