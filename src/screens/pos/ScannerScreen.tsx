@@ -8,21 +8,16 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch } from '@/store/hooks';
 import { fetchProductByBarcode } from '@/store/slices/productsSlice';
 import type { RootStackParamList } from '@/navigation/types';
+import { colors, radii } from '@/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Scanner'>;
 
-// Scanner generik: cari produk lewat barcode lalu serahkan hasilnya ke
-// pemanggil (route.params.onFound/onNotFound) — layar ini sendiri cuma
-// urusan kamera, debounce, dan lookup, bukan keputusan bisnis "produk
-// ketemu/tidak ngapain".
 export default function ScannerScreen({ navigation, route }: Props) {
   const { onFound, onNotFound } = route.params;
   const { hasPermission, requestPermission } = useCameraPermission();
   const dispatch = useAppDispatch();
   const isFocused = useIsFocused();
   const [lookingUp, setLookingUp] = useState(false);
-  // Debounce: the scanner fires on every frame a code is visible in, so
-  // without this a single barcode hold triggers dozens of lookups.
   const lastScannedRef = useRef<string | null>(null);
 
   const onScanned = useCallback(
@@ -77,7 +72,7 @@ export default function ScannerScreen({ navigation, route }: Props) {
       />
       {lookingUp ? (
         <View style={styles.overlay}>
-          <ActivityIndicator color="#fff" size="large" />
+          <ActivityIndicator color={colors.white} size="large" />
         </View>
       ) : null}
       <Pressable style={styles.closeButton} onPress={() => navigation.goBack()}>
@@ -88,14 +83,14 @@ export default function ScannerScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: colors.black },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   message: { textAlign: 'center', marginBottom: 16 },
-  button: { backgroundColor: '#16a34a', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 20 },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  button: { backgroundColor: colors.primary[600], borderRadius: radii.md, paddingVertical: 12, paddingHorizontal: 20 },
+  buttonText: { color: colors.white, fontWeight: '600' },
   overlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.overlayStrong,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -103,10 +98,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 56,
     right: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 20,
+    backgroundColor: colors.overlayStrong,
+    borderRadius: radii.full,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  closeButtonText: { color: '#fff', fontWeight: '600' },
+  closeButtonText: { color: colors.white, fontWeight: '600' },
 });

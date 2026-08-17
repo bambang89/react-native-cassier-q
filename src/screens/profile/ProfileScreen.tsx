@@ -73,6 +73,10 @@ export default function ProfileScreen({ navigation }: Props) {
           <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StoreProfile')}>
             Profil Toko
           </Button>
+          <Divider />
+          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Customers')}>
+            🧑‍🤝‍🧑 Pelanggan & Utang
+          </Button>
         </Card>
 
         <Text weight="bold" style={styles.sectionTitle}>

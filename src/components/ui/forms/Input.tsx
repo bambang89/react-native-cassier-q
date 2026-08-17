@@ -3,7 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import type { ReactNode } from 'react';
 import type { TextInput as RNTextInputRef, TextInputProps } from 'react-native';
 
-import { colors, fontFamily, fontSizes, radii, spacing } from '@/theme';
+import { colors, fontFamily, fontSizes, radii, shadows, spacing } from '@/theme';
 
 export interface InputProps extends TextInputProps {
   isInvalid?: boolean;
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     minHeight: 50,
     gap: spacing.xs,
+    ...shadows.md,
   },
   input: {
     flex: 1,

@@ -4,6 +4,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Provider } from 'react-redux';
+import {
+  useFonts,
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 
 import { setupSslPinning } from './src/api/sslPinning';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -11,16 +19,21 @@ import { store } from './src/store';
 
 export default function App() {
   const [pinningReady, setPinningReady] = useState(false);
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
+  });
 
   useEffect(() => {
-    // Must resolve before any apiClient request fires, otherwise the first
-    // few requests would go out over an unpinned connection.
     setupSslPinning()
       .catch((error) => console.error('[SSL Pinning] init failed', error))
       .finally(() => setPinningReady(true));
   }, []);
 
-  if (!pinningReady) {
+  if (!pinningReady || !fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />

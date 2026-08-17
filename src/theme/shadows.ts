@@ -16,12 +16,14 @@ function shadow(elevation: number, opacity: number, radius: number): ViewStyle {
 
 export const shadows = {
   none: {} as ViewStyle,
-  // sm dinaikkan sedikit dari opacity .05 — di layar terang, bayangan setipis
-  // itu nyaris tidak kelihatan, padahal kartu/tombol butuh terasa "bisa
-  // ditekan" biar tidak terkesan datar & membosankan.
-  sm: shadow(2, 0.09, 3),
-  md: shadow(3, 0.1, 4),
-  lg: shadow(6, 0.12, 8),
+  // Skala xs/sm/md/lg mengikuti spec box-shadow di Figma (blur & elevasinya),
+  // dengan opacity sedikit dinaikkan dari nilai desain aslinya karena di
+  // layar terang bayangan setipis itu nyaris tidak kelihatan — padahal
+  // kartu/tombol butuh terasa "bisa ditekan" biar tidak terkesan datar.
+  xs: shadow(1, 0.08, 2),
+  sm: shadow(2, 0.1, 3),
+  md: shadow(4, 0.1, 8),
+  lg: shadow(8, 0.1, 16),
   xl: shadow(10, 0.14, 16),
 } as const;
 

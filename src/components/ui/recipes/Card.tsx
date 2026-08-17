@@ -30,7 +30,7 @@ export function Card({ children, onPress, padding = 'base', shadow = 'sm', style
 const styles = StyleSheet.create({
   base: {
     backgroundColor: colors.background,
-    borderRadius: radii.lg,
+    borderRadius: radii.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },

@@ -1,7 +1,7 @@
 import { Text as RNText } from 'react-native';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
 
-import { colors, fontFamily, fontSizes, fontWeights, lineHeights } from '@/theme';
+import { colors, fontFamilies, fontSizes, lineHeights } from '@/theme';
 import type { FontSizeToken, FontWeightToken } from '@/theme';
 
 export type TextColorToken = keyof typeof colors.text | 'success' | 'warning' | 'error';
@@ -40,9 +40,8 @@ export function Text({
     <RNText
       style={[
         {
-          fontFamily,
+          fontFamily: fontFamilies[weight],
           fontSize: fontSizes[size],
-          fontWeight: fontWeights[weight],
           lineHeight: Math.round(fontSizes[size] * lineHeights.normal),
           color: resolveColor(color),
           fontStyle: italic ? 'italic' : 'normal',

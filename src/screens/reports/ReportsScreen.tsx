@@ -6,8 +6,8 @@ import { fetchSalesSummary } from '@/store/slices/reportsSlice';
 import { colors, spacing } from '@/theme';
 import { Button } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
-import { Card, Header } from '@/components/ui/recipes';
-import { Heading, Text } from '@/components/ui/typography';
+import { Card, Header, StatCard } from '@/components/ui/recipes';
+import { Text } from '@/components/ui/typography';
 
 type RangeOption = 7 | 30;
 
@@ -71,24 +71,18 @@ export default function ReportsScreen() {
           refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(range)} />}
         >
           <View style={styles.statsRow}>
-            <Card style={[styles.statCard, styles.statCardSales]}>
-              <Text size="lg">💰</Text>
-              <Text size="sm" color="secondary" weight="medium" style={styles.statLabel}>
-                Total Penjualan
-              </Text>
-              <Heading level="h4" style={styles.statValue}>
-                Rp {summary.grossSales.toLocaleString('id-ID')}
-              </Heading>
-            </Card>
-            <Card style={[styles.statCard, styles.statCardOrders]}>
-              <Text size="lg">🧾</Text>
-              <Text size="sm" color="secondary" weight="medium" style={styles.statLabel}>
-                Jumlah Transaksi
-              </Text>
-              <Heading level="h4" style={styles.statValue}>
-                {summary.orderCount}
-              </Heading>
-            </Card>
+            <StatCard
+              icon="💰"
+              iconBg={colors.success[100]}
+              label="Total Penjualan"
+              value={`Rp ${summary.grossSales.toLocaleString('id-ID')}`}
+            />
+            <StatCard
+              icon="🧾"
+              iconBg={colors.info[100]}
+              label="Jumlah Transaksi"
+              value={String(summary.orderCount)}
+            />
           </View>
 
           <Text size="sm" color="muted" style={styles.period}>
@@ -139,11 +133,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  statCard: { flex: 1, borderLeftWidth: 4 },
-  statCardSales: { borderLeftColor: colors.success[500] },
-  statCardOrders: { borderLeftColor: colors.info[500] },
-  statLabel: { marginTop: spacing.xs },
-  statValue: { marginTop: spacing.xs },
   period: { marginBottom: spacing.lg },
   sectionTitle: { marginBottom: spacing.sm },
   emptyBest: { padding: spacing.xl, alignItems: 'center' },

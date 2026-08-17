@@ -1,13 +1,15 @@
 import type { TextStyle } from 'react-native';
 
-// Tidak ada custom font yang di-load (lihat assets/), jadi fontFamily
-// dibiarkan undefined supaya jatuh ke font sistem default per platform.
-export const fontFamily: string | undefined = undefined;
+export const fontFamily = 'PlusJakartaSans_400Regular';
 
-// Skala dinaikkan dari default umum supaya nyaman dibaca pengguna usia 30-50+
-// (mata makin butuh ukuran huruf lebih besar & lebih tebal buat baca cepat,
-// apalagi di kondisi toko yang kadang remang). `base` (teks body default)
-// sengaja di atas 16px — standar minimum aksesibilitas umum.
+export const fontFamilies = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extrabold: 'PlusJakartaSans_800ExtraBold',
+} satisfies Record<string, string>;
+
 export const fontSizes = {
   xs: 13,
   sm: 14,

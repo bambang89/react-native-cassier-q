@@ -14,13 +14,6 @@ const extra = (Constants.expoConfig?.extra ?? {}) as Partial<Extra>;
 
 const buildTimeApiEnv: ApiEnvName = isApiEnvName(extra.apiEnv) ? extra.apiEnv : DEFAULT_API_ENV;
 
-/**
- * Emulator Android tidak bisa resolve "localhost" ke mesin host — itu selalu
- * merujuk ke emulator itu sendiri. Google mendokumentasikan 10.0.2.2 sebagai
- * alias khusus ke loopback mesin host untuk kasus ini. iOS simulator & web
- * tidak butuh ini karena mereka share network stack dengan mesin host.
- * Fisik device tetap butuh IP LAN mesin dev — set lewat EXPO_PUBLIC_API_BASE_URL.
- */
 function resolveDevBaseUrl(rawUrl: string): string {
   if (Platform.OS !== 'android') return rawUrl;
   try {
@@ -41,13 +34,7 @@ function defaultBaseUrlFor(apiEnv: ApiEnvName): string {
 }
 
 export const env = {
-  /** Environment API aktif saat build/start (lihat APP_ENV di app.config.ts). Bisa dioverride runtime, lihat api/client.ts#setActiveApiEnv. */
   apiEnv: buildTimeApiEnv,
-  /**
-   * EXPO_PUBLIC_API_BASE_URL selalu menang kalau di-set eksplisit (mis. untuk
-   * testing di HP fisik lewat IP LAN mesin dev). Kalau tidak, dipetakan dari
-   * apiEnv lewat API_ENVIRONMENTS.
-   */
   apiBaseUrl: extra.apiBaseUrl && extra.apiBaseUrl.length > 0 ? extra.apiBaseUrl : defaultBaseUrlFor(buildTimeApiEnv),
   appVariant: extra.appVariant ?? 'production',
 };

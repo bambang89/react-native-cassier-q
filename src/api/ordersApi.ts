@@ -6,6 +6,7 @@ export interface CreateOrderPayload {
   paymentAmount: number;
   discountAmount?: number;
   taxAmount?: number;
+  customerId?: string;
 }
 
 export async function createOrder(items: CartItem[], payload: CreateOrderPayload): Promise<Order> {

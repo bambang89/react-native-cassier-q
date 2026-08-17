@@ -1,5 +1,3 @@
-// Skala spacing bernama, dipakai untuk padding/margin/gap di seluruh komponen
-// supaya jarak antar elemen konsisten di semua layar.
 export const spacing = {
   none: 0,
   xs: 4,

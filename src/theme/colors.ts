@@ -1,7 +1,4 @@
 // Warna dasar (skala 50-900 gaya Tailwind) yang jadi rujukan seluruh UI kit.
-// Primary hijau (#16a34a) sengaja disamakan dengan warna yang sudah dipakai
-// di layar-layar existing (Login/Register/POS) supaya migrasi ke komponen
-// global ini tidak mengubah tampilan yang sudah ada.
 export const green = {
   50: '#f0fdf4',
   100: '#dcfce7',
@@ -13,6 +10,19 @@ export const green = {
   700: '#15803d',
   800: '#166534',
   900: '#14532d',
+} as const;
+
+export const brandBlue = {
+  50: '#e4eaee',
+  100: '#cdd8e0',
+  200: '#a8bbc8',
+  300: '#839db1',
+  400: '#587b96',
+  500: '#2f5b7d',
+  600: '#073c64',
+  700: '#063253',
+  800: '#031e32',
+  900: '#000c14',
 } as const;
 
 export const gray = {
@@ -59,7 +69,7 @@ export const blue = {
 } as const;
 
 export const colors = {
-  primary: green,
+  primary: brandBlue,
   gray,
   red,
   amber,
@@ -81,11 +91,9 @@ export const colors = {
   text: {
     primary: gray[900],
     secondary: gray[600],
-    // gray[400] terlalu tipis buat dibaca nyaman di HP (kontras rendah) —
-    // gray[500] masih kelihatan "sekunder" tapi tetap gampang dibaca.
     muted: gray[500],
     inverse: '#ffffff',
-    link: green[600],
+    link: brandBlue[600],
     danger: red[600],
   },
 
@@ -93,5 +101,5 @@ export const colors = {
   overlayStrong: 'rgba(0,0,0,0.6)',
 } as const;
 
-export type ColorScale = typeof green;
+export type ColorScale = typeof brandBlue;
 export type Colors = typeof colors;

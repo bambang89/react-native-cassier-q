@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
 import { AppBar, Card } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
+import { HStack } from '@/components/ui/layout';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
@@ -115,23 +116,51 @@ export default function ProductFormScreen({ navigation, route }: Props) {
         }
       />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <FormControl label="SKU" isRequired>
-          <Input value={sku} onChangeText={setSku} placeholder="mis. SKU-001" autoCapitalize="characters" />
-        </FormControl>
-        <FormControl label="Barcode" helperText="Isi otomatis kalau dibuka lewat tombol Scan di atas">
-          <Input value={barcode} onChangeText={setBarcode} placeholder="Opsional" keyboardType="numeric" />
-        </FormControl>
+        <HStack space="md">
+          <View style={styles.formHalf}>
+            <FormControl label="SKU" isRequired>
+              <Input value={sku} onChangeText={setSku} placeholder="mis. SKU-001" autoCapitalize="characters" />
+            </FormControl>
+          </View>
+          <View style={styles.formHalf}>
+            <FormControl label="Barcode" helperText="Isi otomatis lewat tombol Scan">
+              <Input value={barcode} onChangeText={setBarcode} placeholder="Opsional" keyboardType="numeric" />
+            </FormControl>
+          </View>
+        </HStack>
+
         <FormControl label="Nama produk" isRequired>
           <Input value={productName} onChangeText={setProductName} placeholder="Nama produk" />
         </FormControl>
-        <FormControl label="Kategori" isRequired>
-          <Select
-            value={categoryId}
-            onChange={setCategoryId}
-            placeholder="Pilih kategori"
-            options={categories.map((c) => ({ label: c.categoryName, value: c.id }))}
-          />
-        </FormControl>
+
+        <HStack space="md">
+          <View style={styles.formHalf}>
+            <FormControl label="Kategori" isRequired>
+              <Select
+                value={categoryId}
+                onChange={setCategoryId}
+                placeholder="Pilih kategori"
+                options={categories.map((c) => ({ label: c.categoryName, value: c.id }))}
+              />
+            </FormControl>
+          </View>
+          <View style={styles.formHalf}>
+            <FormControl label="Satuan dasar" isRequired>
+              <Select
+                value={baseUnitId}
+                onChange={setBaseUnitId}
+                placeholder="Pilih satuan"
+                options={units.map((u) => ({ label: `${u.unitName} (${u.unitCode})`, value: u.id }))}
+              />
+              {units.length === 0 ? (
+                <Link onPress={() => navigation.navigate('Units')} style={styles.unitsLink}>
+                  Belum ada — buat dulu
+                </Link>
+              ) : null}
+            </FormControl>
+          </View>
+        </HStack>
+
         <FormControl label="Merek">
           <Input value={brand} onChangeText={setBrand} placeholder="Opsional" />
         </FormControl>
@@ -152,25 +181,19 @@ export default function ProductFormScreen({ navigation, route }: Props) {
             </View>
           ) : null}
         </FormControl>
-        <FormControl label="Satuan dasar" isRequired>
-          <Select
-            value={baseUnitId}
-            onChange={setBaseUnitId}
-            placeholder="Pilih satuan"
-            options={units.map((u) => ({ label: `${u.unitName} (${u.unitCode})`, value: u.id }))}
-          />
-          {units.length === 0 ? (
-            <Link onPress={() => navigation.navigate('Units')} style={styles.unitsLink}>
-              Belum ada satuan — buat dulu di sini
-            </Link>
-          ) : null}
-        </FormControl>
-        <FormControl label="Harga jual" isRequired>
-          <Input value={sellingPrice} onChangeText={setSellingPrice} placeholder="0" keyboardType="numeric" />
-        </FormControl>
-        <FormControl label="Harga modal">
-          <Input value={costPrice} onChangeText={setCostPrice} placeholder="Opsional" keyboardType="numeric" />
-        </FormControl>
+
+        <HStack space="md">
+          <View style={styles.formHalf}>
+            <FormControl label="Harga modal">
+              <Input value={costPrice} onChangeText={setCostPrice} placeholder="Opsional" keyboardType="numeric" />
+            </FormControl>
+          </View>
+          <View style={styles.formHalf}>
+            <FormControl label="Harga jual" isRequired>
+              <Input value={sellingPrice} onChangeText={setSellingPrice} placeholder="0" keyboardType="numeric" />
+            </FormControl>
+          </View>
+        </HStack>
 
         {editing ? <ProductUnitsSection product={editing} allUnits={units} /> : null}
 
@@ -356,8 +379,9 @@ const sectionStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#fff' },
+  flex: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  formHalf: { flex: 1 },
   unitsLink: { marginTop: spacing.xs },
   imagePreviewWrap: { marginTop: spacing.sm },
   imagePreview: { width: 80, height: 80, borderRadius: 8, backgroundColor: colors.gray[100] },

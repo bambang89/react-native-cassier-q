@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -22,12 +22,21 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
+// Sama dengan ambang di layar Kasir — dipakai buat badge stok & banner peringatan di sini.
+const LOW_STOCK_THRESHOLD = 5;
+
 export default function ProductsScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
   const { items, search, page, totalPages, status } = useAppSelector((state) => state.products);
   const [searchDraft, setSearchDraft] = useState(search);
   const [restockTarget, setRestockTarget] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+
+  const allPagesLoaded = totalPages === 0 || page + 1 >= totalPages;
+  const lowStockCount = useMemo(
+    () => items.filter((p) => p.stockQuantity <= LOW_STOCK_THRESHOLD).length,
+    [items],
+  );
 
   useEffect(() => {
     dispatch(fetchProducts({ search }));
@@ -80,6 +89,15 @@ export default function ProductsScreen({ navigation }: Props) {
         }
       />
 
+      {lowStockCount > 0 ? (
+        <View style={styles.lowStockBanner}>
+          <Text size="lg">⚠️</Text>
+          <Text size="sm" weight="semibold" color="warning" style={styles.lowStockBannerText}>
+            {lowStockCount} produk{allPagesLoaded ? '' : ' (dari yang termuat)'} stoknya di bawah minimum ({LOW_STOCK_THRESHOLD}). Yuk restock sebelum kehabisan.
+          </Text>
+        </View>
+      ) : null}
+
       <View style={styles.searchBar}>
         <Input
           placeholder="Cari nama, SKU, atau barcode..."
@@ -128,10 +146,18 @@ export default function ProductsScreen({ navigation }: Props) {
                 </Text>
               </View>
               <View style={styles.right}>
-                <Text weight="bold" color="success">
+                <Text weight="bold" color="link">
                   Rp {item.sellingPrice.toLocaleString('id-ID')}
                 </Text>
-                <Badge variant={item.stockQuantity > 0 ? 'neutral' : 'error'}>
+                <Badge
+                  variant={
+                    item.stockQuantity <= 0
+                      ? 'error'
+                      : item.stockQuantity <= LOW_STOCK_THRESHOLD
+                        ? 'warning'
+                        : 'neutral'
+                  }
+                >
                   {`${item.stockQuantity} ${item.baseUnitName}`}
                 </Badge>
               </View>
@@ -261,6 +287,19 @@ function RestockForm({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
+  lowStockBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.base,
+    marginBottom: spacing.sm,
+    padding: spacing.sm + 2,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+    backgroundColor: colors.warning[50],
+  },
+  lowStockBannerText: { flex: 1 },
   searchBar: { paddingHorizontal: spacing.base, marginBottom: spacing.sm },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   card: { marginBottom: spacing.sm },

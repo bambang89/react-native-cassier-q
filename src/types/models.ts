@@ -1,7 +1,3 @@
-// Bentuk-bentuk ini mengikuti persis skema OpenAPI backend cassier-Q
-// (GET /v3/api-docs saat backend jalan). Kalau backend berubah, cek ulang
-// dokumen itu dan sesuaikan di sini — jangan menebak nama field.
-
 // --- Auth --------------------------------------------------------------
 
 export type RoleAssignment = {
@@ -78,7 +74,6 @@ export type UnitConversion = {
 export type ProductUnit = {
   unitId: string;
   unitName: string;
-  /** Berapa unit dasar per 1 satuan ini, mis. DUS punya conversionToBase 24 kalau 1 DUS = 24 PCS. */
   conversionToBase: number;
   baseUnit: boolean;
   purchaseUnit: boolean;
@@ -185,12 +180,35 @@ export type Receipt = {
 /** Keranjang lokal sebelum dikirim ke POST /orders. */
 export type CartItem = {
   product: Product;
-  /** Default = product.baseUnitId kalau cashier tidak pilih satuan lain. */
   unitId: string;
   unitName: string;
-  /** Rasio unit ini ke base unit produk — dipakai hitung subtotal LOKAL sebelum checkout (server yang hitung angka final). */
   unitConversionToBase: number;
   quantity: number;
+};
+
+// --- Pelanggan & hutang/piutang --------------------------------------------
+
+export type Customer = {
+  id: string;
+  customerCode: string;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  creditLimit: number;
+  active: boolean;
+  balance: number;
+};
+
+/** Satu baris riwayat hutang/pembayaran (GET /customers/{id}/ledger). */
+export type LedgerEntry = {
+  id: string;
+  entryType: string;
+  amount: number;
+  salesTransactionId: string | null;
+  salesTransactionNumber: string | null;
+  notes: string | null;
+  createdByName: string | null;
+  createdAt: string;
 };
 
 // --- Cashier sessions ------------------------------------------------------

@@ -10,6 +10,7 @@ type OrdersState = {
   items: Order[];
   page: number;
   totalPages: number;
+  totalElements: number;
   status: AsyncStatus;
   error: string | null;
   /** Order yang sedang dibuka di OrderDetailScreen. */
@@ -30,6 +31,7 @@ const initialState: OrdersState = {
   items: [],
   page: 0,
   totalPages: 0,
+  totalElements: 0,
   status: 'idle',
   error: null,
   current: null,
@@ -89,6 +91,7 @@ const ordersSlice = createSlice({
         state.items = isNextPage ? [...state.items, ...action.payload.content] : action.payload.content;
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
+        state.totalElements = action.payload.totalElements;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.status = 'failed';
@@ -113,6 +116,7 @@ const ordersSlice = createSlice({
       .addCase(createOrder.fulfilled, (state, action) => {
         state.createStatus = 'succeeded';
         state.items.unshift(action.payload);
+        state.totalElements += 1;
         // Langsung isi `current` juga — ReceiptScreen dibuka tepat setelah
         // checkout dan butuh order ini tanpa nunggu fetch ulang.
         state.current = action.payload;

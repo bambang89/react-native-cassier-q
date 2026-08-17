@@ -10,7 +10,7 @@ import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { OrderStatus } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { Badge } from '@/components/ui/dataDisplay';
-import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { Card, EmptyState, Header, StatCard } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -34,7 +34,7 @@ function statusLabel(status: OrderStatus) {
 
 export default function OrdersScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
-  const { items, page, totalPages, status } = useAppSelector((state) => state.orders);
+  const { items, page, totalPages, totalElements, status } = useAppSelector((state) => state.orders);
 
   useEffect(() => {
     dispatch(fetchOrders({ page: 0 }));
@@ -43,6 +43,18 @@ export default function OrdersScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <Header title="Riwayat Transaksi" />
+
+      {totalElements > 0 ? (
+        <View style={styles.statsRow}>
+          <StatCard
+            icon="🧾"
+            iconBg={colors.primary[100]}
+            label="Total Transaksi"
+            value={totalElements.toLocaleString('id-ID')}
+          />
+        </View>
+      ) : null}
+
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
@@ -93,6 +105,7 @@ export default function OrdersScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  statsRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.base, marginBottom: spacing.sm },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing.xl },
   card: { marginBottom: spacing.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

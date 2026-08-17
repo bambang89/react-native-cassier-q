@@ -19,22 +19,18 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
-  // Scanner generik: pemanggil yang menentukan apa yang terjadi kalau produk
-  // ketemu/tidak — dipakai oleh POS (tambah ke keranjang), ProductsScreen
-  // (cari), dan ProductFormScreen (buka utk edit / siapkan produk baru).
   Scanner: {
     onFound: (product: Product) => void;
     onNotFound?: (barcode: string) => void;
   };
   Categories: undefined;
   Units: undefined;
-  // `prefillBarcode` dipakai waktu scan dari ProductFormScreen sendiri tapi
-  // barcode-nya belum terdaftar — form direset ke mode tambah baru dgn
-  // barcode itu sudah terisi.
   ProductForm: { product?: Product; prefillBarcode?: string };
   OrderDetail: { orderId: string };
   Receipt: { orderId: string };
   StoreProfile: undefined;
+  Customers: undefined;
+  CustomerDetail: { customerId: string };
 };
 
 declare global {

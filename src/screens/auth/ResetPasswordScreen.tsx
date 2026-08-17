@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch } from '@/store/hooks';
 import { resetPassword } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { AppBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
@@ -56,7 +56,7 @@ export default function ResetPasswordScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.xl },
   description: { marginBottom: spacing.lg },
 });
