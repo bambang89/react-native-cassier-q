@@ -14,7 +14,7 @@ import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Link, Pressable, Select } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { Card, Header, SwipeList } from '@/components/ui/recipes';
+import { Card, EmptyState, Header, SwipeList } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -139,9 +139,25 @@ export default function ProductsScreen({ navigation }: Props) {
           </Card>
         )}
         ListEmptyComponent={
-          <Text color="muted" align="center" style={styles.empty}>
-            {status === 'loading' ? 'Memuat produk...' : 'Belum ada produk'}
-          </Text>
+          status === 'loading' ? (
+            <Text color="muted" align="center" style={styles.empty}>
+              Memuat produk...
+            </Text>
+          ) : search ? (
+            <EmptyState
+              icon="🔍"
+              title="Produk tidak ditemukan"
+              description={`Tidak ada produk yang cocok dengan "${search}". Coba kata kunci lain, atau scan barcode-nya langsung.`}
+            />
+          ) : (
+            <EmptyState
+              icon="📦"
+              title="Belum Ada Produk"
+              description="Yuk tambahkan produk pertamamu supaya bisa langsung mulai jualan di kasir."
+              actionLabel="+ Tambah Produk"
+              onAction={() => navigation.navigate('ProductForm', { product: undefined })}
+            />
+          )
         }
       />
 

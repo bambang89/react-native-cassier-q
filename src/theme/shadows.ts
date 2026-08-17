@@ -16,10 +16,13 @@ function shadow(elevation: number, opacity: number, radius: number): ViewStyle {
 
 export const shadows = {
   none: {} as ViewStyle,
-  sm: shadow(1, 0.05, 2),
-  md: shadow(3, 0.08, 4),
-  lg: shadow(6, 0.1, 8),
-  xl: shadow(10, 0.12, 16),
+  // sm dinaikkan sedikit dari opacity .05 — di layar terang, bayangan setipis
+  // itu nyaris tidak kelihatan, padahal kartu/tombol butuh terasa "bisa
+  // ditekan" biar tidak terkesan datar & membosankan.
+  sm: shadow(2, 0.09, 3),
+  md: shadow(3, 0.1, 4),
+  lg: shadow(6, 0.12, 8),
+  xl: shadow(10, 0.14, 16),
 } as const;
 
 export type ShadowToken = keyof typeof shadows;

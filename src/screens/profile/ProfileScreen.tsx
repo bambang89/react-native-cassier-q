@@ -42,12 +42,21 @@ export default function ProfileScreen({ navigation }: Props) {
       <Header title="Akun" />
       <ScrollView contentContainerStyle={styles.body}>
         <Card>
-          <Text weight="semibold" size="lg">
-            {user?.name ?? '-'}
-          </Text>
-          <Text color="secondary" size="sm">
-            {user?.email ?? '-'} · @{user?.username ?? '-'}
-          </Text>
+          <View style={styles.identityRow}>
+            <View style={styles.avatar}>
+              <Text weight="bold" size="xl" color="inverse">
+                {(user?.name ?? '?').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.identityInfo}>
+              <Text weight="bold" size="lg">
+                {user?.name ?? '-'}
+              </Text>
+              <Text color="secondary" size="sm">
+                {user?.email ?? '-'} · @{user?.username ?? '-'}
+              </Text>
+            </View>
+          </View>
           <View style={styles.roles}>
             {user?.roles.map((role) => (
               <Badge key={`${role.roleCode}-${role.storeId ?? 'global'}`} variant="primary">
@@ -57,8 +66,8 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         </Card>
 
-        <Text weight="semibold" style={styles.sectionTitle}>
-          Toko
+        <Text weight="bold" style={styles.sectionTitle}>
+          🏬 Toko
         </Text>
         <Card padding="none">
           <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StoreProfile')}>
@@ -66,17 +75,20 @@ export default function ProfileScreen({ navigation }: Props) {
           </Button>
         </Card>
 
-        <Text weight="semibold" style={styles.sectionTitle}>
-          Sesi Kasir
+        <Text weight="bold" style={styles.sectionTitle}>
+          🧾 Sesi Kasir
         </Text>
         <Card>
           {session ? (
             <>
-              <Text size="sm">
-                Dibuka {new Date(session.openedAt).toLocaleString('id-ID')}
-              </Text>
+              <View style={styles.sessionOpenRow}>
+                <Badge variant="success">Sedang Buka</Badge>
+                <Text size="sm" color="secondary">
+                  Sejak {new Date(session.openedAt).toLocaleString('id-ID')}
+                </Text>
+              </View>
               <Text size="sm" color="secondary" style={styles.sessionCash}>
-                Modal awal: Rp {session.openingCash.toLocaleString('id-ID')}
+                💵 Modal awal: Rp {session.openingCash.toLocaleString('id-ID')}
               </Text>
               <Button variant="outline" size="sm" style={styles.closeSessionButton} onPress={() => setCloseSessionVisible(true)}>
                 Tutup Sesi
@@ -84,13 +96,13 @@ export default function ProfileScreen({ navigation }: Props) {
             </>
           ) : (
             <Text color="muted" size="sm">
-              Tidak ada sesi kasir yang sedang terbuka.
+              Belum ada sesi kasir yang dibuka hari ini. Buka sesi dari layar Kasir untuk mulai jualan.
             </Text>
           )}
         </Card>
 
-        <Text weight="semibold" style={styles.sectionTitle}>
-          Keamanan
+        <Text weight="bold" style={styles.sectionTitle}>
+          🔒 Keamanan
         </Text>
         <Card padding="none">
           <Button variant="ghost" style={styles.rowButton} onPress={() => setChangePasswordVisible(true)}>
@@ -100,8 +112,8 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {env.appVariant !== 'production' ? (
           <>
-            <Text weight="semibold" style={styles.sectionTitle}>
-              Environment API (dev only)
+            <Text weight="bold" style={styles.sectionTitle}>
+              🛠️ Environment API (dev only)
             </Text>
             <Card>
               <EnvSwitcher />
@@ -290,9 +302,20 @@ function EnvSwitcher() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.primary[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  identityInfo: { flex: 1 },
   roles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
-  sessionCash: { marginTop: spacing.xs },
+  sessionOpenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  sessionCash: { marginTop: spacing.sm },
   closeSessionButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },
   rowButton: { alignItems: 'flex-start', paddingHorizontal: spacing.base, paddingVertical: spacing.md },
   logoutButton: { marginTop: spacing['2xl'] },

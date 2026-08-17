@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Link } from '@/components/ui/forms';
 import { Heading, Text } from '@/components/ui/typography';
 
@@ -25,16 +25,19 @@ export default function LoginScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <View style={styles.logoWrap}>
+          <Text style={styles.logoEmoji}>🏪</Text>
+        </View>
         <Heading level="h1" align="center">
           cassier-Q
         </Heading>
         <Text color="secondary" align="center" style={styles.subtitle}>
-          Masuk untuk mulai berjualan
+          Masuk ke akun toko kamu untuk mulai berjualan hari ini
         </Text>
 
-        <FormControl label="Username">
+        <FormControl label="Username" helperText="Username yang dipakai waktu daftar toko">
           <Input
-            placeholder="username"
+            placeholder="Masukkan username"
             autoCapitalize="none"
             autoCorrect={false}
             value={username}
@@ -42,9 +45,9 @@ export default function LoginScreen({ navigation }: Props) {
           />
         </FormControl>
 
-        <FormControl label="Kata sandi" errorText={error ?? undefined} isInvalid={!!error}>
+        <FormControl label="Kata Sandi" errorText={error ?? undefined} isInvalid={!!error}>
           <Input
-            placeholder="Kata sandi"
+            placeholder="Masukkan kata sandi"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -75,7 +78,18 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: '#fff' },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  subtitle: { marginTop: spacing.xs, marginBottom: spacing['2xl'] },
+  logoWrap: {
+    alignSelf: 'center',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.base,
+  },
+  logoEmoji: { fontSize: 44 },
+  subtitle: { marginTop: spacing.xs, marginBottom: spacing['2xl'], paddingHorizontal: spacing.base },
   forgot: { alignItems: 'flex-end', marginBottom: spacing.base },
   registerLink: { alignItems: 'center', marginTop: spacing.lg },
 });

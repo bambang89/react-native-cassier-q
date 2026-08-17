@@ -24,7 +24,7 @@ export function Badge({ children, variant = 'neutral' }: BadgeProps) {
   const { bg, fg } = VARIANT_COLORS[variant];
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
-      <Text size="xs" weight="semibold" style={{ color: fg }}>
+      <Text size="sm" weight="bold" style={{ color: fg }}>
         {children}
       </Text>
     </View>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     borderRadius: radii.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs - 1,
   },
 });

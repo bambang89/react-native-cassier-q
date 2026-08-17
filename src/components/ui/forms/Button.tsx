@@ -2,7 +2,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, shadows, spacing } from '@/theme';
 import { Text } from '@/components/ui/typography/Text';
 import { Pressable } from './Pressable';
 import type { PressableProps } from './Pressable';
@@ -22,26 +22,37 @@ export interface ButtonProps extends Omit<PressableProps, 'children'> {
   style?: StyleProp<ViewStyle>;
 }
 
-const SIZE_STYLES: Record<ButtonSize, { paddingVertical: number; paddingHorizontal: number; fontSize: 'sm' | 'base' | 'lg' }> = {
-  sm: { paddingVertical: spacing.xs, paddingHorizontal: spacing.md, fontSize: 'sm' },
-  md: { paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.base, fontSize: 'base' },
-  lg: { paddingVertical: spacing.md, paddingHorizontal: spacing.lg, fontSize: 'lg' },
+// Tinggi minimum dijaga ≥44-48dp (target sentuh nyaman, terutama buat
+// pengguna 30-50+ yang butuh area jempol lebih lega) lewat kombinasi
+// paddingVertical + minHeight, bukan cuma padding sendirian.
+const SIZE_STYLES: Record<
+  ButtonSize,
+  { paddingVertical: number; paddingHorizontal: number; minHeight: number; fontSize: 'sm' | 'base' | 'lg' }
+> = {
+  sm: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, minHeight: 40, fontSize: 'sm' },
+  md: { paddingVertical: spacing.md, paddingHorizontal: spacing.lg, minHeight: 48, fontSize: 'base' },
+  lg: { paddingVertical: spacing.md + 2, paddingHorizontal: spacing.xl, minHeight: 56, fontSize: 'lg' },
 };
 
 function variantStyle(variant: ButtonVariant): { container: ViewStyle; textColor: 'inverse' | 'primary' | 'danger' } {
   switch (variant) {
     case 'outline':
       return {
-        container: { backgroundColor: colors.transparent, borderWidth: 1, borderColor: colors.primary[600] },
+        container: {
+          backgroundColor: colors.transparent,
+          borderWidth: 1.5,
+          borderColor: colors.primary[600],
+        },
         textColor: 'primary',
       };
     case 'ghost':
       return { container: { backgroundColor: colors.transparent }, textColor: 'primary' };
     case 'danger':
-      return { container: { backgroundColor: colors.error[600] }, textColor: 'inverse' };
+      // Sedikit shadow biar tombol "solid" kelihatan bisa ditekan, bukan cuma blok warna datar.
+      return { container: { backgroundColor: colors.error[600], ...shadows.sm }, textColor: 'inverse' };
     case 'solid':
     default:
-      return { container: { backgroundColor: colors.primary[600] }, textColor: 'inverse' };
+      return { container: { backgroundColor: colors.primary[600], ...shadows.sm }, textColor: 'inverse' };
   }
 }
 
@@ -59,7 +70,7 @@ export function Button({
   style,
   ...rest
 }: ButtonProps) {
-  const { paddingVertical, paddingHorizontal, fontSize } = SIZE_STYLES[size];
+  const { paddingVertical, paddingHorizontal, minHeight, fontSize } = SIZE_STYLES[size];
   const { container, textColor } = variantStyle(variant);
   const isDisabled = disabled || loading;
   const labelColor = textColor === 'primary' ? colors.primary[600] : textColor === 'danger' ? colors.text.danger : colors.text.inverse;
@@ -70,7 +81,7 @@ export function Button({
       style={[
         styles.base,
         container,
-        { paddingVertical, paddingHorizontal, width: fullWidth ? '100%' : undefined },
+        { paddingVertical, paddingHorizontal, minHeight, width: fullWidth ? '100%' : undefined },
         style,
       ]}
       accessibilityRole="button"

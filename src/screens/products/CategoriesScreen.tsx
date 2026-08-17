@@ -10,7 +10,7 @@ import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { AppBar, Card } from '@/components/ui/recipes';
+import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Categories'>;
@@ -71,9 +71,19 @@ export default function CategoriesScreen({ navigation }: Props) {
           </Card>
         )}
         ListEmptyComponent={
-          <Text color="muted" align="center" style={styles.empty}>
-            {status === 'loading' ? 'Memuat kategori...' : 'Belum ada kategori'}
-          </Text>
+          status === 'loading' ? (
+            <Text color="muted" align="center" style={styles.empty}>
+              Memuat kategori...
+            </Text>
+          ) : (
+            <EmptyState
+              icon="🗂️"
+              title="Belum Ada Kategori"
+              description="Kategori membantu mengelompokkan produk (mis. Makanan, Minuman, Rokok) supaya lebih rapi dicari."
+              actionLabel="+ Buat Kategori"
+              onAction={() => setFormOpen(true)}
+            />
+          )
         }
       />
 

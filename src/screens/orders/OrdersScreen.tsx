@@ -10,7 +10,7 @@ import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { OrderStatus } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { Badge } from '@/components/ui/dataDisplay';
-import { Card, Header } from '@/components/ui/recipes';
+import { Card, EmptyState, Header } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -74,9 +74,17 @@ export default function OrdersScreen({ navigation }: Props) {
           </Card>
         )}
         ListEmptyComponent={
-          <Text color="muted" align="center" style={styles.empty}>
-            {status === 'loading' ? 'Memuat transaksi...' : 'Belum ada transaksi'}
-          </Text>
+          status === 'loading' ? (
+            <Text color="muted" align="center" style={styles.empty}>
+              Memuat transaksi...
+            </Text>
+          ) : (
+            <EmptyState
+              icon="🧾"
+              title="Belum Ada Transaksi"
+              description="Riwayat penjualan bakal muncul di sini setelah kamu mencatat transaksi pertama di kasir."
+            />
+          )
         }
       />
     </View>

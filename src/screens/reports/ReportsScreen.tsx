@@ -71,16 +71,18 @@ export default function ReportsScreen() {
           refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(range)} />}
         >
           <View style={styles.statsRow}>
-            <Card style={styles.statCard}>
-              <Text size="xs" color="secondary">
+            <Card style={[styles.statCard, styles.statCardSales]}>
+              <Text size="lg">💰</Text>
+              <Text size="sm" color="secondary" weight="medium" style={styles.statLabel}>
                 Total Penjualan
               </Text>
               <Heading level="h4" style={styles.statValue}>
                 Rp {summary.grossSales.toLocaleString('id-ID')}
               </Heading>
             </Card>
-            <Card style={styles.statCard}>
-              <Text size="xs" color="secondary">
+            <Card style={[styles.statCard, styles.statCardOrders]}>
+              <Text size="lg">🧾</Text>
+              <Text size="sm" color="secondary" weight="medium" style={styles.statLabel}>
                 Jumlah Transaksi
               </Text>
               <Heading level="h4" style={styles.statValue}>
@@ -89,18 +91,21 @@ export default function ReportsScreen() {
             </Card>
           </View>
 
-          <Text size="xs" color="muted" style={styles.period}>
-            Periode: {summary.from} — {summary.to}
+          <Text size="sm" color="muted" style={styles.period}>
+            📅 Periode: {summary.from} — {summary.to}
           </Text>
 
-          <Text weight="semibold" style={styles.sectionTitle}>
-            Produk Terlaris
+          <Text weight="bold" size="lg" style={styles.sectionTitle}>
+            🏆 Produk Terlaris
           </Text>
           <Card padding="none" shadow="sm">
             {summary.topSellers.length === 0 ? (
-              <Text color="muted" align="center" style={styles.emptyBest}>
-                Belum ada penjualan di periode ini
-              </Text>
+              <View style={styles.emptyBest}>
+                <Text style={styles.emptyBestIcon}>📊</Text>
+                <Text color="secondary" align="center">
+                  Belum ada penjualan di periode ini. Data akan muncul begitu ada transaksi baru.
+                </Text>
+              </View>
             ) : (
               summary.topSellers.map((seller, index) => (
                 <View key={seller.productId}>
@@ -134,12 +139,16 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  statCard: { flex: 1 },
+  statCard: { flex: 1, borderLeftWidth: 4 },
+  statCardSales: { borderLeftColor: colors.success[500] },
+  statCardOrders: { borderLeftColor: colors.info[500] },
+  statLabel: { marginTop: spacing.xs },
   statValue: { marginTop: spacing.xs },
   period: { marginBottom: spacing.lg },
   sectionTitle: { marginBottom: spacing.sm },
-  emptyBest: { padding: spacing.lg },
+  emptyBest: { padding: spacing.xl, alignItems: 'center' },
+  emptyBestIcon: { fontSize: 40, marginBottom: spacing.sm },
   bestRow: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.sm },
-  bestRank: { width: 20, color: colors.text.muted, fontWeight: '700' },
+  bestRank: { width: 24, color: colors.text.muted, fontWeight: '700', fontSize: 16 },
   bestInfo: { flex: 1 },
 });

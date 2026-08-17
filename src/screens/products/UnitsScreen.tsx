@@ -10,7 +10,7 @@ import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { AppBar, Card } from '@/components/ui/recipes';
+import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Units'>;
@@ -70,9 +70,19 @@ export default function UnitsScreen({ navigation }: Props) {
           </Card>
         )}
         ListEmptyComponent={
-          <Text color="muted" align="center" style={styles.empty}>
-            {status === 'loading' ? 'Memuat satuan...' : 'Belum ada satuan — buat dulu sebelum menambah produk'}
-          </Text>
+          status === 'loading' ? (
+            <Text color="muted" align="center" style={styles.empty}>
+              Memuat satuan...
+            </Text>
+          ) : (
+            <EmptyState
+              icon="⚖️"
+              title="Belum Ada Satuan"
+              description="Satuan (Pcs, Dus, Kg, dll) dipakai untuk menentukan cara jual produk. Buat dulu sebelum menambah produk baru."
+              actionLabel="+ Buat Satuan"
+              onAction={() => setEditing('new')}
+            />
+          )
         }
       />
 

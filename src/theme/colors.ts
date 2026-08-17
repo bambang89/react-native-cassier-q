@@ -81,7 +81,9 @@ export const colors = {
   text: {
     primary: gray[900],
     secondary: gray[600],
-    muted: gray[400],
+    // gray[400] terlalu tipis buat dibaca nyaman di HP (kontras rendah) —
+    // gray[500] masih kelihatan "sekunder" tapi tetap gampang dibaca.
+    muted: gray[500],
     inverse: '#ffffff',
     link: green[600],
     danger: red[600],

@@ -18,16 +18,37 @@ import { resolveSaleUnitChoices } from '@/utils/productUnits';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Modal } from '@/components/ui/overlay';
-import { Card, Header } from '@/components/ui/recipes';
-import { Text } from '@/components/ui/typography';
+import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { Heading, Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'POS'>,
   NativeStackScreenProps<RootStackParamList>
 >;
 
+// Di bawah angka ini, stok ditandai kuning (mau habis) — di 0, merah (habis).
+// Bikin kasir langsung ngeh tanpa harus buka layar Produk terpisah.
+const LOW_STOCK_THRESHOLD = 5;
+
+function greetingForNow(): string {
+  const hour = new Date().getHours();
+  if (hour < 11) return 'Selamat pagi';
+  if (hour < 15) return 'Selamat siang';
+  if (hour < 19) return 'Selamat sore';
+  return 'Selamat malam';
+}
+
+function todayLabel(): string {
+  return new Date().toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
 export default function POSScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
   const { items, status } = useAppSelector((state) => state.products);
   const cartItems = useAppSelector((state) => state.cart.items);
   const cartCount = useAppSelector(selectCartCount);
@@ -73,25 +94,40 @@ export default function POSScreen({ navigation }: Props) {
     }
   };
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <Card onPress={() => onAddToCart(item)} style={styles.card}>
-      {item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={styles.cardImage} /> : null}
-      <Text weight="semibold" numberOfLines={2}>
-        {item.productName}
-      </Text>
-      <Text color="success" weight="bold" style={styles.cardPrice}>
-        Rp {item.sellingPrice.toLocaleString('id-ID')}
-      </Text>
-      <Text size="xs" color="muted">
-        Stok: {item.stockQuantity} {item.baseUnitName}
-      </Text>
-    </Card>
-  );
+  const renderProduct = ({ item }: { item: Product }) => {
+    const outOfStock = item.stockQuantity <= 0;
+    const lowStock = !outOfStock && item.stockQuantity <= LOW_STOCK_THRESHOLD;
+    const stockColor = outOfStock ? 'error' : lowStock ? 'warning' : 'muted';
+
+    return (
+      <Card onPress={() => onAddToCart(item)} style={styles.card}>
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
+        ) : (
+          <View style={styles.cardImagePlaceholder}>
+            <Text size="2xl">🛍️</Text>
+          </View>
+        )}
+        <Text weight="semibold" numberOfLines={2} style={styles.cardName}>
+          {item.productName}
+        </Text>
+        <View style={styles.cardFooter}>
+          <Text color="success" weight="bold">
+            Rp {item.sellingPrice.toLocaleString('id-ID')}
+          </Text>
+          <Text size="xs" weight="semibold" color={stockColor}>
+            {outOfStock ? 'Stok habis' : `Stok ${item.stockQuantity} ${item.baseUnitName}`}
+          </Text>
+        </View>
+      </Card>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Header
-        title="Kasir"
+        title={`${greetingForNow()}, ${user?.name?.split(' ')[0] ?? 'Kasir'}! 👋`}
+        subtitle={todayLabel()}
         rightElement={
           <Button
             size="sm"
@@ -101,19 +137,25 @@ export default function POSScreen({ navigation }: Props) {
               })
             }
           >
-            Scan Barcode
+            📷 Scan
           </Button>
         }
       />
 
       {sessionStatus !== 'loading' && !session ? (
         <View style={styles.sessionBanner}>
-          <Text size="sm" style={styles.sessionBannerText}>
-            Sesi kasir belum dibuka. Buka sesi untuk mulai mencatat penjualan.
-          </Text>
-          <Button size="sm" variant="outline" onPress={() => setOpenSessionModalVisible(true)}>
-            Buka Sesi
-          </Button>
+          <Text size="xl">🔓</Text>
+          <View style={styles.sessionBannerInfo}>
+            <Text weight="bold" style={styles.sessionBannerTitle}>
+              Sesi kasir belum dibuka
+            </Text>
+            <Text size="sm" style={styles.sessionBannerText}>
+              Buka sesi dulu dengan mengisi modal awal kas, baru bisa mulai mencatat penjualan hari ini.
+            </Text>
+            <Button size="sm" onPress={() => setOpenSessionModalVisible(true)} style={styles.sessionBannerButton}>
+              Buka Sesi Sekarang
+            </Button>
+          </View>
         </View>
       ) : null}
 
@@ -127,22 +169,36 @@ export default function POSScreen({ navigation }: Props) {
         onRefresh={() => dispatch(fetchProducts({}))}
         refreshing={status === 'loading'}
         ListEmptyComponent={
-          <Text color="muted" align="center" style={styles.empty}>
-            {status === 'loading' ? 'Memuat produk...' : 'Belum ada produk'}
-          </Text>
+          status === 'loading' ? (
+            <Text color="muted" align="center" style={styles.empty}>
+              Memuat produk...
+            </Text>
+          ) : (
+            <EmptyState
+              icon="🛍️"
+              title="Belum Ada Produk"
+              description="Tambahkan produk dulu di menu Produk supaya bisa langsung dijual di sini."
+              actionLabel="Buka Menu Produk"
+              onAction={() => navigation.navigate('Products')}
+            />
+          )
         }
       />
 
       {cartCount > 0 ? (
         <View style={styles.cartBar}>
-          <Text weight="semibold" style={styles.cartText}>
-            {cartCount} item · Rp {cartTotal.toLocaleString('id-ID')}
-          </Text>
+          <View>
+            <Text size="xs" style={styles.cartLabel}>
+              🛒 {cartCount} item di keranjang
+            </Text>
+            <Text weight="bold" size="lg" style={styles.cartText}>
+              Rp {cartTotal.toLocaleString('id-ID')}
+            </Text>
+          </View>
           <Button
-            size="sm"
             onPress={() => (session ? setCheckoutModalVisible(true) : setOpenSessionModalVisible(true))}
           >
-            Checkout
+            Checkout →
           </Button>
         </View>
       ) : null}
@@ -170,8 +226,11 @@ export default function POSScreen({ navigation }: Props) {
       <Modal isOpen={!!unitPicker} onClose={() => setUnitPicker(null)}>
         {unitPicker ? (
           <View>
-            <Text weight="semibold" size="lg" style={styles.modalTitle}>
-              Pilih satuan — {unitPicker.product.productName}
+            <Text weight="bold" size="lg" style={styles.modalTitle}>
+              Jual "{unitPicker.product.productName}" per apa?
+            </Text>
+            <Text color="secondary" size="sm" style={styles.unitPickerHint}>
+              Produk ini bisa dijual dalam beberapa satuan. Pilih salah satu di bawah.
             </Text>
             {unitPicker.choices.map((unit) => (
               <Button
@@ -214,8 +273,12 @@ function OpenSessionForm({ onDone, onCancel }: { onDone: () => void; onCancel: (
 
   return (
     <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        Buka Sesi Kasir
+      <Text weight="bold" size="lg" style={styles.modalTitle}>
+        🔓 Buka Sesi Kasir
+      </Text>
+      <Text color="secondary" size="sm" style={styles.openSessionHint}>
+        Hitung dulu uang tunai yang ada di laci, lalu masukkan jumlahnya di bawah. Ini jadi patokan buat menghitung
+        selisih kas saat sesi ditutup nanti.
       </Text>
       <FormControl label="Modal awal (kas di laci)" isRequired>
         <Input keyboardType="numeric" value={openingCash} onChangeText={setOpeningCash} placeholder="0" />
@@ -272,22 +335,30 @@ function CheckoutForm({
 
   return (
     <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        Checkout
+      <Text weight="bold" size="lg" style={styles.modalTitle}>
+        💳 Selesaikan Pembayaran
       </Text>
-      <Text color="secondary" style={styles.checkoutTotal}>
-        Total: Rp {total.toLocaleString('id-ID')}
-      </Text>
+      <View style={styles.checkoutTotalBox}>
+        <Text size="sm" color="secondary">
+          Total belanja
+        </Text>
+        <Heading level="h3" style={styles.checkoutTotalValue}>
+          Rp {total.toLocaleString('id-ID')}
+        </Heading>
+      </View>
 
       <FormControl label="Metode pembayaran" isRequired>
         <Select value={paymentMethod} onChange={setPaymentMethod} options={PAYMENT_METHODS} />
       </FormControl>
-      <FormControl label="Jumlah dibayar" isRequired>
+      <FormControl label="Jumlah dibayar" isRequired helperText="Isi jumlah uang yang diterima dari pembeli">
         <Input keyboardType="numeric" value={paymentAmount} onChangeText={setPaymentAmount} />
       </FormControl>
-      <Text size="sm" color="secondary" style={styles.change}>
-        Kembalian: Rp {change.toLocaleString('id-ID')}
-      </Text>
+      <View style={styles.changeBox}>
+        <Text weight="semibold">Kembalian</Text>
+        <Text weight="bold" size="lg" color={change > 0 ? 'success' : 'secondary'}>
+          Rp {change.toLocaleString('id-ID')}
+        </Text>
+      </View>
 
       <View style={styles.modalActions}>
         <Button variant="ghost" onPress={onCancel} style={styles.modalAction}>
@@ -305,20 +376,35 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   sessionBanner: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
     marginHorizontal: spacing.base,
     marginBottom: spacing.sm,
-    padding: spacing.sm,
-    borderRadius: 10,
+    padding: spacing.base,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.warning[200],
     backgroundColor: colors.warning[50],
   },
-  sessionBannerText: { flex: 1, marginRight: spacing.sm, color: colors.warning[700] },
-  grid: { paddingHorizontal: spacing.md, paddingBottom: 80 },
+  sessionBannerInfo: { flex: 1 },
+  sessionBannerTitle: { color: colors.warning[700], marginBottom: 2 },
+  sessionBannerText: { color: colors.warning[700] },
+  sessionBannerButton: { alignSelf: 'flex-start', marginTop: spacing.sm },
+  grid: { paddingHorizontal: spacing.md, paddingBottom: 96 },
   gridRow: { gap: spacing.md },
-  card: { flex: 1, minHeight: 90, justifyContent: 'space-between', marginBottom: spacing.md },
-  cardImage: { width: '100%', height: 64, borderRadius: 8, marginBottom: spacing.sm, backgroundColor: colors.gray[100] },
-  cardPrice: { marginTop: spacing.sm },
+  card: { flex: 1, minHeight: 120, justifyContent: 'space-between', marginBottom: spacing.md },
+  cardImage: { width: '100%', height: 72, borderRadius: 8, marginBottom: spacing.sm, backgroundColor: colors.gray[100] },
+  cardImagePlaceholder: {
+    width: '100%',
+    height: 72,
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.gray[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardName: { minHeight: 40 },
+  cardFooter: { marginTop: spacing.sm, gap: 2 },
   empty: { marginTop: spacing['3xl'] },
   cartBar: {
     position: 'absolute',
@@ -327,15 +413,31 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: colors.gray[900],
     padding: spacing.base,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  cartLabel: { color: colors.gray[300], marginBottom: 2 },
   cartText: { color: colors.white },
   modalTitle: { marginBottom: spacing.base },
+  unitPickerHint: { marginBottom: spacing.base },
+  openSessionHint: { marginBottom: spacing.base },
   unitChoice: { marginBottom: spacing.sm },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },
-  checkoutTotal: { marginBottom: spacing.base },
-  change: { marginBottom: spacing.sm },
+  checkoutTotalBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+  },
+  checkoutTotalValue: { marginTop: 2 },
+  changeBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
 });

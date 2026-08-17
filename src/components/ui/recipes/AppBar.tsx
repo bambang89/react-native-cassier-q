@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ReactNode } from 'react';
 
-import { colors, fontSizes, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 import { Pressable } from '@/components/ui/forms/Pressable';
 import { Text } from '@/components/ui/typography/Text';
 
@@ -20,15 +20,23 @@ export function AppBar({ title, onBack, rightElement, leftElement }: AppBarProps
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.side}>
         {onBack ? (
-          <Pressable onPress={onBack} hitSlop={8} accessibilityRole="button" accessibilityLabel="Kembali">
-            <Text size="xl">‹</Text>
+          <Pressable
+            onPress={onBack}
+            hitSlop={8}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+          >
+            <Text size="2xl" weight="bold" style={styles.backGlyph}>
+              ‹
+            </Text>
           </Pressable>
         ) : (
           leftElement
         )}
       </View>
 
-      <Text size="lg" weight="semibold" numberOfLines={1} style={styles.title}>
+      <Text size="xl" weight="bold" numberOfLines={1} style={styles.title}>
         {title}
       </Text>
 
@@ -37,19 +45,28 @@ export function AppBar({ title, onBack, rightElement, leftElement }: AppBarProps
   );
 }
 
-const SIDE_WIDTH = 44;
+const SIDE_WIDTH = 48;
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingVertical: spacing.xs,
     backgroundColor: colors.background,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
   side: { minWidth: SIDE_WIDTH, justifyContent: 'center' },
   sideRight: { alignItems: 'flex-end' },
-  title: { flex: 1, textAlign: 'center', fontSize: fontSizes.lg },
+  title: { flex: 1, textAlign: 'center' },
+  backButton: {
+    width: SIDE_WIDTH,
+    height: SIDE_WIDTH,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+  },
+  backGlyph: { marginRight: 2 },
 });

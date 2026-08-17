@@ -26,7 +26,7 @@ export function FormControl({
   return (
     <View style={styles.container}>
       {label ? (
-        <Text size="sm" weight="medium" style={styles.label}>
+        <Text size="base" weight="semibold" style={styles.label}>
           {label}
           {isRequired ? <Text color="error"> *</Text> : null}
         </Text>
@@ -35,11 +35,11 @@ export function FormControl({
       {children}
 
       {showError ? (
-        <Text size="xs" color="error" style={styles.helper}>
+        <Text size="sm" color="error" style={styles.helper}>
           {errorText}
         </Text>
       ) : helperText ? (
-        <Text size="xs" color="secondary" style={styles.helper}>
+        <Text size="sm" color="secondary" style={styles.helper}>
           {helperText}
         </Text>
       ) : null}
@@ -48,7 +48,7 @@ export function FormControl({
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: spacing.md },
+  container: { marginBottom: spacing.base },
   label: { marginBottom: spacing.xs, color: colors.text.primary },
   helper: { marginTop: spacing.xs },
 });
