@@ -3,6 +3,7 @@ export * from './Pressable';
 export * from './CheckBox';
 export * from './FormControl';
 export * from './Input';
+export * from './PasswordInput';
 export * from './Link';
 export * from './Radio';
 export * from './Select';

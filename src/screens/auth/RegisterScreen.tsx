@@ -6,9 +6,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { register } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
-import { Button, FormControl, Input, Link } from '@/components/ui/forms';
+import { colors, radii, spacing } from '@/theme';
+import { Button, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Heading, Text } from '@/components/ui/typography';
+import { HStack } from '@/components/ui/layout';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -21,9 +22,20 @@ export default function RegisterScreen({ navigation }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const isSubmitting = status === 'authenticating';
-  const canSubmit = !!(storeCode && storeName && username && name && email && password.length >= 8);
+  const passwordsMatch = !confirmPassword || confirmPassword === password;
+  const canSubmit = !!(
+    storeCode &&
+    storeName &&
+    username &&
+    name &&
+    email &&
+    password.length >= 8 &&
+    confirmPassword.length >= 8 &&
+    passwordsMatch
+  );
 
   const onSubmit = () => {
     dispatch(register({ storeCode, storeName, username, name, email, password }));
@@ -33,35 +45,53 @@ export default function RegisterScreen({ navigation }: Props) {
     <SafeAreaView style={styles.flex}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoEmoji}>📝</Text>
+        <View style={styles.brandRow}>
+          <View style={styles.logoMark}>
+            <Text size="xl">📝</Text>
+          </View>
+          <Text weight="bold" size="lg">
+            cassier-Q
+          </Text>
         </View>
-        <Heading level="h2" align="center" style={styles.title}>
+
+        <Heading level="h1" style={styles.title}>
           Daftar Toko Baru
         </Heading>
-        <Text color="secondary" align="center" style={styles.subtitle}>
+        <Text color="secondary" style={styles.subtitle}>
           Isi data di bawah — akun pemilik toko langsung jadi begitu selesai daftar
         </Text>
 
         <Text weight="bold" style={styles.sectionLabel}>
           🏬 Data Toko
         </Text>
-        <FormControl label="Kode toko" isRequired helperText="Kode singkat buat toko kamu, bebas kamu tentukan">
-          <Input placeholder="mis. TOKO001" autoCapitalize="characters" value={storeCode} onChangeText={setStoreCode} />
-        </FormControl>
-        <FormControl label="Nama toko" isRequired>
-          <Input placeholder="mis. Toko Kelontong Berkah" value={storeName} onChangeText={setStoreName} />
-        </FormControl>
+        <HStack space="md">
+          <View style={styles.half}>
+            <FormControl label="Kode toko" isRequired helperText="Bebas kamu tentukan">
+              <Input placeholder="mis. TOKO001" autoCapitalize="characters" value={storeCode} onChangeText={setStoreCode} />
+            </FormControl>
+          </View>
+          <View style={styles.half}>
+            <FormControl label="Nama toko" isRequired>
+              <Input placeholder="mis. Toko Berkah" value={storeName} onChangeText={setStoreName} />
+            </FormControl>
+          </View>
+        </HStack>
 
         <Text weight="bold" style={styles.sectionLabel}>
           👤 Data Pemilik
         </Text>
-        <FormControl label="Nama lengkap" isRequired>
-          <Input placeholder="Nama lengkap kamu" value={name} onChangeText={setName} />
-        </FormControl>
-        <FormControl label="Username" isRequired helperText="Dipakai untuk masuk/login nanti, bukan nama lengkap">
-          <Input placeholder="mis. budi123" autoCapitalize="none" autoCorrect={false} value={username} onChangeText={setUsername} />
-        </FormControl>
+        <HStack space="md">
+          <View style={styles.half}>
+            <FormControl label="Nama lengkap" isRequired>
+              <Input placeholder="Nama lengkap kamu" value={name} onChangeText={setName} />
+            </FormControl>
+          </View>
+          <View style={styles.half}>
+            <FormControl label="Username" isRequired helperText="Buat login, bukan nama">
+              <Input placeholder="mis. budi123" autoCapitalize="none" autoCorrect={false} value={username} onChangeText={setUsername} />
+            </FormControl>
+          </View>
+        </HStack>
         <FormControl label="Email" isRequired>
           <Input
             placeholder="nama@email.com"
@@ -79,7 +109,15 @@ export default function RegisterScreen({ navigation }: Props) {
           errorText={error ?? undefined}
           isInvalid={!!error}
         >
-          <Input placeholder="Buat kata sandi" secureTextEntry value={password} onChangeText={setPassword} />
+          <PasswordInput placeholder="Buat kata sandi" value={password} onChangeText={setPassword} />
+        </FormControl>
+        <FormControl
+          label="Konfirmasi Kata Sandi"
+          isRequired
+          errorText={!passwordsMatch ? 'Kata sandi tidak sama' : undefined}
+          isInvalid={!passwordsMatch}
+        >
+          <PasswordInput placeholder="Ulangi kata sandi" value={confirmPassword} onChangeText={setConfirmPassword} />
         </FormControl>
 
         <Button onPress={onSubmit} loading={isSubmitting} disabled={!canSubmit} fullWidth style={styles.submit}>
@@ -87,7 +125,10 @@ export default function RegisterScreen({ navigation }: Props) {
         </Button>
 
         <View style={styles.loginLink}>
-          <Link onPress={() => navigation.goBack()}>Sudah punya akun? Masuk</Link>
+          <Text color="secondary" size="sm">
+            Sudah punya akun?{' '}
+          </Text>
+          <Link onPress={() => navigation.goBack()}>Masuk</Link>
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -98,20 +139,19 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  logoWrap: {
-    alignSelf: 'center',
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xl },
+  logoMark: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.md,
     backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.base,
   },
-  logoEmoji: { fontSize: 36 },
   title: { marginBottom: spacing.xs },
-  subtitle: { marginBottom: spacing.xl, paddingHorizontal: spacing.base },
+  subtitle: { marginBottom: spacing.xl },
   sectionLabel: { marginBottom: spacing.sm, marginTop: spacing.xs },
+  half: { flex: 1 },
   submit: { marginTop: spacing.sm },
-  loginLink: { alignItems: 'center', marginTop: spacing.lg },
+  loginLink: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
 });

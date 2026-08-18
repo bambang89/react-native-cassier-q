@@ -6,9 +6,9 @@ import { useAppDispatch } from '@/store/hooks';
 import { resetPassword } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
-import { Button, FormControl, Input } from '@/components/ui/forms';
+import { Button, FormControl, Input, PasswordInput } from '@/components/ui/forms';
 import { AppBar } from '@/components/ui/recipes';
-import { Text } from '@/components/ui/typography';
+import { Heading, Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ResetPassword'>;
 
@@ -16,9 +16,11 @@ export default function ResetPasswordScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
   const [token, setToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = !!token && newPassword.length >= 8;
+  const passwordsMatch = !confirmPassword || confirmPassword === newPassword;
+  const canSubmit = !!token && newPassword.length >= 8 && confirmPassword.length >= 8 && passwordsMatch;
 
   const onSubmit = async () => {
     setSubmitting(true);
@@ -38,6 +40,10 @@ export default function ResetPasswordScreen({ navigation }: Props) {
     <View style={styles.container}>
       <AppBar title="Reset Kata Sandi" onBack={navigation.goBack} />
       <View style={styles.body}>
+        <Text style={styles.icon}>🔑</Text>
+        <Heading level="h1" style={styles.title}>
+          Buat kata sandi baru
+        </Heading>
         <Text color="secondary" style={styles.description}>
           Tempel token reset yang dikirim ke email toko, lalu masukkan kata sandi baru.
         </Text>
@@ -45,7 +51,14 @@ export default function ResetPasswordScreen({ navigation }: Props) {
           <Input placeholder="Token" autoCapitalize="none" autoCorrect={false} value={token} onChangeText={setToken} />
         </FormControl>
         <FormControl label="Kata sandi baru" helperText="Minimal 8 karakter">
-          <Input placeholder="Kata sandi baru" secureTextEntry value={newPassword} onChangeText={setNewPassword} />
+          <PasswordInput placeholder="Kata sandi baru" value={newPassword} onChangeText={setNewPassword} />
+        </FormControl>
+        <FormControl
+          label="Konfirmasi kata sandi baru"
+          errorText={!passwordsMatch ? 'Kata sandi tidak sama' : undefined}
+          isInvalid={!passwordsMatch}
+        >
+          <PasswordInput placeholder="Ulangi kata sandi baru" value={confirmPassword} onChangeText={setConfirmPassword} />
         </FormControl>
         <Button onPress={onSubmit} loading={submitting} disabled={!canSubmit} fullWidth>
           Ganti Kata Sandi
@@ -58,5 +71,7 @@ export default function ResetPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.xl },
-  description: { marginBottom: spacing.lg },
+  icon: { fontSize: 40, marginBottom: spacing.base },
+  title: { marginBottom: spacing.xs },
+  description: { marginBottom: spacing.xl },
 });

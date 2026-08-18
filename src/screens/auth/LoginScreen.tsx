@@ -6,8 +6,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
-import { Button, FormControl, Input, Link } from '@/components/ui/forms';
+import { colors, radii, spacing } from '@/theme';
+import { Button, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Heading, Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
@@ -27,13 +27,19 @@ export default function LoginScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoEmoji}>🏪</Text>
+        <View style={styles.brandRow}>
+          <View style={styles.logoMark}>
+            <Text size="xl">🏪</Text>
+          </View>
+          <Text weight="bold" size="lg">
+            cassier-Q
+          </Text>
         </View>
-        <Heading level="h1" align="center">
-          cassier-Q
+
+        <Heading level="h1" style={styles.title}>
+          Masuk
         </Heading>
-        <Text color="secondary" align="center" style={styles.subtitle}>
+        <Text color="secondary" style={styles.subtitle}>
           Masuk ke akun toko kamu untuk mulai berjualan hari ini
         </Text>
 
@@ -48,12 +54,7 @@ export default function LoginScreen({ navigation }: Props) {
         </FormControl>
 
         <FormControl label="Kata Sandi" errorText={error ?? undefined} isInvalid={!!error}>
-          <Input
-            placeholder="Masukkan kata sandi"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          <PasswordInput placeholder="Masukkan kata sandi" value={password} onChangeText={setPassword} />
         </FormControl>
 
         <View style={styles.forgot}>
@@ -70,7 +71,10 @@ export default function LoginScreen({ navigation }: Props) {
         </Button>
 
         <View style={styles.registerLink}>
-          <Link onPress={() => navigation.navigate('Register')}>Belum punya akun? Daftar</Link>
+          <Text color="secondary" size="sm">
+            Belum punya akun?{' '}
+          </Text>
+          <Link onPress={() => navigation.navigate('Register')}>Daftar</Link>
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -81,18 +85,17 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  logoWrap: {
-    alignSelf: 'center',
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing['2xl'] },
+  logoMark: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.md,
     backgroundColor: colors.primary[50],
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.base,
   },
-  logoEmoji: { fontSize: 44 },
-  subtitle: { marginTop: spacing.xs, marginBottom: spacing['2xl'], paddingHorizontal: spacing.base },
+  title: { marginBottom: spacing.xs },
+  subtitle: { marginBottom: spacing['2xl'] },
   forgot: { alignItems: 'flex-end', marginBottom: spacing.base },
-  registerLink: { alignItems: 'center', marginTop: spacing.lg },
+  registerLink: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
 });

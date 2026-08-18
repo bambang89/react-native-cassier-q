@@ -30,11 +30,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'cassier-Q',
   scheme: 'cassierq',
   version: '1.0.0',
-  orientation: 'portrait',
+  orientation: 'landscape',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   ios: {
     supportsTablet: true,
+    requireFullScreen: true,
     bundleIdentifier: BUNDLE_ID[VARIANT],
     infoPlist: {
       NSCameraUsageDescription:
@@ -42,6 +43,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSMicrophoneUsageDescription:
         'cassier-Q does not record audio; this permission is required by the camera module.',
       ITSAppUsesNonExemptEncryption: false,
+      'UISupportedInterfaceOrientations~ipad': [
+        'UIInterfaceOrientationLandscapeLeft',
+        'UIInterfaceOrientationLandscapeRight',
+      ],
     },
   },
   android: {

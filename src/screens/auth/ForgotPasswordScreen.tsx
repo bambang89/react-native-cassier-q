@@ -8,7 +8,7 @@ import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { AppBar } from '@/components/ui/recipes';
-import { Text } from '@/components/ui/typography';
+import { Heading, Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
@@ -37,8 +37,13 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
     <View style={styles.container}>
       <AppBar title="Lupa Kata Sandi" onBack={navigation.goBack} />
       <View style={styles.body}>
+        <Text style={styles.icon}>🔒</Text>
+        <Heading level="h1" style={styles.title}>
+          Lupa kata sandi?
+        </Heading>
         <Text color="secondary" style={styles.description}>
-          Masukkan username akun kamu. Kalau terdaftar, token reset kata sandi akan dikirim ke email toko.
+          Jangan khawatir, ini bisa terjadi ke siapa saja. Masukkan username akun kamu — kalau terdaftar, token
+          reset kata sandi akan dikirim ke email toko.
         </Text>
         <FormControl label="Username">
           <Input placeholder="username" autoCapitalize="none" autoCorrect={false} value={username} onChangeText={setUsername} />
@@ -54,5 +59,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.xl },
-  description: { marginBottom: spacing.lg },
+  icon: { fontSize: 40, marginBottom: spacing.base },
+  title: { marginBottom: spacing.xs },
+  description: { marginBottom: spacing.xl },
 });
