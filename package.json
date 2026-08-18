@@ -11,9 +11,9 @@
     "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.19.0",
     "expo": "~57.0.12",
+    "expo-asset": "~57.0.10",
     "expo-build-properties": "~57.0.10",
     "expo-constants": "~57.0.10",
-    "expo-dev-client": "~57.0.11",
     "expo-font": "~57.0.1",
     "expo-secure-store": "~57.0.1",
     "expo-status-bar": "~57.0.1",
@@ -32,12 +32,17 @@
     "react-redux": "^9.3.0"
   },
   "devDependencies": {
+    "@react-native-community/cli": "^20.2.0",
+    "@react-native-community/cli-platform-android": "^20.2.0",
+    "@react-native-community/cli-platform-ios": "^20.2.0",
+    "@react-native/metro-config": "^0.86.2",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
+    "run:ios": "ENVFILE=.env APP_ENV=development npx react-native run-ios",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "prebuild": "expo prebuild --clean",
