@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchSalesSummary } from '@/store/slices/reportsSlice';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 import { Button } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
-import { Card, Header, StatCard } from '@/components/ui/recipes';
+import { Card, Header, KpiCard } from '@/components/ui/recipes';
+import { BarChartIcon, CalendarIcon, ReceiptIcon, RegisterIcon, TrophyIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type RangeOption = 7 | 30;
@@ -72,31 +73,41 @@ export default function ReportsScreen() {
           refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(range)} />}
         >
           <View style={styles.statsRow}>
-            <StatCard
-              icon="💰"
-              iconBg={colors.success[100]}
+            <KpiCard
+              icon={RegisterIcon}
+              iconColor={colors.success[600]}
+              iconBg={colors.success[50]}
               label="Total Penjualan"
               value={`Rp ${summary.grossSales.toLocaleString('id-ID')}`}
             />
-            <StatCard
-              icon="🧾"
-              iconBg={colors.info[100]}
+            <KpiCard
+              icon={ReceiptIcon}
+              iconColor={colors.primary[600]}
+              iconBg={colors.primary[50]}
               label="Jumlah Transaksi"
               value={String(summary.orderCount)}
             />
           </View>
 
-          <Text size="sm" color="muted" style={styles.period}>
-            📅 Periode: {summary.from} — {summary.to}
-          </Text>
+          <View style={styles.periodRow}>
+            <CalendarIcon size={14} color={colors.text.muted} />
+            <Text size="sm" color="muted">
+              Periode: {summary.from} — {summary.to}
+            </Text>
+          </View>
 
-          <Text weight="bold" size="lg" style={styles.sectionTitle}>
-            🏆 Produk Terlaris
-          </Text>
+          <View style={styles.sectionTitleRow}>
+            <TrophyIcon size={16} color={colors.text.primary} />
+            <Text weight="bold" size="lg">
+              Produk Terlaris
+            </Text>
+          </View>
           <Card padding="none" shadow="sm">
             {summary.topSellers.length === 0 ? (
               <View style={styles.emptyBest}>
-                <Text style={styles.emptyBestIcon}>📊</Text>
+                <View style={styles.emptyBestGlyph}>
+                  <BarChartIcon size={22} color={colors.primary[600]} />
+                </View>
                 <Text color="secondary" align="center">
                   Belum ada penjualan di periode ini. Data akan muncul begitu ada transaksi baru.
                 </Text>
@@ -134,10 +145,18 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
-  period: { marginBottom: spacing.lg },
-  sectionTitle: { marginBottom: spacing.sm },
+  periodRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.lg },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
   emptyBest: { padding: spacing.xl, alignItems: 'center' },
-  emptyBestIcon: { fontSize: 40, marginBottom: spacing.sm },
+  emptyBestGlyph: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
   bestRow: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, gap: spacing.sm },
   bestRank: { width: 24, color: colors.text.muted, fontWeight: '700', fontSize: 16 },
   bestInfo: { flex: 1 },

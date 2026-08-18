@@ -48,6 +48,7 @@ export default function LoginScreen({ navigation }: Props) {
             placeholder="nama@bisnis.com"
             autoCapitalize="none"
             autoCorrect={false}
+            textContentType="none"
             value={username}
             onChangeText={setUsername}
           />
@@ -101,7 +102,14 @@ export default function LoginScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
+  container: {
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
   logo: {
     width: 56,
     height: 56,

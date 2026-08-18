@@ -11,6 +11,7 @@ import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { FolderIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Categories'>;
@@ -77,7 +78,7 @@ export default function CategoriesScreen({ navigation }: Props) {
             </Text>
           ) : (
             <EmptyState
-              icon="🗂️"
+              icon={FolderIcon}
               title="Belum Ada Kategori"
               description="Kategori membantu mengelompokkan produk (mis. Makanan, Minuman, Rokok) supaya lebih rapi dicari."
               actionLabel="+ Buat Kategori"

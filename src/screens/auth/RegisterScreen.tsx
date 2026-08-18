@@ -8,6 +8,7 @@ import { register } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
+import { PersonIcon, StoreIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
 
@@ -58,9 +59,10 @@ export default function RegisterScreen({ navigation }: Props) {
           Isi data di bawah — akun pemilik toko langsung jadi begitu selesai daftar
         </Text>
 
-        <Text weight="bold" style={styles.sectionLabel}>
-          🏬 Data Toko
-        </Text>
+        <View style={styles.sectionLabelRow}>
+          <StoreIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Data Toko</Text>
+        </View>
         <HStack space="md">
           <View style={styles.half}>
             <FormControl label="Kode toko" isRequired helperText="Bebas kamu tentukan">
@@ -74,9 +76,10 @@ export default function RegisterScreen({ navigation }: Props) {
           </View>
         </HStack>
 
-        <Text weight="bold" style={styles.sectionLabel}>
-          👤 Data Pemilik
-        </Text>
+        <View style={styles.sectionLabelRow}>
+          <PersonIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Data Pemilik</Text>
+        </View>
         <HStack space="md">
           <View style={styles.half}>
             <FormControl label="Nama lengkap" isRequired>
@@ -85,7 +88,14 @@ export default function RegisterScreen({ navigation }: Props) {
           </View>
           <View style={styles.half}>
             <FormControl label="Username" isRequired helperText="Buat login, bukan nama">
-              <Input placeholder="mis. budi123" autoCapitalize="none" autoCorrect={false} value={username} onChangeText={setUsername} />
+              <Input
+                placeholder="mis. budi123"
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="none"
+                value={username}
+                onChangeText={setUsername}
+              />
             </FormControl>
           </View>
         </HStack>
@@ -144,7 +154,13 @@ const styles = StyleSheet.create({
   },
   title: { marginBottom: spacing.xs },
   subtitle: { marginBottom: spacing.xl },
-  sectionLabel: { marginBottom: spacing.sm, marginTop: spacing.xs },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+  },
   half: { flex: 1 },
   submit: { marginTop: spacing.sm },
   loginLink: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },

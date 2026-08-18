@@ -16,6 +16,7 @@ import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { EmployeeIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 // Dipakai kalau GET /roles belum sempat termuat — biar Select role tidak kosong melompong.
@@ -106,7 +107,7 @@ export default function EmployeesScreen() {
             </Text>
           ) : (
             <EmptyState
-              icon="👥"
+              icon={EmployeeIcon}
               title="Belum Ada Karyawan Lain"
               description="Tambahkan akun untuk kasir/staf lain di toko ini — masing-masing bisa punya role sendiri (Kasir, Gudang, dst)."
               actionLabel="+ Tambah Karyawan"

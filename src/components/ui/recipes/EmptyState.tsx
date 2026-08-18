@@ -1,14 +1,14 @@
 import { StyleSheet, View } from 'react-native';
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
-import { spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
+import type { LineIconProps } from '@/components/icons/LineIcons';
 import { Button } from '@/components/ui/forms/Button';
 import { Heading } from '@/components/ui/typography/Heading';
 import { Text } from '@/components/ui/typography/Text';
 
 export interface EmptyStateProps {
-  /** Emoji besar sebagai ilustrasi ringan — tanpa perlu aset gambar, tetap terasa ramah & tidak kosong-hampa. */
-  icon: string;
+  icon: ComponentType<LineIconProps>;
   title: string;
   description?: string;
   actionLabel?: string;
@@ -16,13 +16,12 @@ export interface EmptyStateProps {
   children?: ReactNode;
 }
 
-// Dipakai di setiap layar daftar (Produk, Transaksi, Kategori, Satuan, dst)
-// menggantikan teks datar "Belum ada data" — supaya layar kosong tetap
-// terasa hidup dan langsung kasih tahu pengguna harus ngapain.
-export function EmptyState({ icon, title, description, actionLabel, onAction, children }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, actionLabel, onAction, children }: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      <View style={styles.glyph}>
+        <Icon size={26} color={colors.primary[600]} />
+      </View>
       <Heading level="h5" align="center" style={styles.title}>
         {title}
       </Heading>
@@ -43,7 +42,15 @@ export function EmptyState({ icon, title, description, actionLabel, onAction, ch
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', padding: spacing.xl, paddingTop: spacing['3xl'] },
-  icon: { fontSize: 56, marginBottom: spacing.base },
+  glyph: {
+    width: 64,
+    height: 64,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.base,
+  },
   title: { marginBottom: spacing.xs },
   description: { maxWidth: 280 },
   action: { marginTop: spacing.lg },

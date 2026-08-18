@@ -14,6 +14,7 @@ import { Button, CheckBox, FormControl, Input, Link, Select, TextArea } from '@/
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
 import { AppBar, Card } from '@/components/ui/recipes';
+import { BarcodeIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
 
@@ -110,8 +111,13 @@ export default function ProductFormScreen({ navigation, route }: Props) {
         title={editing ? 'Ubah Produk' : 'Tambah Produk'}
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" variant="outline" onPress={onScan}>
-            📷 Scan
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<BarcodeIcon size={14} color={colors.primary[600]} />}
+            onPress={onScan}
+          >
+            Scan
           </Button>
         }
       />

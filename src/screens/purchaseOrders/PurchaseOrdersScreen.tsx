@@ -9,7 +9,8 @@ import type { RootStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { Button } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
-import { AppBar, Card, EmptyState, StatCard } from '@/components/ui/recipes';
+import { AppBar, Card, EmptyState, KpiCard } from '@/components/ui/recipes';
+import { BoxIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PurchaseOrders'>;
@@ -36,7 +37,13 @@ export default function PurchaseOrdersScreen({ navigation }: Props) {
 
       {totalElements > 0 ? (
         <View style={styles.statsRow}>
-          <StatCard icon="📦" iconBg={colors.primary[100]} label="Total PO" value={totalElements.toLocaleString('id-ID')} />
+          <KpiCard
+            icon={BoxIcon}
+            iconColor={colors.primary[600]}
+            iconBg={colors.primary[50]}
+            label="Total PO"
+            value={totalElements.toLocaleString('id-ID')}
+          />
         </View>
       ) : null}
 
@@ -80,7 +87,7 @@ export default function PurchaseOrdersScreen({ navigation }: Props) {
             </Text>
           ) : (
             <EmptyState
-              icon="📦"
+              icon={BoxIcon}
               title="Belum Ada Purchase Order"
               description="Buat PO ke pemasok untuk mencatat pembelian barang dagangan secara rapi, lengkap dengan status penerimaannya."
               actionLabel="+ Buat PO"

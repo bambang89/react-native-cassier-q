@@ -61,8 +61,17 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  body: { padding: spacing.xl },
+  container: { 
+    flex: 1,
+    backgroundColor: colors.background 
+  },
+  body: { 
+    width: '100%',
+    maxWidth: 500,
+    alignSelf: 'center',
+    backgroundColor: colors.background,
+    padding: spacing.xl 
+  },
   logo: { width: 56, height: 56, alignSelf: 'center', marginBottom: spacing.base },
   title: { marginBottom: spacing.xs },
   description: { marginBottom: spacing.xl },

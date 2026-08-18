@@ -1,8 +1,5 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-// Set ikon garis (outline, 24x24, stroke bulat) diambil langsung dari markup SVG
-// di cassier-q-webapp (tablet-pos.html, components.html) — dipakai di sidebar,
-// header, dan panel kasir supaya konsisten dengan sumber desain resminya.
 export interface LineIconProps {
   size?: number;
   color?: string;
@@ -292,6 +289,187 @@ export function FilterIcon(props: LineIconProps) {
   return (
     <Base {...props}>
       <Path d="M4 5h16l-6.5 8v6l-3 1.5v-7.5Z" />
+    </Base>
+  );
+}
+
+export function TruckIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M2 7h11v9H2Z" />
+      <Path d="M13 10h4l3 3v3h-3" />
+      <Circle cx={6} cy={18} r={1.8} />
+      <Circle cx={17} cy={18} r={1.8} />
+    </Base>
+  );
+}
+
+export function ScaleIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M12 3v18" />
+      <Path d="M5 7h14" />
+      <Path d="M5 7l-3 6a3 3 0 0 0 6 0Z" />
+      <Path d="M19 7l-3 6a3 3 0 0 0 6 0Z" />
+      <Path d="M8 21h8" />
+    </Base>
+  );
+}
+
+export function FolderIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+    </Base>
+  );
+}
+
+export function WalletIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
+      <Rect x={3} y={7} width={18} height={13} rx={2} />
+      <Path d="M16 13h3a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-3a2 2 0 0 1 0-4Z" />
+    </Base>
+  );
+}
+
+export function CalendarIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Rect x={3} y={5} width={18} height={16} rx={2} />
+      <Path d="M8 3v4M16 3v4M3 10h18" />
+    </Base>
+  );
+}
+
+export function TrophyIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M7 4h10v6a5 5 0 0 1-10 0Z" />
+      <Path d="M7 5H4a1 1 0 0 0-1 1v1a4 4 0 0 0 4 4M17 5h3a1 1 0 0 1 1 1v1a4 4 0 0 1-4 4" />
+      <Path d="M12 15v3M9 21h6M9.5 18h5l.5 3H9Z" />
+    </Base>
+  );
+}
+
+export function LockIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Rect x={5} y={11} width={14} height={9} rx={2} />
+      <Path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </Base>
+  );
+}
+
+export function WrenchIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z" />
+    </Base>
+  );
+}
+
+export function ReceiveIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M12 3v11" />
+      <Path d="M8 10l4 4 4-4" />
+      <Path d="M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5" />
+    </Base>
+  );
+}
+
+export function StickyNoteIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M4 4h16v11l-5 5H4Z" />
+      <Path d="M15 20v-4a1 1 0 0 1 1-1h4" />
+    </Base>
+  );
+}
+
+export function CreditCardIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Rect x={2} y={5} width={20} height={14} rx={2} />
+      <Path d="M2 10h20" />
+      <Path d="M6 15h4" />
+    </Base>
+  );
+}
+
+export function UnlockIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Rect x={5} y={11} width={14} height={9} rx={2} />
+      <Path d="M8 11V7a4 4 0 0 1 7.4-2.1" />
+    </Base>
+  );
+}
+
+export function PinIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z" />
+      <Circle cx={12} cy={9.5} r={2.3} />
+    </Base>
+  );
+}
+
+export function HistoryIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M3 12a9 9 0 1 0 3-6.7" />
+      <Path d="M3 4v5h5" />
+      <Path d="M12 7v5l3.5 2" />
+    </Base>
+  );
+}
+
+export function PersonIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Circle cx={12} cy={8} r={4} />
+      <Path d="M4 20c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+    </Base>
+  );
+}
+
+export function AlertTriangleIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M12 3.5 22 20H2Z" />
+      <Path d="M12 9.5v4.5" />
+      <Circle cx={12} cy={17} r={0.15} fill={props.color ?? 'currentColor'} stroke={props.color ?? 'currentColor'} strokeWidth={2} />
+    </Base>
+  );
+}
+
+export function EyeIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+      <Circle cx={12} cy={12} r={3} />
+    </Base>
+  );
+}
+
+// Path persis dari .input-icon-wrap password field di cassier-q-webapp/login.html.
+export function EyeOffIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M3 3l18 18" />
+      <Path d="M10.6 5.2A10.6 10.6 0 0 1 12 5c6.5 0 10 7 10 7a15 15 0 0 1-3.4 4.2M6.7 6.7A15.4 15.4 0 0 0 2 12s3.5 7 10 7c1.4 0 2.6-.2 3.7-.6" />
+      <Path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </Base>
+  );
+}
+
+export function CheckIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M4 12.5 9.5 18 20 6" />
     </Base>
   );
 }

@@ -18,6 +18,7 @@ import { Button, Input } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card } from '@/components/ui/recipes';
+import { ReceiptIcon, ReceiveIcon, StickyNoteIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { VStack } from '@/components/ui/layout';
 
@@ -85,9 +86,12 @@ export default function PurchaseOrderDetailScreen({ navigation, route }: Props) 
             <Badge variant={meta.variant}>{meta.label}</Badge>
           </View>
           {po.notes ? (
-            <Text size="sm" color="muted" style={styles.notes}>
-              📝 {po.notes}
-            </Text>
+            <View style={styles.notesRow}>
+              <StickyNoteIcon size={13} color={colors.text.muted} />
+              <Text size="sm" color="muted" style={styles.notes}>
+                {po.notes}
+              </Text>
+            </View>
           ) : null}
         </Card>
 
@@ -98,9 +102,12 @@ export default function PurchaseOrderDetailScreen({ navigation, route }: Props) 
           <Heading level="h3">Rp {po.totalCost.toLocaleString('id-ID')}</Heading>
         </Card>
 
-        <Text weight="bold" size="lg" style={styles.sectionTitle}>
-          🧾 Barang
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <ReceiptIcon size={16} color={colors.text.secondary} />
+          <Text weight="bold" size="lg">
+            Barang
+          </Text>
+        </View>
         <Card padding="none" shadow="sm">
           {po.items.map((item, index) => {
             const remaining = remainingToReceive(item);
@@ -129,8 +136,12 @@ export default function PurchaseOrderDetailScreen({ navigation, route }: Props) 
         </Card>
 
         {receivable ? (
-          <Button style={styles.actionButton} onPress={() => setReceiveVisible(true)}>
-            📥 Terima Barang
+          <Button
+            style={styles.actionButton}
+            leftIcon={<ReceiveIcon size={16} color={colors.white} />}
+            onPress={() => setReceiveVisible(true)}
+          >
+            Terima Barang
           </Button>
         ) : null}
         {cancellable ? (
@@ -191,9 +202,12 @@ function ReceiveForm({ po, onDone, onCancel }: { po: PurchaseOrder; onDone: () =
 
   return (
     <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        📥 Terima Barang
-      </Text>
+      <View style={styles.modalTitleRow}>
+        <ReceiveIcon size={16} color={colors.text.primary} />
+        <Text weight="semibold" size="lg">
+          Terima Barang
+        </Text>
+      </View>
       <Text size="sm" color="secondary" style={styles.modalHint}>
         Isi jumlah barang yang benar-benar datang. Boleh sebagian — sisanya tetap tercatat sebagai belum diterima.
       </Text>
@@ -233,9 +247,16 @@ const styles = StyleSheet.create({
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
   headerInfo: { flex: 1 },
-  notes: { marginTop: spacing.sm },
+  notesRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: spacing.sm },
+  notes: { flex: 1 },
   totalCard: { marginTop: spacing.md },
-  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -246,7 +267,7 @@ const styles = StyleSheet.create({
   itemInfo: { flex: 1, gap: 2 },
   actionButton: { marginTop: spacing.md },
   cancelHint: { marginTop: spacing.sm },
-  modalTitle: { marginBottom: spacing.xs },
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
   modalHint: { marginBottom: spacing.base },
   remainingHint: { marginBottom: spacing.xs },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.base },

@@ -11,6 +11,7 @@ import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { TruckIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Suppliers'>;
@@ -84,7 +85,7 @@ export default function SuppliersScreen({ navigation }: Props) {
             </Text>
           ) : (
             <EmptyState
-              icon="🚚"
+              icon={TruckIcon}
               title="Belum Ada Pemasok"
               description="Daftarkan pemasok dulu supaya bisa membuat Purchase Order (PO) pembelian barang."
               actionLabel="+ Tambah Pemasok"

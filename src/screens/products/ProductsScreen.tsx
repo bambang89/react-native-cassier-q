@@ -15,14 +15,14 @@ import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Product } from '@/types/models';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 import { Button, FormControl, Input, Link, Pressable, Select } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import type { BadgeVariant } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { Card, EmptyState, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
+import { AlertTriangleIcon, BarcodeIcon, BoxIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Products'>,
@@ -100,7 +100,9 @@ export default function ProductsScreen({ navigation }: Props) {
   const lowStockBanner =
     lowStockCount > 0 ? (
       <View style={styles.lowStockBanner}>
-        <Text size="lg">⚠️</Text>
+        <View style={styles.lowStockGlyph}>
+          <AlertTriangleIcon size={18} color={colors.warning[600]} />
+        </View>
         <Text size="sm" weight="semibold" color="warning" style={styles.lowStockBannerText}>
           {lowStockCount} produk{allPagesLoaded ? '' : ' (dari yang termuat)'} stoknya di bawah minimum ({LOW_STOCK_THRESHOLD}). Yuk restock sebelum kehabisan.
         </Text>
@@ -182,10 +184,10 @@ export default function ProductsScreen({ navigation }: Props) {
                   Memuat produk...
                 </Text>
               ) : search || selectedCategoryId ? (
-                <EmptyState icon="🔍" title="Produk tidak ditemukan" description="Coba kata kunci atau kategori lain." />
+                <EmptyState icon={SearchIcon} title="Produk tidak ditemukan" description="Coba kata kunci atau kategori lain." />
               ) : (
                 <EmptyState
-                  icon="📦"
+                  icon={BoxIcon}
                   title="Belum Ada Produk"
                   description="Yuk tambahkan produk pertamamu supaya bisa langsung mulai jualan di kasir."
                   actionLabel="+ Tambah Produk"
@@ -243,9 +245,10 @@ export default function ProductsScreen({ navigation }: Props) {
           onChangeText={setSearchDraft}
           onSubmitEditing={onSearchSubmit}
           returnKeyType="search"
+          leftElement={<SearchIcon size={16} color={colors.text.muted} />}
           rightElement={
             <Pressable onPress={onScanSearch} hitSlop={8} accessibilityLabel="Cari lewat scan barcode">
-              <Text size="lg">📷</Text>
+              <BarcodeIcon size={18} color={colors.text.secondary} />
             </Pressable>
           }
         />
@@ -309,13 +312,13 @@ export default function ProductsScreen({ navigation }: Props) {
             </Text>
           ) : search ? (
             <EmptyState
-              icon="🔍"
+              icon={SearchIcon}
               title="Produk tidak ditemukan"
               description={`Tidak ada produk yang cocok dengan "${search}". Coba kata kunci lain, atau scan barcode-nya langsung.`}
             />
           ) : (
             <EmptyState
-              icon="📦"
+              icon={BoxIcon}
               title="Belum Ada Produk"
               description="Yuk tambahkan produk pertamamu supaya bisa langsung mulai jualan di kasir."
               actionLabel="+ Tambah Produk"
@@ -479,6 +482,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warning[50],
   },
   lowStockBannerText: { flex: 1 },
+  lowStockGlyph: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.md,
+    backgroundColor: colors.warning[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   searchBar: { paddingHorizontal: spacing.base, marginBottom: spacing.sm },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   card: { marginBottom: spacing.sm },

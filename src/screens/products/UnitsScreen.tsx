@@ -11,6 +11,7 @@ import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { ScaleIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Units'>;
@@ -76,7 +77,7 @@ export default function UnitsScreen({ navigation }: Props) {
             </Text>
           ) : (
             <EmptyState
-              icon="⚖️"
+              icon={ScaleIcon}
               title="Belum Ada Satuan"
               description="Satuan (Pcs, Dus, Kg, dll) dipakai untuk menentukan cara jual produk. Buat dulu sebelum menambah produk baru."
               actionLabel="+ Buat Satuan"

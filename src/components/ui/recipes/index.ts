@@ -5,5 +5,5 @@ export * from './TabView';
 export * from './SwipeList';
 export * from './Header';
 export * from './EmptyState';
-export * from './StatCard';
+export * from './KpiCard';
 export * from './TabletTopBar';

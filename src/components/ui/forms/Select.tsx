@@ -3,6 +3,7 @@ import { FlatList, Modal, Pressable as RNPressable, SafeAreaView, StyleSheet, Vi
 
 import { colors, radii, spacing } from '@/theme';
 import { Text } from '@/components/ui/typography/Text';
+import { CheckIcon } from '@/components/icons/LineIcons';
 import { Pressable } from './Pressable';
 
 export interface SelectOption<T extends string = string> {
@@ -63,7 +64,7 @@ export function Select<T extends string = string>({
                     <Text size="base" weight={item.value === value ? 'semibold' : 'regular'}>
                       {item.label}
                     </Text>
-                    {item.value === value ? <Text color="link">✓</Text> : null}
+                    {item.value === value ? <CheckIcon size={16} color={colors.primary[600]} /> : null}
                   </Pressable>
                 )}
               />

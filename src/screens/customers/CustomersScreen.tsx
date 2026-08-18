@@ -13,7 +13,7 @@ import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
 import { Card, EmptyState, Header } from '@/components/ui/recipes';
-import { SearchIcon } from '@/components/icons/LineIcons';
+import { CreditCardIcon, PeopleIcon, SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -58,7 +58,7 @@ export default function CustomersScreen({ navigation }: Props) {
 
       {items.length > 0 ? (
         <View style={styles.summaryBanner}>
-          <Text size="lg">💳</Text>
+          <CreditCardIcon size={18} color={colors.primary[600]} />
           <Text size="sm" weight="semibold" style={styles.summaryText}>
             Total piutang dari {items.filter((c) => c.balance > 0).length} pelanggan: {' '}
             <Text weight="bold" color={totalDebt > 0 ? 'error' : 'secondary'}>
@@ -118,13 +118,13 @@ export default function CustomersScreen({ navigation }: Props) {
             </Text>
           ) : search ? (
             <EmptyState
-              icon="🔍"
+              icon={SearchIcon}
               title="Tidak Ditemukan"
               description={`Tidak ada pelanggan yang cocok dengan "${search}".`}
             />
           ) : (
             <EmptyState
-              icon="🧑‍🤝‍🧑"
+              icon={PeopleIcon}
               title="Belum Ada Pelanggan"
               description="Daftarkan pelanggan langganan supaya bisa mencatat penjualan bon/utang di kasir."
               actionLabel="+ Tambah Pelanggan"

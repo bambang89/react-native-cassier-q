@@ -18,6 +18,16 @@ import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { Card, Header } from '@/components/ui/recipes';
+import {
+  EmployeeIcon,
+  LockIcon,
+  PeopleIcon,
+  ReceiptIcon,
+  RegisterIcon,
+  StoreIcon,
+  TruckIcon,
+  WrenchIcon,
+} from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -67,44 +77,63 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         </Card>
 
-        <Text weight="bold" style={styles.sectionTitle}>
-          🏬 Toko
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <StoreIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Toko</Text>
+        </View>
         <Card padding="none">
           <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StoreProfile')}>
             Profil Toko
           </Button>
           <Divider />
-          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Customers')}>
-            🧑‍🤝‍🧑 Pelanggan & Utang
+          <Button
+            variant="ghost"
+            style={styles.rowButton}
+            leftIcon={<PeopleIcon size={16} color={colors.text.secondary} />}
+            onPress={() => navigation.navigate('Customers')}
+          >
+            Pelanggan & Utang
           </Button>
         </Card>
 
-        <Text weight="bold" style={styles.sectionTitle}>
-          📦 Pembelian
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <ReceiptIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Pembelian</Text>
+        </View>
         <Card padding="none">
-          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Suppliers')}>
-            🚚 Pemasok
+          <Button
+            variant="ghost"
+            style={styles.rowButton}
+            leftIcon={<TruckIcon size={16} color={colors.text.secondary} />}
+            onPress={() => navigation.navigate('Suppliers')}
+          >
+            Pemasok
           </Button>
           <Divider />
-          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('PurchaseOrders')}>
-            🧾 Purchase Order
+          <Button
+            variant="ghost"
+            style={styles.rowButton}
+            leftIcon={<ReceiptIcon size={16} color={colors.text.secondary} />}
+            onPress={() => navigation.navigate('PurchaseOrders')}
+          >
+            Purchase Order
           </Button>
         </Card>
 
-        <Text weight="bold" style={styles.sectionTitle}>
-          👥 Tim
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <EmployeeIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Tim</Text>
+        </View>
         <Card padding="none">
           <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Employees')}>
             Karyawan
           </Button>
         </Card>
 
-        <Text weight="bold" style={styles.sectionTitle}>
-          🧾 Sesi Kasir
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <RegisterIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Sesi Kasir</Text>
+        </View>
         <Card>
           {session ? (
             <>
@@ -115,7 +144,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 </Text>
               </View>
               <Text size="sm" color="secondary" style={styles.sessionCash}>
-                💵 Modal awal: Rp {session.openingCash.toLocaleString('id-ID')}
+                Modal awal: Rp {session.openingCash.toLocaleString('id-ID')}
               </Text>
               <Button variant="outline" size="sm" style={styles.closeSessionButton} onPress={() => setCloseSessionVisible(true)}>
                 Tutup Sesi
@@ -128,9 +157,10 @@ export default function ProfileScreen({ navigation }: Props) {
           )}
         </Card>
 
-        <Text weight="bold" style={styles.sectionTitle}>
-          🔒 Keamanan
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <LockIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Keamanan</Text>
+        </View>
         <Card padding="none">
           <Button variant="ghost" style={styles.rowButton} onPress={() => setChangePasswordVisible(true)}>
             Ganti Kata Sandi
@@ -139,9 +169,10 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {env.appVariant !== 'production' ? (
           <>
-            <Text weight="bold" style={styles.sectionTitle}>
-              🛠️ Environment API (dev only)
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <WrenchIcon size={15} color={colors.text.secondary} />
+              <Text weight="bold">Environment API (dev only)</Text>
+            </View>
             <Card>
               <EnvSwitcher />
             </Card>
@@ -340,7 +371,13 @@ const styles = StyleSheet.create({
   },
   identityInfo: { flex: 1 },
   roles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
-  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
   sessionOpenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   sessionCash: { marginTop: spacing.sm },
   closeSessionButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },

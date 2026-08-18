@@ -9,18 +9,9 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radii, spacing } from '@/theme';
-import { Card, Header, TabletTopBar } from '@/components/ui/recipes';
+import { Card, Header, KpiCard, TabletTopBar } from '@/components/ui/recipes';
 import { Heading, Text } from '@/components/ui/typography';
-import {
-  BarChartIcon,
-  BoxIcon,
-  LightbulbIcon,
-  ReceiptIcon,
-  RegisterIcon,
-  TrendDownIcon,
-  TrendingIcon,
-  TrendUpIcon,
-} from '@/components/icons/LineIcons';
+import { BarChartIcon, BoxIcon, LightbulbIcon, ReceiptIcon, RegisterIcon, TrendingIcon } from '@/components/icons/LineIcons';
 
 const DAY_LABELS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
@@ -28,9 +19,6 @@ function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-// Backend cuma punya endpoint ringkasan per rentang tanggal (bukan breakdown
-// harian), jadi buat grafik 7-hari yang datanya beneran nyata, kita panggil
-// endpoint yang sama 7x — satu per hari — bukan mengarang angka tren.
 async function fetchLastSevenDays(): Promise<SalesSummary[]> {
   const today = new Date();
   const requests = Array.from({ length: 7 }, (_, i) => {
@@ -125,6 +113,7 @@ export default function DashboardScreen() {
       >
         <View style={[styles.kpiGrid, isTabletLandscape && styles.kpiGridTablet]}>
           <KpiCard
+            style={styles.kpiCard}
             label="Penjualan Hari Ini"
             value={today ? formatRupiah(today.grossSales) : '—'}
             icon={RegisterIcon}
@@ -133,6 +122,7 @@ export default function DashboardScreen() {
             delta={today && yesterday ? percentDelta(today.grossSales, yesterday.grossSales) : null}
           />
           <KpiCard
+            style={styles.kpiCard}
             label="Transaksi"
             value={today ? String(today.orderCount) : '—'}
             icon={ReceiptIcon}
@@ -141,6 +131,7 @@ export default function DashboardScreen() {
             delta={today && yesterday ? percentDelta(today.orderCount, yesterday.orderCount) : null}
           />
           <KpiCard
+            style={styles.kpiCard}
             label="Rata-rata"
             value={today ? formatRupiah(avgToday) : '—'}
             icon={TrendingIcon}
@@ -148,6 +139,7 @@ export default function DashboardScreen() {
             iconBg={colors.teal[50]}
           />
           <KpiCard
+            style={styles.kpiCard}
             label="Produk Terjual"
             value={today ? String(todayUnitsSold) : '—'}
             icon={BoxIcon}
@@ -234,50 +226,6 @@ export default function DashboardScreen() {
   );
 }
 
-function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  iconColor,
-  iconBg,
-  delta,
-}: {
-  label: string;
-  value: string;
-  icon: typeof RegisterIcon;
-  iconColor: string;
-  iconBg: string;
-  delta?: number | null;
-}) {
-  return (
-    <Card style={styles.kpiCard}>
-      <View style={styles.kpiHead}>
-        <Text size="xs" color="secondary" weight="medium" numberOfLines={1} style={styles.kpiLabel}>
-          {label}
-        </Text>
-        <View style={[styles.kpiIconChip, { backgroundColor: iconBg }]}>
-          <Icon size={15} color={iconColor} />
-        </View>
-      </View>
-      <Heading level="h4" style={styles.kpiValue}>
-        {value}
-      </Heading>
-      {delta !== undefined && delta !== null ? (
-        <View style={styles.kpiDelta}>
-          {delta >= 0 ? (
-            <TrendUpIcon size={11} color={colors.success[600]} />
-          ) : (
-            <TrendDownIcon size={11} color={colors.error[600]} />
-          )}
-          <Text size="xs" weight="semibold" color={delta >= 0 ? 'success' : 'error'}>
-            {`${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`}
-          </Text>
-        </View>
-      ) : null}
-    </Card>
-  );
-}
-
 function SalesTrendChart({ values, labels }: { values: number[]; labels: string[] }) {
   const width = 620;
   const height = 160;
@@ -320,17 +268,6 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   kpiGridTablet: { flexWrap: 'nowrap' },
   kpiCard: { flexBasis: '47%', flexGrow: 1 },
-  kpiHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.xs },
-  kpiLabel: { flex: 1 },
-  kpiIconChip: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kpiValue: { marginTop: spacing.sm },
-  kpiDelta: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: spacing.xs },
   insightCard: {
     flexDirection: 'row',
     gap: spacing.sm,

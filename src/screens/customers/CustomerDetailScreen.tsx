@@ -5,11 +5,12 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchCustomerLedger, fetchCustomers, recordCustomerPayment } from '@/store/slices/customersSlice';
 import type { RootStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { CreditCardIcon, HistoryIcon, PinIcon, ReceiptIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { CustomerForm } from './CustomersScreen';
 
@@ -74,9 +75,12 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
                 {customer.phone ? ` · ${customer.phone}` : ''}
               </Text>
               {customer.address ? (
-                <Text size="xs" color="muted" numberOfLines={2} style={styles.address}>
-                  📍 {customer.address}
-                </Text>
+                <View style={styles.addressRow}>
+                  <PinIcon size={12} color={colors.text.muted} />
+                  <Text size="xs" color="muted" numberOfLines={2} style={styles.address}>
+                    {customer.address}
+                  </Text>
+                </View>
               ) : null}
             </View>
           </View>
@@ -97,15 +101,19 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
           <Button
             style={styles.paymentButton}
             disabled={!hasDebt}
+            leftIcon={hasDebt ? <CreditCardIcon size={16} color={colors.white} /> : undefined}
             onPress={() => setPaymentVisible(true)}
           >
-            {hasDebt ? '💵 Catat Pembayaran' : 'Tidak Ada Utang'}
+            {hasDebt ? 'Catat Pembayaran' : 'Tidak Ada Utang'}
           </Button>
         </Card>
 
-        <Text weight="bold" size="lg" style={styles.sectionTitle}>
-          📜 Riwayat
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <HistoryIcon size={16} color={colors.text.secondary} />
+          <Text weight="bold" size="lg">
+            Riwayat
+          </Text>
+        </View>
         <Card padding="none" shadow="sm">
           {!ledger || ledgerStatus === 'loading' ? (
             <View style={styles.emptyLedger}>
@@ -113,7 +121,9 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
             </View>
           ) : ledger.length === 0 ? (
             <View style={styles.emptyLedger}>
-              <Text style={styles.emptyLedgerIcon}>🧾</Text>
+              <View style={styles.emptyLedgerGlyph}>
+                <ReceiptIcon size={22} color={colors.primary[600]} />
+              </View>
               <Text color="secondary" align="center">
                 Belum ada transaksi atau pembayaran tercatat untuk pelanggan ini.
               </Text>
@@ -207,9 +217,12 @@ function RecordPaymentForm({
 
   return (
     <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        💵 Catat Pembayaran
-      </Text>
+      <View style={styles.modalTitleRow}>
+        <CreditCardIcon size={16} color={colors.text.primary} />
+        <Text weight="semibold" size="lg">
+          Catat Pembayaran
+        </Text>
+      </View>
       <Text color="secondary" size="sm" style={styles.paymentHint}>
         {customerName} melunasi sebagian/seluruh utangnya. Sisa utang saat ini: Rp {maxAmount.toLocaleString('id-ID')}.
       </Text>
@@ -245,16 +258,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   identityInfo: { flex: 1 },
-  address: { marginTop: 2 },
+  addressRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4, marginTop: 2 },
+  address: { flex: 1 },
   balanceCard: { alignItems: 'center', marginTop: spacing.md, borderWidth: 1.5 },
   balanceCardDebt: { borderColor: colors.error[200], backgroundColor: colors.error[50] },
   balanceCardClear: { borderColor: colors.success[200], backgroundColor: colors.success[50] },
   balanceValue: { marginTop: 2 },
   creditLimitText: { marginTop: spacing.xs },
   paymentButton: { marginTop: spacing.md, width: '100%' },
-  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
   emptyLedger: { padding: spacing.xl, alignItems: 'center' },
-  emptyLedgerIcon: { fontSize: 40, marginBottom: spacing.sm },
+  emptyLedgerGlyph: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
   ledgerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -265,7 +293,7 @@ const styles = StyleSheet.create({
   ledgerInfo: { flex: 1, gap: 2 },
   ledgerDate: { marginTop: 2 },
   ledgerHint: { marginTop: spacing.sm },
-  modalTitle: { marginBottom: spacing.base },
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.base },
   paymentHint: { marginBottom: spacing.base },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },

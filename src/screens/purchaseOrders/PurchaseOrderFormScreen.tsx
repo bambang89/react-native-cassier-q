@@ -14,6 +14,7 @@ import type { Product } from '@/types/models';
 import { colors, radii, spacing } from '@/theme';
 import { Button, FormControl, Input, Select, TextArea } from '@/components/ui/forms';
 import { AppBar, Card } from '@/components/ui/recipes';
+import { ReceiptIcon, TrashIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
 
@@ -118,9 +119,10 @@ export default function PurchaseOrderFormScreen({ navigation }: Props) {
           <TextArea value={notes} onChangeText={setNotes} placeholder="Opsional" numberOfLines={3} />
         </FormControl>
 
-        <Heading level="h5" style={styles.itemsTitle}>
-          🧾 Daftar Barang
-        </Heading>
+        <View style={styles.itemsTitleRow}>
+          <ReceiptIcon size={15} color={colors.text.secondary} />
+          <Heading level="h5">Daftar Barang</Heading>
+        </View>
         {lines.map((line, index) => (
           <POLineRow
             key={line.key}
@@ -188,8 +190,13 @@ function POLineRow({
           Barang #{index + 1}
         </Text>
         {removable ? (
-          <Button variant="ghost" size="sm" onPress={onRemove}>
-            🗑️ Hapus
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<TrashIcon size={14} color={colors.text.secondary} />}
+            onPress={onRemove}
+          >
+            Hapus
           </Button>
         ) : null}
       </View>
@@ -235,7 +242,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   noSupplierHint: { marginBottom: spacing.base },
-  itemsTitle: { marginTop: spacing.md, marginBottom: spacing.sm },
+  itemsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   lineCard: { marginBottom: spacing.sm, backgroundColor: colors.surface },
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
   half: { flex: 1 },

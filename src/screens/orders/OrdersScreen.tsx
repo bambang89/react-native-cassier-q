@@ -11,7 +11,8 @@ import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { OrderStatus } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { Badge } from '@/components/ui/dataDisplay';
-import { Card, EmptyState, Header, StatCard } from '@/components/ui/recipes';
+import { Card, EmptyState, Header, KpiCard } from '@/components/ui/recipes';
+import { ReceiptIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 type Props = CompositeScreenProps<
@@ -47,9 +48,10 @@ export default function OrdersScreen({ navigation }: Props) {
 
       {totalElements > 0 ? (
         <View style={styles.statsRow}>
-          <StatCard
-            icon="🧾"
-            iconBg={colors.primary[100]}
+          <KpiCard
+            icon={ReceiptIcon}
+            iconColor={colors.primary[600]}
+            iconBg={colors.primary[50]}
             label="Total Transaksi"
             value={totalElements.toLocaleString('id-ID')}
           />
@@ -93,7 +95,7 @@ export default function OrdersScreen({ navigation }: Props) {
             </Text>
           ) : (
             <EmptyState
-              icon="🧾"
+              icon={ReceiptIcon}
               title="Belum Ada Transaksi"
               description="Riwayat penjualan bakal muncul di sini setelah kamu mencatat transaksi pertama di kasir."
             />

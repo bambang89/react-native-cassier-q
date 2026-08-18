@@ -37,12 +37,16 @@ import { Heading, Text } from '@/components/ui/typography';
 import { VStack } from '@/components/ui/layout';
 import {
   BarcodeIcon,
+  BoxIcon,
+  CartIcon,
   ChevronDownIcon,
   ClockIcon,
+  CreditCardIcon,
   DiscountIcon,
   NoteIcon,
   SearchIcon,
   TrashIcon,
+  UnlockIcon,
 } from '@/components/icons/LineIcons';
 
 type Props = CompositeScreenProps<
@@ -50,12 +54,8 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<RootStackParamList>
 >;
 
-// Di bawah angka ini, stok ditandai kuning (mau habis) — di 0, merah (habis).
-// Bikin kasir langsung ngeh tanpa harus buka layar Produk terpisah.
 const LOW_STOCK_THRESHOLD = 5;
 
-// Preset nominal uang tunai yang paling sering dipakai buat belanja kelontong
-// — biar kasir tidak perlu ngetik manual tiap transaksi.
 const CASH_PRESETS = [50000, 100000, 150000, 200000];
 
 const PPN_RATE = 0.11;
@@ -258,7 +258,9 @@ export default function POSScreen({ navigation }: Props) {
 
       {sessionStatus !== 'loading' && !session ? (
         <View style={styles.sessionBanner}>
-          <Text size="xl">🔓</Text>
+          <View style={styles.sessionBannerGlyph}>
+            <UnlockIcon size={18} color={colors.warning[600]} />
+          </View>
           <View style={styles.sessionBannerInfo}>
             <Text weight="bold" style={styles.sessionBannerTitle}>
               Sesi kasir belum dibuka
@@ -337,7 +339,7 @@ export default function POSScreen({ navigation }: Props) {
               </Text>
             ) : (
               <EmptyState
-                icon="🛍️"
+                icon={BoxIcon}
                 title={selectedCategoryId || searchQuery ? 'Tidak Ada Produk Cocok' : 'Belum Ada Produk'}
                 description="Tambahkan produk dulu di menu Produk supaya bisa langsung dijual di sini."
                 actionLabel="Buka Menu Produk"
@@ -371,9 +373,12 @@ export default function POSScreen({ navigation }: Props) {
       {!isTabletLandscape && cartCount > 0 ? (
         <View style={styles.cartBar}>
           <View>
-            <Text size="xs" style={styles.cartLabel}>
-              🛒 {cartCount} item di keranjang
-            </Text>
+            <View style={styles.cartLabelRow}>
+              <CartIcon size={12} color={colors.gray[300]} />
+              <Text size="xs" style={styles.cartLabel}>
+                {cartCount} item di keranjang
+              </Text>
+            </View>
             <Text weight="bold" size="lg" style={styles.cartText}>
               {formatRupiah(cartTotal)}
             </Text>
@@ -581,7 +586,9 @@ function OrderPanel({
         </ScrollView>
       ) : (
         <View style={styles.sidePanelEmpty}>
-          <Text size="3xl">🧺</Text>
+          <View style={styles.sidePanelEmptyGlyph}>
+            <CartIcon size={22} color={colors.primary[600]} />
+          </View>
           <Text color="muted" size="sm" style={styles.sidePanelEmptyText}>
             Belum ada item, ketuk produk untuk menambahkan.
           </Text>
@@ -719,9 +726,12 @@ function OpenSessionForm({ onDone, onCancel }: { onDone: () => void; onCancel: (
 
   return (
     <View>
-      <Text weight="bold" size="lg" style={styles.modalTitle}>
-        🔓 Buka Sesi Kasir
-      </Text>
+      <View style={styles.modalTitleRow}>
+        <UnlockIcon size={17} color={colors.text.primary} />
+        <Text weight="bold" size="lg">
+          Buka Sesi Kasir
+        </Text>
+      </View>
       <Text color="secondary" size="sm" style={styles.openSessionHint}>
         Hitung dulu uang tunai yang ada di laci, lalu masukkan jumlahnya di bawah. Ini jadi patokan buat menghitung
         selisih kas saat sesi ditutup nanti.
@@ -825,9 +835,12 @@ function CheckoutForm({
 
   return (
     <View>
-      <Text weight="bold" size="lg" style={styles.modalTitle}>
-        💳 Selesaikan Pembayaran
-      </Text>
+      <View style={styles.modalTitleRow}>
+        <CreditCardIcon size={17} color={colors.text.primary} />
+        <Text weight="bold" size="lg">
+          Selesaikan Pembayaran
+        </Text>
+      </View>
       <View style={styles.checkoutTotalBox}>
         <View style={styles.checkoutTotalRow}>
           <Text size="sm" color="secondary">
@@ -1022,6 +1035,14 @@ const styles = StyleSheet.create({
     borderColor: colors.warning[200],
     backgroundColor: colors.warning[50],
   },
+  sessionBannerGlyph: {
+    width: 34,
+    height: 34,
+    borderRadius: radii.md,
+    backgroundColor: colors.warning[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sessionBannerInfo: { flex: 1 },
   sessionBannerTitle: { color: colors.warning[700], marginBottom: 2 },
   sessionBannerText: { color: colors.warning[700] },
@@ -1061,6 +1082,14 @@ const styles = StyleSheet.create({
   },
   sidePanelList: { maxHeight: 260, marginTop: spacing.sm },
   sidePanelEmpty: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl },
+  sidePanelEmptyGlyph: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sidePanelEmptyText: { marginTop: spacing.xs, textAlign: 'center' },
   summaryDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
@@ -1132,7 +1161,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cartLabel: { color: colors.gray[300], marginBottom: 2 },
+  cartLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 },
+  cartLabel: { color: colors.gray[300] },
   cartText: { color: colors.white },
   cartRow: {
     flexDirection: 'row',
@@ -1171,6 +1201,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   modalTitle: { marginBottom: spacing.base },
+  modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.base },
   unitPickerHint: { marginBottom: spacing.base },
   openSessionHint: { marginBottom: spacing.base },
   unitChoice: { marginBottom: spacing.sm },
