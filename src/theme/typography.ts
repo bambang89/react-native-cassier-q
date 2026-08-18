@@ -1,13 +1,23 @@
 import type { TextStyle } from 'react-native';
 
-export const fontFamily = 'PlusJakartaSans_400Regular';
+// Font pairing sesuai cassier-q-brand-presentation.html: Inter untuk body/UI,
+// Poppins untuk heading (h1-h3 di file brand pakai Poppins, sisanya Inter).
+export const fontFamily = 'Inter_400Regular';
 
 export const fontFamilies = {
-  regular: 'PlusJakartaSans_400Regular',
-  medium: 'PlusJakartaSans_500Medium',
-  semibold: 'PlusJakartaSans_600SemiBold',
-  bold: 'PlusJakartaSans_700Bold',
-  extrabold: 'PlusJakartaSans_800ExtraBold',
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  extrabold: 'Inter_800ExtraBold',
+} satisfies Record<string, string>;
+
+export const headingFontFamilies = {
+  regular: 'Poppins_400Regular',
+  medium: 'Poppins_500Medium',
+  semibold: 'Poppins_600SemiBold',
+  bold: 'Poppins_700Bold',
+  extrabold: 'Poppins_800ExtraBold',
 } satisfies Record<string, string>;
 
 export const fontSizes = {

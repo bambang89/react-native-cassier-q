@@ -9,10 +9,17 @@ export type AuthStackParamList = {
 };
 
 export type MainTabParamList = {
+  Dashboard: undefined;
   POS: undefined;
-  Products: undefined;
   Orders: undefined;
+  Pesanan: undefined;
+  Products: undefined;
+  Inventory: undefined;
+  Customers: undefined;
   Reports: undefined;
+  Employees: undefined;
+  StoreProfile: undefined;
+  Integrations: undefined;
   Expenses: undefined;
   Profile: undefined;
 };
@@ -29,14 +36,11 @@ export type RootStackParamList = {
   ProductForm: { product?: Product; prefillBarcode?: string };
   OrderDetail: { orderId: string };
   Receipt: { orderId: string };
-  StoreProfile: undefined;
-  Customers: undefined;
   CustomerDetail: { customerId: string };
   Suppliers: undefined;
   PurchaseOrders: undefined;
   PurchaseOrderForm: undefined;
   PurchaseOrderDetail: { purchaseOrderId: string };
-  Employees: undefined;
 };
 
 declare global {

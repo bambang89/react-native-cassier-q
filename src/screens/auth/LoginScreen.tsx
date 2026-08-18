@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, radii, spacing } from '@/theme';
-import { Button, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
+import { colors, spacing } from '@/theme';
+import { Button, CheckBox, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
+import { Divider } from '@/components/ui/dataDisplay';
 import { Heading, Text } from '@/components/ui/typography';
+import { GoogleIcon } from '@/components/icons/GoogleIcon';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -17,6 +19,7 @@ export default function LoginScreen({ navigation }: Props) {
   const { status, error } = useAppSelector((state) => state.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
 
   const isSubmitting = status === 'authenticating';
 
@@ -27,25 +30,22 @@ export default function LoginScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.brandRow}>
-          <View style={styles.logoMark}>
-            <Text size="xl">🏪</Text>
-          </View>
-          <Text weight="bold" size="lg">
-            cassier-Q
-          </Text>
-        </View>
+        <Image
+          source={require('@/assets/branding/cassier-q-symbol.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-        <Heading level="h1" style={styles.title}>
-          Masuk
+        <Heading level="h4" align="center" style={styles.title}>
+          Selamat datang kembali
         </Heading>
-        <Text color="secondary" style={styles.subtitle}>
-          Masuk ke akun toko kamu untuk mulai berjualan hari ini
+        <Text color="secondary" align="center" style={styles.subtitle}>
+          Masuk untuk mengelola bisnis Anda.
         </Text>
 
-        <FormControl label="Username" helperText="Username yang dipakai waktu daftar toko">
+        <FormControl label="Email atau Username">
           <Input
-            placeholder="Masukkan username"
+            placeholder="nama@bisnis.com"
             autoCapitalize="none"
             autoCorrect={false}
             value={username}
@@ -53,12 +53,13 @@ export default function LoginScreen({ navigation }: Props) {
           />
         </FormControl>
 
-        <FormControl label="Kata Sandi" errorText={error ?? undefined} isInvalid={!!error}>
-          <PasswordInput placeholder="Masukkan kata sandi" value={password} onChangeText={setPassword} />
+        <FormControl label="Password" errorText={error ?? undefined} isInvalid={!!error}>
+          <PasswordInput placeholder="Password" value={password} onChangeText={setPassword} />
         </FormControl>
 
-        <View style={styles.forgot}>
-          <Link onPress={() => navigation.navigate('ForgotPassword')}>Lupa kata sandi?</Link>
+        <View style={styles.optionsRow}>
+          <CheckBox value={rememberMe} onChange={setRememberMe} label="Ingat saya" />
+          <Link onPress={() => navigation.navigate('ForgotPassword')}>Lupa password?</Link>
         </View>
 
         <Button
@@ -70,11 +71,27 @@ export default function LoginScreen({ navigation }: Props) {
           Masuk
         </Button>
 
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine}>
+            <Divider />
+          </View>
+          <Text size="sm" color="muted" style={styles.dividerLabel}>
+            ATAU
+          </Text>
+          <View style={styles.dividerLine}>
+            <Divider />
+          </View>
+        </View>
+
+        <Button variant="outline" fullWidth leftIcon={<GoogleIcon />} onPress={() => {}}>
+          Masuk dengan Google
+        </Button>
+
         <View style={styles.registerLink}>
           <Text color="secondary" size="sm">
             Belum punya akun?{' '}
           </Text>
-          <Link onPress={() => navigation.navigate('Register')}>Daftar</Link>
+          <Link onPress={() => navigation.navigate('Register')}>Daftar sekarang</Link>
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -85,17 +102,27 @@ export default function LoginScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing['2xl'] },
-  logoMark: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary[50],
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
+    width: 56,
+    height: 56,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
   },
   title: { marginBottom: spacing.xs },
   subtitle: { marginBottom: spacing['2xl'] },
-  forgot: { alignItems: 'flex-end', marginBottom: spacing.base },
+  optionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginVertical: spacing.lg,
+  },
+  dividerLine: { flex: 1 },
+  dividerLabel: { flexShrink: 0 },
   registerLink: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
 });

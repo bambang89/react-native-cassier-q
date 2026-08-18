@@ -1,35 +1,73 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import type { ComponentType } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import DashboardScreen from '@/screens/dashboard/DashboardScreen';
 import POSScreen from '@/screens/pos/POSScreen';
-import ProductsScreen from '@/screens/products/ProductsScreen';
 import OrdersScreen from '@/screens/orders/OrdersScreen';
+import PesananScreen from '@/screens/orders/PesananScreen';
+import ProductsScreen from '@/screens/products/ProductsScreen';
+import InventoryScreen from '@/screens/inventory/InventoryScreen';
+import CustomersScreen from '@/screens/customers/CustomersScreen';
 import ReportsScreen from '@/screens/reports/ReportsScreen';
+import EmployeesScreen from '@/screens/employees/EmployeesScreen';
+import StoreProfileScreen from '@/screens/profile/StoreProfileScreen';
+import IntegrationsScreen from '@/screens/integrations/IntegrationsScreen';
 import ExpensesScreen from '@/screens/expenses/ExpensesScreen';
 import ProfileScreen from '@/screens/profile/ProfileScreen';
 import SidebarTabBar from './SidebarTabBar';
+import { TAB_ICONS } from './tabIcons';
 import type { MainTabParamList } from './types';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, fontFamilies, radii, spacing } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const TAB_ICONS: Record<keyof MainTabParamList, string> = {
-  POS: '🛒',
-  Products: '📦',
-  Orders: '🧾',
-  Reports: '📊',
-  Expenses: '💸',
-  Profile: '👤',
-};
+// Tab yang tetap tampil di bottom tab bar HP — daftar menu tablet/sidebar jauh
+// lebih panjang (lihat SidebarTabBar), tapi bottom bar HP cuma muat beberapa
+// item sebelum jadi tidak terbaca. Sisanya tetap bisa dibuka lewat sidebar tablet.
+// (cassier-q-webapp/mobile-*.html sebetulnya cuma taruh Beranda/Transaksi/Kasir/
+// Produk/Menu di bottom nav HP, sisanya ditumpuk di satu layar "Menu" — kita
+// belum bikin layar Menu itu, jadi untuk sekarang Reports/Expenses/Profile masih
+// tab tersendiri biar tetap gampang dijangkau.)
+const PHONE_CORE_TABS = new Set<keyof MainTabParamList>([
+  'Dashboard',
+  'POS',
+  'Products',
+  'Orders',
+  'Reports',
+  'Expenses',
+  'Profile',
+]);
 
 function TabIcon({ name, focused }: { name: keyof MainTabParamList; focused: boolean }) {
+  const Icon = TAB_ICONS[name];
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={styles.iconGlyph}>{TAB_ICONS[name]}</Text>
+      <Icon size={18} color={focused ? colors.primary[600] : colors.text.muted} />
     </View>
   );
 }
+
+const TAB_SCREENS: {
+  name: keyof MainTabParamList;
+  title: string;
+  component: ComponentType<any>;
+}[] = [
+  { name: 'Dashboard', title: 'Dashboard', component: DashboardScreen },
+  { name: 'POS', title: 'Kasir', component: POSScreen },
+  { name: 'Orders', title: 'Transaksi', component: OrdersScreen },
+  { name: 'Pesanan', title: 'Pesanan', component: PesananScreen },
+  { name: 'Products', title: 'Produk', component: ProductsScreen },
+  { name: 'Inventory', title: 'Inventori', component: InventoryScreen },
+  { name: 'Customers', title: 'Pelanggan', component: CustomersScreen },
+  { name: 'Reports', title: 'Laporan', component: ReportsScreen },
+  { name: 'Employees', title: 'Karyawan', component: EmployeesScreen },
+  { name: 'StoreProfile', title: 'Outlet', component: StoreProfileScreen },
+  { name: 'Integrations', title: 'Integrasi', component: IntegrationsScreen },
+  { name: 'Expenses', title: 'Pengeluaran', component: ExpensesScreen },
+  { name: 'Profile', title: 'Pengaturan', component: ProfileScreen },
+];
 
 export default function MainTabNavigator() {
   const { isTabletLandscape } = useResponsive();
@@ -50,36 +88,18 @@ export default function MainTabNavigator() {
         tabBarLabelPosition: isTabletLandscape ? 'beside-icon' : 'below-icon',
       }}
     >
-      <Tab.Screen
-        name="POS"
-        component={POSScreen}
-        options={{ title: 'Kasir', tabBarIcon: ({ focused }) => <TabIcon name="POS" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Products"
-        component={ProductsScreen}
-        options={{ title: 'Barang & Stok', tabBarIcon: ({ focused }) => <TabIcon name="Products" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Orders"
-        component={OrdersScreen}
-        options={{ title: 'Riwayat Transaksi', tabBarIcon: ({ focused }) => <TabIcon name="Orders" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Reports"
-        component={ReportsScreen}
-        options={{ title: 'Laporan', tabBarIcon: ({ focused }) => <TabIcon name="Reports" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Expenses"
-        component={ExpensesScreen}
-        options={{ title: 'Pengeluaran', tabBarIcon: ({ focused }) => <TabIcon name="Expenses" focused={focused} /> }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ title: 'Pengaturan', tabBarIcon: ({ focused }) => <TabIcon name="Profile" focused={focused} /> }}
-      />
+      {TAB_SCREENS.map(({ name, title, component }) => (
+        <Tab.Screen
+          key={name}
+          name={name}
+          component={component}
+          options={{
+            title,
+            tabBarIcon: ({ focused }) => <TabIcon name={name} focused={focused} />,
+            tabBarButton: !isTabletLandscape && !PHONE_CORE_TABS.has(name) ? () => null : undefined,
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }
@@ -109,8 +129,5 @@ const styles = StyleSheet.create({
   },
   iconWrapActive: {
     backgroundColor: colors.primary[50],
-  },
-  iconGlyph: {
-    fontSize: 18,
   },
 });

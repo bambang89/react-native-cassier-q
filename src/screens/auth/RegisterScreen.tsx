@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { register } from '@/store/slices/authSlice';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, radii, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Heading, Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
@@ -45,19 +45,16 @@ export default function RegisterScreen({ navigation }: Props) {
     <SafeAreaView style={styles.flex}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <View style={styles.brandRow}>
-          <View style={styles.logoMark}>
-            <Text size="xl">📝</Text>
-          </View>
-          <Text weight="bold" size="lg">
-            cassier-Q
-          </Text>
-        </View>
+        <Image
+          source={require('@/assets/branding/cassier-q-symbol.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-        <Heading level="h1" style={styles.title}>
+        <Heading level="h4" align="center" style={styles.title}>
           Daftar Toko Baru
         </Heading>
-        <Text color="secondary" style={styles.subtitle}>
+        <Text color="secondary" align="center" style={styles.subtitle}>
           Isi data di bawah — akun pemilik toko langsung jadi begitu selesai daftar
         </Text>
 
@@ -139,14 +136,11 @@ export default function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: spacing.xl },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xl },
-  logoMark: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary[50],
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
+    width: 56,
+    height: 56,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
   },
   title: { marginBottom: spacing.xs },
   subtitle: { marginBottom: spacing.xl },

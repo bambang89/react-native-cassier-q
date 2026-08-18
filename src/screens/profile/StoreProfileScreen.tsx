@@ -1,19 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStoreProfile, updateStoreProfile } from '@/store/slices/storeProfileSlice';
-import type { RootStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
-import { AppBar, Card } from '@/components/ui/recipes';
+import { Card, Header } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'StoreProfile'>;
-
-export default function StoreProfileScreen({ navigation }: Props) {
+export default function StoreProfileScreen() {
   const dispatch = useAppDispatch();
   const { profile, status, updateStatus } = useAppSelector((state) => state.storeProfile);
 
@@ -57,7 +53,7 @@ export default function StoreProfileScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppBar title="Profil Toko" onBack={navigation.goBack} />
+      <Header title="Outlet" subtitle="Profil & data toko" />
 
       {status === 'loading' && !profile ? (
         <Text color="muted" align="center" style={styles.loading}>

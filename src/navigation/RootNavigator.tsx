@@ -14,14 +14,11 @@ import UnitsScreen from '@/screens/products/UnitsScreen';
 import ProductFormScreen from '@/screens/products/ProductFormScreen';
 import OrderDetailScreen from '@/screens/orders/OrderDetailScreen';
 import ReceiptScreen from '@/screens/orders/ReceiptScreen';
-import StoreProfileScreen from '@/screens/profile/StoreProfileScreen';
-import CustomersScreen from '@/screens/customers/CustomersScreen';
 import CustomerDetailScreen from '@/screens/customers/CustomerDetailScreen';
 import SuppliersScreen from '@/screens/suppliers/SuppliersScreen';
 import PurchaseOrdersScreen from '@/screens/purchaseOrders/PurchaseOrdersScreen';
 import PurchaseOrderFormScreen from '@/screens/purchaseOrders/PurchaseOrderFormScreen';
 import PurchaseOrderDetailScreen from '@/screens/purchaseOrders/PurchaseOrderDetailScreen';
-import EmployeesScreen from '@/screens/employees/EmployeesScreen';
 import type { RootStackParamList } from './types';
 import { colors } from '@/theme';
 
@@ -63,14 +60,11 @@ export default function RootNavigator() {
             <Stack.Screen name="ProductForm" component={ProductFormScreen} />
             <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
             <Stack.Screen name="Receipt" component={ReceiptScreen} />
-            <Stack.Screen name="StoreProfile" component={StoreProfileScreen} />
-            <Stack.Screen name="Customers" component={CustomersScreen} />
             <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
             <Stack.Screen name="Suppliers" component={SuppliersScreen} />
             <Stack.Screen name="PurchaseOrders" component={PurchaseOrdersScreen} />
             <Stack.Screen name="PurchaseOrderForm" component={PurchaseOrderFormScreen} />
             <Stack.Screen name="PurchaseOrderDetail" component={PurchaseOrderDetailScreen} />
-            <Stack.Screen name="Employees" component={EmployeesScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

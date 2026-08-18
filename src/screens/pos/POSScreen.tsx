@@ -19,7 +19,6 @@ import {
   clearCart,
   decrementItem,
   incrementItem,
-  removeItem,
   selectCartCount,
   selectCartTotal,
 } from '@/store/slices/cartSlice';
@@ -28,14 +27,23 @@ import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { CartItem, Order, Product, ProductUnit } from '@/types/models';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/types/models';
 import { resolveSaleUnitChoices } from '@/utils/productUnits';
+import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radii, spacing } from '@/theme';
 import { Button, FormControl, Input, Pressable, Select, Switch } from '@/components/ui/forms';
 import { Modal } from '@/components/ui/overlay';
-import { Badge } from '@/components/ui/dataDisplay';
-import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { Card, EmptyState, Header, TabletTopBar } from '@/components/ui/recipes';
 import { Heading, Text } from '@/components/ui/typography';
-import { HStack, VStack } from '@/components/ui/layout';
+import { VStack } from '@/components/ui/layout';
+import {
+  BarcodeIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  DiscountIcon,
+  NoteIcon,
+  SearchIcon,
+  TrashIcon,
+} from '@/components/icons/LineIcons';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'POS'>,
@@ -51,12 +59,6 @@ const LOW_STOCK_THRESHOLD = 5;
 const CASH_PRESETS = [50000, 100000, 150000, 200000];
 
 const PPN_RATE = 0.11;
-
-const SUMMARY_PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'CASH', label: 'Tunai', icon: '💵' },
-  { value: 'QRIS', label: 'QRIS', icon: '📱' },
-  { value: 'DEBIT', label: 'Debit', icon: '💳' },
-];
 
 function greetingForNow(): string {
   const hour = new Date().getHours();
@@ -74,8 +76,9 @@ function todayLabel(): string {
   });
 }
 
-function clockLabel(date: Date): string {
-  return `${date.toLocaleTimeString('id-ID', { hour12: false })} WIB`;
+function sessionTimeLabel(iso: string): string {
+  const date = new Date(iso);
+  return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '.');
 }
 
 function formatRupiah(value: number): string {
@@ -99,15 +102,14 @@ export default function POSScreen({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openSessionModalVisible, setOpenSessionModalVisible] = useState(false);
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [discountModalVisible, setDiscountModalVisible] = useState(false);
   const [unitPicker, setUnitPicker] = useState<{ product: Product; choices: ProductUnit[] } | null>(null);
-  const [now, setNow] = useState(() => new Date());
 
-  // Kontrol diskon/PPN/metode pembayaran hidup di sini supaya panel
-  // "Ringkasan Pembayaran" (tablet) bisa menampilkannya sebelum kasir menekan Bayar.
+  // Kontrol diskon/PPN hidup di sini supaya panel "Pesanan Saat Ini" (tablet)
+  // bisa menampilkannya di ringkasan sebelum kasir menekan Bayar.
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
   const [discountValue, setDiscountValue] = useState('');
   const [ppnEnabled, setPpnEnabled] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
 
   const searchInputRef = useRef<RNTextInputRef>(null);
 
@@ -118,11 +120,6 @@ export default function POSScreen({ navigation }: Props) {
     dispatch(fetchCustomers());
     dispatch(fetchStoreProfile());
   }, [status, dispatch]);
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const canOpenCheckout = cartCount > 0;
 
@@ -171,7 +168,6 @@ export default function POSScreen({ navigation }: Props) {
 
   const primaryRole = user?.roles?.[0] ?? null;
   const storeName = storeProfile?.storeName ?? primaryRole?.storeName ?? '-';
-  const roleName = primaryRole?.roleName ?? 'Kasir';
 
   const addToCartWithUnit = (product: Product, unit: ProductUnit) => {
     const payload: AddItemPayload = {
@@ -206,7 +202,6 @@ export default function POSScreen({ navigation }: Props) {
     setCheckoutModalVisible(false);
     dispatch(clearCart());
     setDiscountValue('');
-    setPaymentMethod('CASH');
     if (withReceipt) {
       navigation.navigate('Receipt', { orderId: order.id });
     }
@@ -220,6 +215,14 @@ export default function POSScreen({ navigation }: Props) {
     ]);
   };
 
+  const onHoldOrder = () => {
+    Alert.alert('Segera hadir', 'Fitur menahan pesanan untuk dilanjutkan nanti belum tersedia.');
+  };
+
+  const onAddNote = () => {
+    Alert.alert('Segera hadir', 'Fitur catatan pesanan belum tersedia.');
+  };
+
   const renderProduct = ({ item }: { item: Product }) => (
     <ProductCard item={item} onPress={() => onAddToCart(item)} />
   );
@@ -227,11 +230,11 @@ export default function POSScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {isTabletLandscape ? (
-        <DesktopHeader
+        <TabletTopBar
+          title="Kasir"
+          subtitle={session ? `Sesi dibuka ${sessionTimeLabel(session.openedAt)}` : 'Sesi belum dibuka'}
           storeName={storeName}
           userName={user?.name ?? 'Kasir'}
-          roleName={roleName}
-          now={now}
         />
       ) : (
         <Header
@@ -240,13 +243,14 @@ export default function POSScreen({ navigation }: Props) {
           rightElement={
             <Button
               size="sm"
+              leftIcon={<BarcodeIcon size={16} color={colors.white} />}
               onPress={() =>
                 navigation.navigate('Scanner', {
                   onFound: (product) => onAddToCart(product),
                 })
               }
             >
-              📷 Scan
+              Scan
             </Button>
           }
         />
@@ -273,25 +277,23 @@ export default function POSScreen({ navigation }: Props) {
         <View style={styles.searchInput}>
           <Input
             ref={searchInputRef}
-            placeholder="Cari produk (F2)"
+            placeholder={isTabletLandscape ? 'Cari produk atau scan barcode' : 'Cari produk (F2)'}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            leftElement={<Text style={styles.searchIcon}>🔍</Text>}
+            leftElement={<SearchIcon size={17} color={colors.text.muted} strokeWidth={1.7} />}
           />
         </View>
-        {isTabletLandscape ? (
-          <Button
-            size="md"
-            style={styles.scanButtonTablet}
-            onPress={() =>
-              navigation.navigate('Scanner', {
-                onFound: (product) => onAddToCart(product),
-              })
-            }
-          >
-            📷 Scan
-          </Button>
-        ) : null}
+        <Pressable
+          style={styles.scanIconButton}
+          accessibilityLabel="Scan barcode"
+          onPress={() =>
+            navigation.navigate('Scanner', {
+              onFound: (product) => onAddToCart(product),
+            })
+          }
+        >
+          <BarcodeIcon size={19} color={colors.text.secondary} />
+        </Pressable>
       </View>
 
       {categories.length > 0 ? (
@@ -301,7 +303,7 @@ export default function POSScreen({ navigation }: Props) {
           contentContainerStyle={styles.categoryRow}
         >
           <CategoryChip
-            label="Semua produk"
+            label="Semua"
             active={selectedCategoryId === null}
             onPress={() => setSelectedCategoryId(null)}
           />
@@ -318,11 +320,11 @@ export default function POSScreen({ navigation }: Props) {
 
       <View style={styles.body}>
         <FlatList
-          key={isTabletLandscape ? 'grid-4' : 'grid-2'}
+          key={isTabletLandscape ? 'grid-3' : 'grid-2'}
           data={filteredProducts}
           keyExtractor={(item) => item.id}
           renderItem={renderProduct}
-          numColumns={isTabletLandscape ? 4 : 2}
+          numColumns={isTabletLandscape ? 3 : 2}
           contentContainerStyle={[styles.grid, isTabletLandscape && styles.gridTabletPadding]}
           columnWrapperStyle={styles.gridRow}
           style={styles.gridList}
@@ -347,26 +349,20 @@ export default function POSScreen({ navigation }: Props) {
 
         {isTabletLandscape ? (
           <View style={styles.sidePanel}>
-            <PaymentSummaryPanel
+            <OrderPanel
+              cashierName={user?.name ?? 'Kasir'}
               cartItems={cartItems}
               cartCount={cartCount}
               subtotal={subtotal}
-              discountType={discountType}
-              onChangeDiscountType={() =>
-                setDiscountType((prev) => (prev === 'percent' ? 'amount' : 'percent'))
-              }
-              discountValue={discountValue}
-              onChangeDiscountValue={setDiscountValue}
               discountAmount={discountAmount}
-              ppnEnabled={ppnEnabled}
-              onChangePpnEnabled={setPpnEnabled}
               taxAmount={taxAmount}
               grandTotal={grandTotal}
-              paymentMethod={paymentMethod}
-              onChangePaymentMethod={setPaymentMethod}
               canCheckout={canOpenCheckout}
               onCheckout={openCheckout}
               onClearCart={onClearCart}
+              onOpenDiscount={() => setDiscountModalVisible(true)}
+              onHold={onHoldOrder}
+              onAddNote={onAddNote}
             />
           </View>
         ) : null}
@@ -393,6 +389,18 @@ export default function POSScreen({ navigation }: Props) {
         />
       </Modal>
 
+      <Modal isOpen={discountModalVisible} onClose={() => setDiscountModalVisible(false)}>
+        <DiscountForm
+          discountType={discountType}
+          onChangeDiscountType={() => setDiscountType((prev) => (prev === 'percent' ? 'amount' : 'percent'))}
+          discountValue={discountValue}
+          onChangeDiscountValue={setDiscountValue}
+          ppnEnabled={ppnEnabled}
+          onChangePpnEnabled={setPpnEnabled}
+          onDone={() => setDiscountModalVisible(false)}
+        />
+      </Modal>
+
       <Modal isOpen={checkoutModalVisible} onClose={() => setCheckoutModalVisible(false)}>
         <CheckoutForm
           total={cartTotal}
@@ -402,7 +410,6 @@ export default function POSScreen({ navigation }: Props) {
           onCancel={() => setCheckoutModalVisible(false)}
           externalDiscountAmount={isTabletLandscape ? discountAmount : undefined}
           externalTaxAmount={isTabletLandscape ? taxAmount : undefined}
-          externalPaymentMethod={isTabletLandscape ? paymentMethod : undefined}
         />
       </Modal>
 
@@ -435,61 +442,6 @@ export default function POSScreen({ navigation }: Props) {
   );
 }
 
-function DesktopHeader({
-  storeName,
-  userName,
-  roleName,
-  now,
-}: {
-  storeName: string;
-  userName: string;
-  roleName: string;
-  now: Date;
-}) {
-  return (
-    <View style={styles.topBar}>
-      <View>
-        <Heading level="h3">Kasir</Heading>
-        <Text color="secondary" size="sm" style={styles.topBarSubtitle}>
-          {storeName}
-        </Text>
-      </View>
-      <View style={styles.topBarRight}>
-        <Pressable
-          style={styles.iconButton}
-          accessibilityLabel="Notifikasi"
-          onPress={() => Alert.alert('Notifikasi', 'Belum ada notifikasi baru.')}
-        >
-          <Text size="lg">🔔</Text>
-        </Pressable>
-        <View style={styles.clockBox}>
-          <Text size="xs" color="muted">
-            Waktu
-          </Text>
-          <Text weight="semibold" size="sm">
-            {clockLabel(now)}
-          </Text>
-        </View>
-        <View style={styles.userBox}>
-          <View style={styles.avatarCircle}>
-            <Text weight="bold" color="inverse" size="sm">
-              {userName.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <View>
-            <Text weight="semibold" size="sm" numberOfLines={1} style={styles.userName}>
-              {userName}
-            </Text>
-            <Text size="xs" color="muted">
-              {roleName}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 function CategoryChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
@@ -504,53 +456,26 @@ function ProductCard({ item, onPress }: { item: Product; onPress: () => void }) 
   const outOfStock = item.stockQuantity <= 0;
   const lowStock = !outOfStock && item.stockQuantity <= LOW_STOCK_THRESHOLD;
   const stockColor = outOfStock ? 'error' : lowStock ? 'warning' : 'muted';
+  const thumbnailColor = paletteColorFor(item.id);
 
   return (
-    <Card padding="none" style={styles.card}>
-      <View style={styles.cardImageWrap}>
+    <Card padding="none" style={styles.card} onPress={outOfStock ? undefined : onPress}>
+      <View style={[styles.cardImageWrap, !item.imageUrl && { backgroundColor: thumbnailColor }]}>
         {item.imageUrl ? (
           <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
         ) : (
-          <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
-            <Text size="2xl">🛍️</Text>
-          </View>
+          <Text size="4xl">{emojiForProduct(item)}</Text>
         )}
-        {item.categoryName ? (
-          <View style={styles.categoryBadge}>
-            <Text size="xs" weight="semibold" color="inverse" numberOfLines={1}>
-              {item.categoryName}
-            </Text>
-          </View>
-        ) : null}
       </View>
       <View style={styles.cardBody}>
-        <View>
-          <Text weight="semibold" numberOfLines={2} style={styles.cardName}>
-            {item.productName}
-          </Text>
-          <Text size="xs" color="muted">
-            {item.sku}
-          </Text>
-        </View>
+        <Text weight="semibold" numberOfLines={2} style={styles.cardName}>
+          {item.productName}
+        </Text>
         <View style={styles.cardFooter}>
-          <View>
-            <Text color="link" weight="bold">
-              {formatRupiah(item.sellingPrice)}
-            </Text>
-            <Text size="xs" weight="semibold" color={stockColor}>
-              {outOfStock ? 'Stok habis' : `Stok: ${item.stockQuantity}`}
-            </Text>
-          </View>
-          <Pressable
-            style={[styles.addButton, outOfStock && styles.addButtonDisabled]}
-            onPress={onPress}
-            disabled={outOfStock}
-            accessibilityLabel={`Tambah ${item.productName} ke keranjang`}
-          >
-            <Text weight="bold" color="inverse" size="lg">
-              +
-            </Text>
-          </Pressable>
+          <Text weight="bold">{formatRupiah(item.sellingPrice)}</Text>
+          <Text size="xs" weight="semibold" color={stockColor}>
+            {outOfStock ? 'Stok habis' : `Stok ${item.stockQuantity}`}
+          </Text>
         </View>
       </View>
     </Card>
@@ -560,7 +485,7 @@ function ProductCard({ item, onPress }: { item: Product; onPress: () => void }) 
 function QtyStepper({ item }: { item: CartItem }) {
   const dispatch = useAppDispatch();
   return (
-    <HStack space="sm" align="center">
+    <View style={styles.stepper}>
       <Pressable
         style={styles.stepperButton}
         onPress={() => dispatch(decrementItem(item.product.id))}
@@ -568,9 +493,9 @@ function QtyStepper({ item }: { item: CartItem }) {
       >
         <Text weight="bold">−</Text>
       </Pressable>
-      <Text weight="bold" style={styles.stepperQty}>
-        {item.quantity}
-      </Text>
+      <View style={styles.stepperQtyBox}>
+        <Text weight="bold">{item.quantity}</Text>
+      </View>
       <Pressable
         style={styles.stepperButton}
         onPress={() => dispatch(incrementItem(item.product.id))}
@@ -578,90 +503,76 @@ function QtyStepper({ item }: { item: CartItem }) {
       >
         <Text weight="bold">+</Text>
       </Pressable>
-    </HStack>
-  );
-}
-
-function CartItemRow({ item }: { item: CartItem }) {
-  const dispatch = useAppDispatch();
-  const unitPrice = item.product.sellingPrice * item.unitConversionToBase;
-  const lineTotal = unitPrice * item.quantity;
-  return (
-    <View style={styles.cartRow}>
-      <View style={styles.cartRowTop}>
-        <Text weight="semibold" numberOfLines={2} style={styles.cartRowName}>
-          {item.product.productName}
-        </Text>
-        <QtyStepper item={item} />
-      </View>
-      <View style={styles.cartRowBottom}>
-        <View>
-          <Text size="xs" color="muted">
-            {item.unitName} · {formatRupiah(unitPrice)} X {item.quantity}
-          </Text>
-          <Text weight="bold" color="link" size="sm">
-            {formatRupiah(lineTotal)}
-          </Text>
-        </View>
-        <Pressable
-          style={styles.trashButton}
-          onPress={() => dispatch(removeItem(item.product.id))}
-          accessibilityLabel="Hapus dari keranjang"
-        >
-          <Text size="sm">🗑️</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
 
-function PaymentSummaryPanel({
+function CartItemRow({ item }: { item: CartItem }) {
+  const unitPrice = item.product.sellingPrice * item.unitConversionToBase;
+  const thumbnailColor = paletteColorFor(item.product.id);
+  return (
+    <View style={styles.cartRow}>
+      <View style={[styles.cartRowThumbnail, { backgroundColor: thumbnailColor }]}>
+        <Text size="lg">{emojiForProduct(item.product)}</Text>
+      </View>
+      <View style={styles.cartRowInfo}>
+        <Text weight="semibold" numberOfLines={1}>
+          {item.product.productName}
+        </Text>
+        <Text size="xs" color="muted">
+          {formatRupiah(unitPrice)}
+        </Text>
+      </View>
+      <QtyStepper item={item} />
+    </View>
+  );
+}
+
+function OrderPanel({
+  cashierName,
   cartItems,
   cartCount,
   subtotal,
-  discountType,
-  onChangeDiscountType,
-  discountValue,
-  onChangeDiscountValue,
   discountAmount,
-  ppnEnabled,
-  onChangePpnEnabled,
   taxAmount,
   grandTotal,
-  paymentMethod,
-  onChangePaymentMethod,
   canCheckout,
   onCheckout,
   onClearCart,
+  onOpenDiscount,
+  onHold,
+  onAddNote,
 }: {
+  cashierName: string;
   cartItems: CartItem[];
   cartCount: number;
   subtotal: number;
-  discountType: 'percent' | 'amount';
-  onChangeDiscountType: () => void;
-  discountValue: string;
-  onChangeDiscountValue: (value: string) => void;
   discountAmount: number;
-  ppnEnabled: boolean;
-  onChangePpnEnabled: (value: boolean) => void;
   taxAmount: number;
   grandTotal: number;
-  paymentMethod: PaymentMethod;
-  onChangePaymentMethod: (value: PaymentMethod) => void;
   canCheckout: boolean;
   onCheckout: () => void;
   onClearCart: () => void;
+  onOpenDiscount: () => void;
+  onHold: () => void;
+  onAddNote: () => void;
 }) {
   return (
     <VStack style={styles.sidePanelInner}>
       <View style={styles.sidePanelHeader}>
-        <Heading level="h4">Ringkasan Pembayaran</Heading>
-        <Badge variant="primary">{`${cartCount} Item`}</Badge>
+        <View style={styles.sidePanelHeaderText}>
+          <Heading level="h4">Pesanan Saat Ini</Heading>
+          <Text size="xs" color="secondary">
+            {cartCount} item · Kasir: {cashierName}
+          </Text>
+        </View>
+        {cartCount > 0 ? (
+          <Pressable style={styles.clearIconButton} onPress={onClearCart} accessibilityLabel="Hapus keranjang">
+            <TrashIcon size={15} color={colors.text.secondary} />
+          </Pressable>
+        ) : null}
       </View>
 
-      <Text weight="semibold" size="sm" color="secondary" style={styles.itemsSectionTitle}>
-        Item Dipilih
-      </Text>
       {cartItems.length > 0 ? (
         <ScrollView style={styles.sidePanelList} showsVerticalScrollIndicator={false}>
           {cartItems.map((item) => (
@@ -680,9 +591,79 @@ function PaymentSummaryPanel({
       <View style={styles.summaryDivider} />
 
       <View style={styles.summaryRow}>
-        <Text color="secondary">Sub total</Text>
+        <Text color="secondary">Subtotal</Text>
         <Text weight="semibold">{formatRupiah(subtotal)}</Text>
       </View>
+      {discountAmount > 0 ? (
+        <View style={styles.summaryRow}>
+          <Text color="secondary">Diskon</Text>
+          <Text weight="semibold" color="success">
+            − {formatRupiah(discountAmount)}
+          </Text>
+        </View>
+      ) : null}
+      {taxAmount > 0 ? (
+        <View style={styles.summaryRow}>
+          <Text color="secondary">Pajak (11%)</Text>
+          <Text weight="semibold">{formatRupiah(taxAmount)}</Text>
+        </View>
+      ) : null}
+
+      <View style={styles.totalRow}>
+        <Heading level="h5">Total</Heading>
+        <Heading level="h4">{formatRupiah(grandTotal)}</Heading>
+      </View>
+
+      <View style={styles.actionRow}>
+        <Pressable style={styles.actionButton} onPress={onHold}>
+          <ClockIcon size={14} color={colors.text.secondary} />
+          <Text size="xs" weight="semibold" color="secondary">
+            Tahan
+          </Text>
+        </Pressable>
+        <Pressable style={styles.actionButton} onPress={onOpenDiscount}>
+          <DiscountIcon size={14} color={colors.text.secondary} />
+          <Text size="xs" weight="semibold" color="secondary">
+            Diskon
+          </Text>
+        </Pressable>
+        <Pressable style={styles.actionButton} onPress={onAddNote}>
+          <NoteIcon size={14} color={colors.text.secondary} />
+          <Text size="xs" weight="semibold" color="secondary">
+            Catatan
+          </Text>
+        </Pressable>
+      </View>
+
+      <Button fullWidth disabled={!canCheckout} onPress={onCheckout} style={styles.payButton}>
+        {`Bayar Sekarang · ${formatRupiah(grandTotal)}`}
+      </Button>
+    </VStack>
+  );
+}
+
+function DiscountForm({
+  discountType,
+  onChangeDiscountType,
+  discountValue,
+  onChangeDiscountValue,
+  ppnEnabled,
+  onChangePpnEnabled,
+  onDone,
+}: {
+  discountType: 'percent' | 'amount';
+  onChangeDiscountType: () => void;
+  discountValue: string;
+  onChangeDiscountValue: (value: string) => void;
+  ppnEnabled: boolean;
+  onChangePpnEnabled: (value: boolean) => void;
+  onDone: () => void;
+}) {
+  return (
+    <View>
+      <Text weight="bold" size="lg" style={styles.modalTitle}>
+        % Diskon & Pajak
+      </Text>
 
       <Text weight="semibold" size="sm" style={styles.discountLabel}>
         Diskon (F7)
@@ -692,9 +673,7 @@ function PaymentSummaryPanel({
           <Text weight="semibold" size="sm">
             {discountType === 'percent' ? '%' : 'Rp'}
           </Text>
-          <Text size="xs" color="muted">
-            ⌄
-          </Text>
+          <ChevronDownIcon size={12} color={colors.text.muted} />
         </Pressable>
         <Input
           keyboardType="numeric"
@@ -709,66 +688,13 @@ function PaymentSummaryPanel({
         <Text weight="semibold" size="sm">
           PPN 11%
         </Text>
-        <View style={styles.ppnRight}>
-          {ppnEnabled ? (
-            <Text size="sm" color="secondary">
-              {formatRupiah(taxAmount)}
-            </Text>
-          ) : null}
-          <Switch value={ppnEnabled} onValueChange={onChangePpnEnabled} />
-        </View>
+        <Switch value={ppnEnabled} onValueChange={onChangePpnEnabled} />
       </View>
 
-      {discountAmount > 0 ? (
-        <View style={styles.summaryRow}>
-          <Text color="secondary" size="sm">
-            Diskon
-          </Text>
-          <Text weight="semibold" size="sm" color="link">
-            −{formatRupiah(discountAmount)}
-          </Text>
-        </View>
-      ) : null}
-
-      <View style={styles.totalRow}>
-        <Text color="secondary">Total pembayaran</Text>
-        <Heading level="h3">{formatRupiah(grandTotal)}</Heading>
-      </View>
-
-      <Text weight="semibold" size="sm" style={styles.paymentMethodLabel}>
-        Metode pembayaran:
-      </Text>
-      <View style={styles.paymentMethodGrid}>
-        {SUMMARY_PAYMENT_METHODS.map((method) => {
-          const active = paymentMethod === method.value;
-          return (
-            <Pressable
-              key={method.value}
-              onPress={() => onChangePaymentMethod(method.value)}
-              style={[styles.paymentMethodBox, active && styles.paymentMethodBoxActive]}
-            >
-              <Text size="lg">{method.icon}</Text>
-              <Text size="xs" weight="semibold" color={active ? 'link' : 'secondary'}>
-                {method.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Button fullWidth disabled={!canCheckout} onPress={onCheckout} style={styles.payButton}>
-        Bayar (F9)
+      <Button fullWidth onPress={onDone} style={styles.payButton}>
+        Selesai
       </Button>
-      <Button
-        fullWidth
-        variant="dangerOutline"
-        disabled={cartCount === 0}
-        onPress={onClearCart}
-        style={styles.clearCartButton}
-      >
-        🗑️ Hapus keranjang
-      </Button>
-    </VStack>
+    </View>
   );
 }
 
@@ -825,28 +751,26 @@ function CheckoutForm({
   onCancel,
   externalDiscountAmount,
   externalTaxAmount,
-  externalPaymentMethod,
 }: {
   total: number;
   cartItems: CartItem[];
   showItemsList: boolean;
   onDone: (order: Order, withReceipt: boolean) => void;
   onCancel: () => void;
-  /** Kalau diisi, panel "Ringkasan Pembayaran" (tablet) sudah menentukan nilai ini —
-   * modal ini cuma menampilkannya sebagai ringkasan, bukan input yang bisa diubah lagi. */
+  /** Kalau diisi, panel "Pesanan Saat Ini" (tablet) sudah menentukan diskon/pajak lewat
+   * modal Diskon — modal ini cuma menampilkannya sebagai ringkasan, bukan input lagi. */
   externalDiscountAmount?: number;
   externalTaxAmount?: number;
-  externalPaymentMethod?: PaymentMethod;
 }) {
   const dispatch = useAppDispatch();
   const { height } = useResponsive();
   const customers = useAppSelector((state) => state.customers.items);
-  const lockPaymentControls = externalDiscountAmount !== undefined;
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(externalPaymentMethod ?? 'CASH');
+  const lockDiscount = externalDiscountAmount !== undefined;
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [discount, setDiscount] = useState('');
   const taxAmount = externalTaxAmount ?? 0;
-  const discountAmount = lockPaymentControls
+  const discountAmount = lockDiscount
     ? (externalDiscountAmount ?? 0)
     : Math.min(total, Math.max(0, Number(discount || 0)));
   const payableTotal = total - discountAmount + taxAmount;
@@ -940,39 +864,30 @@ function CheckoutForm({
       </View>
 
       <ScrollView style={{ maxHeight: height * 0.4 }} showsVerticalScrollIndicator={false}>
-        {lockPaymentControls ? (
-          <Text size="sm" color="secondary" style={styles.lockedMethodHint}>
-            Metode pembayaran:{' '}
-            <Text weight="semibold" size="sm">
-              {PAYMENT_METHODS.find((m) => m.value === paymentMethod)?.label ?? paymentMethod}
-            </Text>
-          </Text>
-        ) : (
-          <>
-            <FormControl label="Metode pembayaran" isRequired>
-              <View style={styles.paymentMethodRow}>
-                {PAYMENT_METHODS.map((method) => {
-                  const active = paymentMethod === method.value;
-                  return (
-                    <Pressable
-                      key={method.value}
-                      onPress={() => setPaymentMethod(method.value)}
-                      style={[styles.paymentChip, active && styles.paymentChipActive]}
-                    >
-                      <Text size="sm" weight="semibold" color={active ? 'inverse' : 'secondary'}>
-                        {method.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </FormControl>
+        <FormControl label="Metode pembayaran" isRequired>
+          <View style={styles.paymentMethodRow}>
+            {PAYMENT_METHODS.map((method) => {
+              const active = paymentMethod === method.value;
+              return (
+                <Pressable
+                  key={method.value}
+                  onPress={() => setPaymentMethod(method.value)}
+                  style={[styles.paymentChip, active && styles.paymentChipActive]}
+                >
+                  <Text size="sm" weight="semibold" color={active ? 'inverse' : 'secondary'}>
+                    {method.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </FormControl>
 
-            <FormControl label="Diskon (opsional)" helperText="Potongan harga langsung dalam Rupiah">
-              <Input keyboardType="numeric" value={discount} onChangeText={setDiscount} placeholder="0" />
-            </FormControl>
-          </>
-        )}
+        {!lockDiscount ? (
+          <FormControl label="Diskon (opsional)" helperText="Potongan harga langsung dalam Rupiah">
+            <Input keyboardType="numeric" value={discount} onChangeText={setDiscount} placeholder="0" />
+          </FormControl>
+        ) : null}
 
         {customers.length > 0 ? (
           <FormControl
@@ -1083,44 +998,18 @@ function CheckoutForm({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.base,
-    paddingBottom: spacing.sm,
-  },
-  topBarSubtitle: { marginTop: 2 },
-  topBarRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  clockBox: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
-  },
-  userBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userName: { maxWidth: 140 },
-  scanButtonTablet: { marginLeft: spacing.sm },
-  searchWrap: { flexDirection: 'row', paddingHorizontal: spacing.base, marginBottom: spacing.sm },
-  searchIcon: { marginRight: spacing.xs },
+  searchWrap: { flexDirection: 'row', paddingHorizontal: spacing.base, marginBottom: spacing.sm, gap: spacing.sm },
   searchInput: { flex: 1 },
+  scanIconButton: {
+    width: 50,
+    height: 50,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sessionBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1160,8 +1049,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   sidePanelInner: { flex: 1, padding: spacing.base },
-  sidePanelHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sidePanelList: { maxHeight: 260, marginTop: spacing.xs },
+  sidePanelHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  sidePanelHeaderText: { flex: 1 },
+  clearIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  sidePanelList: { maxHeight: 260, marginTop: spacing.sm },
   sidePanelEmpty: { alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xl },
   sidePanelEmptyText: { marginTop: spacing.xs, textAlign: 'center' },
   summaryDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
@@ -1184,20 +1082,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.md,
+    marginBottom: spacing.lg,
   },
-  ppnRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-  paymentMethodLabel: { marginTop: spacing.base, marginBottom: spacing.xs },
-  paymentMethodGrid: { flexDirection: 'row', gap: spacing.sm },
-  paymentMethodBox: {
+  actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.base },
+  actionButton: {
     flex: 1,
     alignItems: 'center',
     gap: 2,
@@ -1207,39 +1104,20 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.background,
   },
-  paymentMethodBoxActive: { borderColor: colors.primary[600], backgroundColor: colors.primary[50] },
   payButton: { marginTop: spacing.base },
-  clearCartButton: { marginTop: spacing.sm },
   card: { flex: 1, minHeight: 170, marginBottom: spacing.md, overflow: 'hidden' },
-  cardImageWrap: { width: '100%', height: 110, position: 'relative' },
-  cardImage: { width: '100%', height: '100%', borderTopLeftRadius: 8, borderTopRightRadius: 8 },
-  cardImagePlaceholder: {
-    backgroundColor: colors.gray[100],
+  cardImageWrap: {
+    width: '100%',
+    height: 110,
     alignItems: 'center',
     justifyContent: 'center',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
-  categoryBadge: {
-    position: 'absolute',
-    top: spacing.xs,
-    right: spacing.xs,
-    backgroundColor: 'rgba(7,60,100,0.75)',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 9999,
-    maxWidth: '70%',
-  },
+  cardImage: { width: '100%', height: '100%', borderTopLeftRadius: 8, borderTopRightRadius: 8 },
   cardBody: { padding: spacing.sm, flex: 1, justifyContent: 'space-between' },
   cardName: { minHeight: 38 },
-  cardFooter: { marginTop: spacing.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.sm,
-    backgroundColor: colors.primary[600],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButtonDisabled: { backgroundColor: colors.gray[300] },
+  cardFooter: { marginTop: spacing.sm, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   empty: { marginTop: spacing['3xl'] },
   cartBar: {
     position: 'absolute',
@@ -1257,23 +1135,41 @@ const styles = StyleSheet.create({
   cartLabel: { color: colors.gray[300], marginBottom: 2 },
   cartText: { color: colors.white },
   cartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
-  cartRowTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.sm },
-  cartRowName: { flex: 1 },
-  cartRowBottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: spacing.xs },
-  trashButton: { padding: spacing.xs },
-  stepperButton: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: colors.gray[100],
+  cartRowThumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepperQty: { minWidth: 16, textAlign: 'center' },
+  cartRowInfo: { flex: 1 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  stepperButton: {
+    width: 26,
+    height: 26,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperQtyBox: {
+    minWidth: 26,
+    height: 26,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+  },
   modalTitle: { marginBottom: spacing.base },
   unitPickerHint: { marginBottom: spacing.base },
   openSessionHint: { marginBottom: spacing.base },
@@ -1288,7 +1184,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   checkoutTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  lockedMethodHint: { marginBottom: spacing.base },
   paymentMethodRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   paymentChip: {
     paddingHorizontal: spacing.md,

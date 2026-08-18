@@ -37,6 +37,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     requireFullScreen: true,
     bundleIdentifier: BUNDLE_ID[VARIANT],
+    icon: {
+      light: './assets/icon-light.png',
+      dark: './assets/icon-dark.png',
+    },
     infoPlist: {
       NSCameraUsageDescription:
         'cassier-Q needs camera access to scan product barcodes at checkout.',
@@ -52,9 +56,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: BUNDLE_ID[VARIANT],
     adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
+      backgroundColor: '#0A1830',
       foregroundImage: './assets/android-icon-foreground.png',
-      backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,

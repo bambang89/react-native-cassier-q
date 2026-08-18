@@ -1,19 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createCustomer, fetchCustomers, updateCustomer } from '@/store/slices/customersSlice';
-import type { RootStackParamList } from '@/navigation/types';
+import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Customer } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
-import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Customers'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Customers'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function CustomersScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
@@ -40,9 +46,9 @@ export default function CustomersScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppBar
+      <Header
         title="Pelanggan"
-        onBack={navigation.goBack}
+        subtitle="Kelola data & piutang pelanggan"
         rightElement={
           <Button size="sm" onPress={() => setFormVisible(true)}>
             + Baru
@@ -68,6 +74,7 @@ export default function CustomersScreen({ navigation }: Props) {
           value={search}
           onChangeText={setSearch}
           returnKeyType="search"
+          leftElement={<SearchIcon size={16} color={colors.text.muted} />}
         />
       </View>
 
@@ -232,7 +239,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.primary[600],
+    backgroundColor: colors.teal[700],
     alignItems: 'center',
     justifyContent: 'center',
   },

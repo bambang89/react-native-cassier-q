@@ -1,0 +1,378 @@
+import { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+
+import { fetchSalesSummary } from '@/api/reportsApi';
+import type { SalesSummary } from '@/types/models';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
+import { useResponsive } from '@/hooks/useResponsive';
+import { colors, radii, spacing } from '@/theme';
+import { Card, Header, TabletTopBar } from '@/components/ui/recipes';
+import { Heading, Text } from '@/components/ui/typography';
+import {
+  BarChartIcon,
+  BoxIcon,
+  LightbulbIcon,
+  ReceiptIcon,
+  RegisterIcon,
+  TrendDownIcon,
+  TrendingIcon,
+  TrendUpIcon,
+} from '@/components/icons/LineIcons';
+
+const DAY_LABELS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+function isoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+// Backend cuma punya endpoint ringkasan per rentang tanggal (bukan breakdown
+// harian), jadi buat grafik 7-hari yang datanya beneran nyata, kita panggil
+// endpoint yang sama 7x — satu per hari — bukan mengarang angka tren.
+async function fetchLastSevenDays(): Promise<SalesSummary[]> {
+  const today = new Date();
+  const requests = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - (6 - i));
+    const iso = isoDate(date);
+    return fetchSalesSummary({ from: iso, to: iso });
+  });
+  return Promise.all(requests);
+}
+
+function formatRupiah(value: number): string {
+  return `Rp ${Math.round(value).toLocaleString('id-ID')}`;
+}
+
+function percentDelta(today: number, yesterday: number): number | null {
+  if (yesterday <= 0) return null;
+  return ((today - yesterday) / yesterday) * 100;
+}
+
+function mergeTopSellers(days: SalesSummary[], limit = 4) {
+  const byProduct = new Map<string, { productId: string; productName: string; totalQuantity: number; totalRevenue: number }>();
+  for (const day of days) {
+    for (const seller of day.topSellers) {
+      const existing = byProduct.get(seller.productId);
+      if (existing) {
+        existing.totalQuantity += seller.totalQuantity;
+        existing.totalRevenue += seller.totalRevenue;
+      } else {
+        byProduct.set(seller.productId, { ...seller });
+      }
+    }
+  }
+  return Array.from(byProduct.values())
+    .sort((a, b) => b.totalQuantity - a.totalQuantity)
+    .slice(0, limit);
+}
+
+export default function DashboardScreen() {
+  const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
+  const user = useAppSelector((state) => state.auth.user);
+  const storeProfile = useAppSelector((state) => state.storeProfile.profile);
+  const [days, setDays] = useState<SalesSummary[] | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const result = await fetchLastSevenDays();
+      setDays(result);
+    } catch {
+      // Biarkan `days` tetap null — UI menampilkan state kosong, bukan data palsu.
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+    dispatch(fetchStoreProfile());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const primaryRole = user?.roles?.[0] ?? null;
+  const storeName = storeProfile?.storeName ?? primaryRole?.storeName ?? '-';
+  const firstName = user?.name?.split(' ')[0] ?? 'Kasir';
+
+  const today = days?.[6] ?? null;
+  const yesterday = days?.[5] ?? null;
+  const todayUnitsSold = today ? today.topSellers.reduce((sum, s) => sum + s.totalQuantity, 0) : 0;
+  const yesterdayUnitsSold = yesterday ? yesterday.topSellers.reduce((sum, s) => sum + s.totalQuantity, 0) : 0;
+  const avgToday = today && today.orderCount > 0 ? today.grossSales / today.orderCount : 0;
+  const weeklyTopSellers = days ? mergeTopSellers(days) : [];
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      {isTabletLandscape ? (
+        <TabletTopBar
+          title={`Selamat datang, ${firstName}`}
+          subtitle="Ringkasan performa bisnis hari ini"
+          storeName={storeName}
+          userName={firstName}
+        />
+      ) : (
+        <Header title={`Selamat datang, ${firstName}`} subtitle="Ringkasan performa bisnis hari ini" />
+      )}
+
+      <ScrollView
+        contentContainerStyle={styles.body}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+      >
+        <View style={[styles.kpiGrid, isTabletLandscape && styles.kpiGridTablet]}>
+          <KpiCard
+            label="Penjualan Hari Ini"
+            value={today ? formatRupiah(today.grossSales) : '—'}
+            icon={RegisterIcon}
+            iconColor={colors.success[600]}
+            iconBg={colors.success[50]}
+            delta={today && yesterday ? percentDelta(today.grossSales, yesterday.grossSales) : null}
+          />
+          <KpiCard
+            label="Transaksi"
+            value={today ? String(today.orderCount) : '—'}
+            icon={ReceiptIcon}
+            iconColor={colors.primary[600]}
+            iconBg={colors.primary[50]}
+            delta={today && yesterday ? percentDelta(today.orderCount, yesterday.orderCount) : null}
+          />
+          <KpiCard
+            label="Rata-rata"
+            value={today ? formatRupiah(avgToday) : '—'}
+            icon={TrendingIcon}
+            iconColor={colors.teal[700]}
+            iconBg={colors.teal[50]}
+          />
+          <KpiCard
+            label="Produk Terjual"
+            value={today ? String(todayUnitsSold) : '—'}
+            icon={BoxIcon}
+            iconColor={colors.warning[600]}
+            iconBg={colors.warning[50]}
+            delta={today && yesterday ? percentDelta(todayUnitsSold, yesterdayUnitsSold) : null}
+          />
+        </View>
+
+        {today && today.orderCount > 0 ? (
+          <Card style={styles.insightCard}>
+            <View style={styles.insightIcon}>
+              <LightbulbIcon size={18} color={colors.primary[600]} />
+            </View>
+            <View style={styles.insightBody}>
+              <Text weight="semibold" size="sm" style={styles.insightLabel}>
+                Insight cassier-Q
+              </Text>
+              <Text size="sm" color="secondary">
+                {`Hari ini tercatat ${today.orderCount} transaksi dengan total ${formatRupiah(today.grossSales)}. ${
+                  weeklyTopSellers.length > 0
+                    ? `${weeklyTopSellers[0].productName} jadi produk terlaris minggu ini.`
+                    : ''
+                }`}
+              </Text>
+            </View>
+          </Card>
+        ) : null}
+
+        <View style={[styles.bottomRow, isTabletLandscape && styles.bottomRowTablet]}>
+          <Card style={styles.chartCard}>
+            <View style={styles.cardHead}>
+              <View>
+                <Heading level="h5">Grafik Penjualan</Heading>
+                <Text size="xs" color="muted" style={styles.cardHeadSub}>
+                  7 hari terakhir
+                </Text>
+              </View>
+              <BarChartIcon size={16} color={colors.text.muted} />
+            </View>
+            {days ? (
+              <SalesTrendChart values={days.map((d) => d.grossSales)} labels={DAY_LABELS} />
+            ) : (
+              <View style={styles.chartLoading}>
+                <Text size="sm" color="muted">
+                  Memuat data...
+                </Text>
+              </View>
+            )}
+          </Card>
+
+          <Card style={styles.topSellersCard}>
+            <Heading level="h5" style={styles.cardHead}>
+              Produk Terlaris
+            </Heading>
+            {weeklyTopSellers.length === 0 ? (
+              <Text size="sm" color="muted" style={styles.topSellersEmpty}>
+                Belum ada penjualan minggu ini.
+              </Text>
+            ) : (
+              weeklyTopSellers.map((seller) => (
+                <View key={seller.productId} style={styles.topSellerRow}>
+                  <View style={styles.topSellerThumb}>
+                    <BoxIcon size={15} color={colors.text.secondary} />
+                  </View>
+                  <View style={styles.topSellerInfo}>
+                    <Text weight="semibold" size="sm" numberOfLines={1}>
+                      {seller.productName}
+                    </Text>
+                    <Text size="xs" color="muted">
+                      {seller.totalQuantity}x terjual
+                    </Text>
+                  </View>
+                  <Text weight="bold" size="sm">
+                    {formatRupiah(seller.totalRevenue / seller.totalQuantity)}
+                  </Text>
+                </View>
+              ))
+            )}
+          </Card>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+  iconColor,
+  iconBg,
+  delta,
+}: {
+  label: string;
+  value: string;
+  icon: typeof RegisterIcon;
+  iconColor: string;
+  iconBg: string;
+  delta?: number | null;
+}) {
+  return (
+    <Card style={styles.kpiCard}>
+      <View style={styles.kpiHead}>
+        <Text size="xs" color="secondary" weight="medium" numberOfLines={1} style={styles.kpiLabel}>
+          {label}
+        </Text>
+        <View style={[styles.kpiIconChip, { backgroundColor: iconBg }]}>
+          <Icon size={15} color={iconColor} />
+        </View>
+      </View>
+      <Heading level="h4" style={styles.kpiValue}>
+        {value}
+      </Heading>
+      {delta !== undefined && delta !== null ? (
+        <View style={styles.kpiDelta}>
+          {delta >= 0 ? (
+            <TrendUpIcon size={11} color={colors.success[600]} />
+          ) : (
+            <TrendDownIcon size={11} color={colors.error[600]} />
+          )}
+          <Text size="xs" weight="semibold" color={delta >= 0 ? 'success' : 'error'}>
+            {`${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`}
+          </Text>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+function SalesTrendChart({ values, labels }: { values: number[]; labels: string[] }) {
+  const width = 620;
+  const height = 160;
+  const padding = 8;
+  const max = Math.max(...values, 1);
+  const points = values.map((v, i) => ({
+    x: padding + (i * (width - padding * 2)) / (values.length - 1),
+    y: padding + (1 - v / max) * (height - padding * 2),
+  }));
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
+  const areaPath = `${linePath} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`;
+
+  return (
+    <View>
+      <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
+        <Defs>
+          <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%" stopColor={colors.primary[600]} stopOpacity={0.16} />
+            <Stop offset="100%" stopColor={colors.primary[600]} stopOpacity={0} />
+          </LinearGradient>
+        </Defs>
+        <Path d={areaPath} fill="url(#areaGrad)" />
+        <Path d={linePath} fill="none" stroke={colors.primary[600]} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+      <View style={styles.chartLabelRow}>
+        {labels.map((label) => (
+          <Text key={label} size="xs" color="muted" style={styles.chartLabel}>
+            {label}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  kpiGridTablet: { flexWrap: 'nowrap' },
+  kpiCard: { flexBasis: '47%', flexGrow: 1 },
+  kpiHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.xs },
+  kpiLabel: { flex: 1 },
+  kpiIconChip: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kpiValue: { marginTop: spacing.sm },
+  kpiDelta: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: spacing.xs },
+  insightCard: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.base,
+    backgroundColor: colors.primary[50],
+    borderColor: colors.primary[100],
+  },
+  insightIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: radii.md,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  insightBody: { flex: 1 },
+  insightLabel: { marginBottom: 2 },
+  bottomRow: { gap: spacing.base, marginTop: spacing.base },
+  bottomRowTablet: { flexDirection: 'row', alignItems: 'flex-start' },
+  chartCard: { flex: 1.6 },
+  cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+  cardHeadSub: { marginTop: 1 },
+  chartLoading: { height: 160, alignItems: 'center', justifyContent: 'center' },
+  chartLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing.xs },
+  chartLabel: { flex: 1, textAlign: 'center' },
+  topSellersCard: { flex: 1 },
+  topSellersEmpty: { paddingVertical: spacing.lg, textAlign: 'center' },
+  topSellerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  topSellerThumb: {
+    width: 34,
+    height: 34,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topSellerInfo: { flex: 1 },
+});

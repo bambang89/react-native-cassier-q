@@ -16,14 +16,12 @@ function shadow(elevation: number, opacity: number, radius: number): ViewStyle {
 
 export const shadows = {
   none: {} as ViewStyle,
-  // Skala xs/sm/md/lg mengikuti spec box-shadow di Figma (blur & elevasinya),
-  // dengan opacity sedikit dinaikkan dari nilai desain aslinya karena di
-  // layar terang bayangan setipis itu nyaris tidak kelihatan — padahal
-  // kartu/tombol butuh terasa "bisa ditekan" biar tidak terkesan datar.
+  // sm/md/lg diturunkan dari --shadow-sm/md/lg di cassier-q-webapp/components.html.
+  // xs/xl tetap step tambahan kita sendiri (tidak ada di webapp) buat kasus di antaranya.
   xs: shadow(1, 0.08, 2),
-  sm: shadow(2, 0.1, 3),
-  md: shadow(4, 0.1, 8),
-  lg: shadow(8, 0.1, 16),
+  sm: shadow(2, 0.05, 2),
+  md: shadow(4, 0.06, 6),
+  lg: shadow(16, 0.14, 28),
   xl: shadow(10, 0.14, 16),
 } as const;
 

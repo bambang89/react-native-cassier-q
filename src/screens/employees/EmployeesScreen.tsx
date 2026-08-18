@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -11,16 +10,13 @@ import {
   updateEmployee,
 } from '@/store/slices/employeesSlice';
 import { fetchRoles } from '@/store/slices/rolesSlice';
-import type { RootStackParamList } from '@/navigation/types';
 import type { Employee } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { Button, FormControl, Input, Select } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
+import { Card, EmptyState, Header } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-
-type Props = NativeStackScreenProps<RootStackParamList, 'Employees'>;
 
 // Dipakai kalau GET /roles belum sempat termuat — biar Select role tidak kosong melompong.
 const FALLBACK_ROLE_OPTIONS = [
@@ -30,7 +26,7 @@ const FALLBACK_ROLE_OPTIONS = [
   { label: 'Kepala Toko', value: 'KEPALA_TOKO' },
 ];
 
-export default function EmployeesScreen({ navigation }: Props) {
+export default function EmployeesScreen() {
   const dispatch = useAppDispatch();
   const { items, status } = useAppSelector((state) => state.employees);
   const roles = useAppSelector((state) => state.roles.items);
@@ -61,9 +57,9 @@ export default function EmployeesScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppBar
+      <Header
         title="Karyawan"
-        onBack={navigation.goBack}
+        subtitle="Kelola akun & akses karyawan"
         rightElement={
           <Button size="sm" onPress={() => setEditing('new')}>
             + Baru

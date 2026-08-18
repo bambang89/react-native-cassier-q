@@ -1,7 +1,8 @@
+// Sesuai skala radius di cassier-q-webapp/components.html (--r-sm..--r-2xl).
 export const radii = {
   none: 0,
-  sm: 6,
-  md: 8,
+  sm: 8,
+  md: 10,
   lg: 12,
   xl: 16,
   '2xl': 20,

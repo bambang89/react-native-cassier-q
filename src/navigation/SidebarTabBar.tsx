@@ -1,70 +1,44 @@
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-import { useAppDispatch } from '@/store/hooks';
-import { logout } from '@/store/slices/authSlice';
+import { useAppSelector } from '@/store/hooks';
 import { colors, radii, spacing } from '@/theme';
-import { Pressable, Switch } from '@/components/ui/forms';
-import { AlertDialog } from '@/components/ui/overlay';
+import { Pressable } from '@/components/ui/forms';
+import { HelpIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { TAB_ICONS } from './tabIcons';
 import type { MainTabParamList } from './types';
 
-const TAB_ICONS: Record<keyof MainTabParamList, string> = {
-  POS: '🛒',
-  Products: '📦',
-  Orders: '🕘',
-  Reports: '📊',
-  Expenses: '💸',
-  Profile: '⚙️',
-};
+const RAIL_WIDTH = 88;
+const ICON_COLOR_INACTIVE = 'rgba(255,255,255,0.7)';
 
-const COLLAPSED_WIDTH = 76;
-const EXPANDED_WIDTH = 240;
-
-// Sidebar khusus mode tablet-landscape, dibuat lewat prop `tabBar` supaya bisa
-// menaruh header brand + tombol Keluar/Mode Tampilan yang bukan bagian dari
-// route navigasi biasa. Di HP, navigator tetap pakai bottom tab bar bawaan.
+// Rail navigasi gelap khusus mode tablet-landscape — struktur & ikon persis
+// cassier-q-webapp/tablet-pos.html (.tablet-sidebar): logo brand di atas,
+// daftar menu, lalu Bantuan + avatar di bawah (Keluar ada di layar Pengaturan).
+// Dibuat lewat prop `tabBar` supaya bisa menaruh elemen non-route ini.
+// Di HP, navigator tetap pakai bottom tab bar bawaan.
 export default function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  const dispatch = useAppDispatch();
-  const [collapsed, setCollapsed] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-  const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
+  const user = useAppSelector((reduxState) => reduxState.auth.user);
 
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'bottom']}
-      style={[styles.container, { width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH }]}
-    >
-      <View style={styles.brandRow}>
-        <View style={styles.brandIcon}>
-          <Text size="lg">🛒</Text>
-        </View>
-        {!collapsed ? (
-          <View style={styles.brandText}>
-            <Text weight="bold" numberOfLines={1}>
-              Pos System
-            </Text>
-            <Text size="xs" color="muted" numberOfLines={1}>
-              Sistem kasir
-            </Text>
-          </View>
-        ) : null}
-        <Pressable
-          style={styles.collapseButton}
-          onPress={() => setCollapsed((prev) => !prev)}
-          accessibilityLabel={collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
-        >
-          <Text size="sm">{collapsed ? '»' : '«'}</Text>
-        </Pressable>
-      </View>
+    <SafeAreaView edges={['top', 'left', 'bottom']} style={[styles.container, { width: RAIL_WIDTH }]}>
+      <Image
+        source={require('@/assets/branding/cassier-q-symbol.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-      <View style={styles.menuList}>
+      <ScrollView
+        style={styles.menuList}
+        contentContainerStyle={styles.menuListContent}
+        showsVerticalScrollIndicator={false}
+      >
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label = (options.title ?? route.name) as string;
           const isFocused = state.index === index;
+          const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
 
           const onPress = () => {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -81,117 +55,84 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
               accessibilityRole="button"
               accessibilityState={{ selected: isFocused }}
             >
-              <Text size="lg">{TAB_ICONS[route.name as keyof MainTabParamList]}</Text>
-              {!collapsed ? (
-                <Text
-                  size="sm"
-                  weight="semibold"
-                  color={isFocused ? 'link' : 'secondary'}
-                  numberOfLines={1}
-                  style={styles.menuLabel}
-                >
-                  {label}
-                </Text>
-              ) : null}
+              <Icon size={20} color={isFocused ? colors.white : ICON_COLOR_INACTIVE} strokeWidth={1.7} />
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+                style={[styles.menuLabel, isFocused && styles.menuLabelActive]}
+              >
+                {label}
+              </Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       <View style={styles.bottomSection}>
         <View style={styles.divider} />
-        <View style={styles.modeRow}>
-          <Text size="lg">🌙</Text>
-          {!collapsed ? (
-            <Text size="sm" weight="semibold" color="secondary" style={styles.menuLabel}>
-              Mode Tampilan
-            </Text>
-          ) : null}
-          <Switch value={darkMode} onValueChange={setDarkMode} />
-        </View>
-        <Pressable style={styles.logoutRow} onPress={() => setLogoutConfirmVisible(true)}>
-          <Text size="lg">🚪</Text>
-          {!collapsed ? (
-            <Text size="sm" weight="semibold" color="danger" style={styles.menuLabel}>
-              Keluar
-            </Text>
-          ) : null}
+        <Pressable
+          style={styles.bottomIcon}
+          onPress={() => Alert.alert('Bantuan', 'Hubungi admin toko atau dukungan cassier-Q untuk bantuan.')}
+          accessibilityLabel="Bantuan"
+        >
+          <HelpIcon size={19} color={ICON_COLOR_INACTIVE} />
+        </Pressable>
+        <Pressable
+          style={styles.avatar}
+          onPress={() => navigation.navigate('Profile')}
+          accessibilityLabel="Profil"
+        >
+          <Text weight="bold" color="inverse" size="sm">
+            {(user?.name ?? 'AN').charAt(0).toUpperCase()}
+          </Text>
         </Pressable>
       </View>
-
-      <AlertDialog
-        isOpen={logoutConfirmVisible}
-        onClose={() => setLogoutConfirmVisible(false)}
-        title="Keluar dari akun?"
-        confirmText="Keluar"
-        isDanger
-        onConfirm={() => {
-          setLogoutConfirmVisible(false);
-          dispatch(logout());
-        }}
-      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: colors.border,
-    backgroundColor: colors.background,
-    paddingVertical: spacing.base,
-    paddingHorizontal: spacing.sm,
-  },
-  brandRow: {
-    flexDirection: 'row',
+    backgroundColor: colors.darkBg,
     alignItems: 'center',
-    paddingHorizontal: spacing.xs,
-    marginBottom: spacing.lg,
-    gap: spacing.sm,
+    paddingVertical: spacing.base,
   },
-  brandIcon: {
+  logo: {
     width: 36,
     height: 36,
+    marginBottom: spacing.lg,
+  },
+  menuList: { flex: 1, width: '100%' },
+  menuListContent: { alignItems: 'center', paddingHorizontal: spacing.xs, gap: spacing.xs },
+  menuItem: {
+    width: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.lg,
+  },
+  menuItemActive: { backgroundColor: colors.primary[600] },
+  menuLabel: { fontSize: 10, color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
+  menuLabelActive: { color: colors.white, fontWeight: '700' },
+  bottomSection: { width: '100%', alignItems: 'center' },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)', width: '80%', marginBottom: spacing.sm },
+  bottomIcon: {
+    width: 40,
+    height: 40,
     borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary[600],
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  brandText: { flex: 1 },
-  collapseButton: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.sm,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuList: { flex: 1, gap: spacing.xs },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.md,
-  },
-  menuItemActive: { backgroundColor: colors.primary[50] },
-  menuLabel: { flex: 1 },
-  bottomSection: { marginTop: spacing.sm },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginBottom: spacing.sm },
-  modeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-  },
-  logoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.md,
+    marginTop: spacing.xs,
   },
 });

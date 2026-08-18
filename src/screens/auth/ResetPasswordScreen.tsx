@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch } from '@/store/hooks';
@@ -40,11 +40,15 @@ export default function ResetPasswordScreen({ navigation }: Props) {
     <View style={styles.container}>
       <AppBar title="Reset Kata Sandi" onBack={navigation.goBack} />
       <View style={styles.body}>
-        <Text style={styles.icon}>🔑</Text>
-        <Heading level="h1" style={styles.title}>
+        <Image
+          source={require('@/assets/branding/cassier-q-symbol.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Heading level="h4" align="center" style={styles.title}>
           Buat kata sandi baru
         </Heading>
-        <Text color="secondary" style={styles.description}>
+        <Text color="secondary" align="center" style={styles.description}>
           Tempel token reset yang dikirim ke email toko, lalu masukkan kata sandi baru.
         </Text>
         <FormControl label="Token reset">
@@ -71,7 +75,7 @@ export default function ResetPasswordScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   body: { padding: spacing.xl },
-  icon: { fontSize: 40, marginBottom: spacing.base },
+  logo: { width: 56, height: 56, alignSelf: 'center', marginBottom: spacing.base },
   title: { marginBottom: spacing.xs },
   description: { marginBottom: spacing.xl },
 });
