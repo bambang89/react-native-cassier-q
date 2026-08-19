@@ -7,3 +7,4 @@ export * from './Header';
 export * from './EmptyState';
 export * from './KpiCard';
 export * from './TabletTopBar';
+export * from './TabletSplitView';

@@ -18,6 +18,53 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CustomerDetail'>;
 
 export default function CustomerDetailScreen({ navigation, route }: Props) {
   const { customerId } = route.params;
+  const customer = useAppSelector((state) => state.customers.items.find((c) => c.id === customerId));
+  const listStatus = useAppSelector((state) => state.customers.status);
+  const [editVisible, setEditVisible] = useState(false);
+
+  if (!customer) {
+    return (
+      <View style={styles.container}>
+        <AppBar title="Pelanggan" onBack={navigation.goBack} />
+        <View style={styles.center}>
+          <Text color="muted">{listStatus === 'loading' ? 'Memuat...' : 'Pelanggan tidak ditemukan.'}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <AppBar
+        title={customer.name}
+        onBack={navigation.goBack}
+        rightElement={
+          <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
+            Ubah
+          </Button>
+        }
+      />
+      <CustomerDetailContent customerId={customerId} showEditInline={false} />
+      <Modal isOpen={editVisible} onClose={() => setEditVisible(false)}>
+        <CustomerForm customer={customer} onDone={() => setEditVisible(false)} onCancel={() => setEditVisible(false)} />
+      </Modal>
+    </View>
+  );
+}
+
+// Isi detail pelanggan (kartu identitas + saldo + riwayat) — dipakai di stack
+// screen HP (lewat CustomerDetailScreen di atas) dan sebagai pane kanan
+// split-view CustomersScreen mode tablet, biar tidak duplikat.
+export function CustomerDetailContent({
+  customerId,
+  showEditInline = true,
+  contentContainerStyle,
+}: {
+  customerId: string;
+  /** Tampilkan tombol "Ubah" di kartu identitas — dipakai di mode tablet karena tidak ada AppBar. */
+  showEditInline?: boolean;
+  contentContainerStyle?: object;
+}) {
   const dispatch = useAppDispatch();
   const customer = useAppSelector((state) => state.customers.items.find((c) => c.id === customerId));
   const listStatus = useAppSelector((state) => state.customers.status);
@@ -35,11 +82,8 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
 
   if (!customer) {
     return (
-      <View style={styles.container}>
-        <AppBar title="Pelanggan" onBack={navigation.goBack} />
-        <View style={styles.center}>
-          <Text color="muted">{listStatus === 'loading' ? 'Memuat...' : 'Pelanggan tidak ditemukan.'}</Text>
-        </View>
+      <View style={styles.center}>
+        <Text color="muted">{listStatus === 'loading' ? 'Memuat...' : 'Pelanggan tidak ditemukan.'}</Text>
       </View>
     );
   }
@@ -48,17 +92,7 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <AppBar
-        title={customer.name}
-        onBack={navigation.goBack}
-        rightElement={
-          <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
-            Ubah
-          </Button>
-        }
-      />
-
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={[styles.body, contentContainerStyle]}>
         <Card>
           <View style={styles.identityRow}>
             <View style={styles.avatar}>
@@ -83,6 +117,11 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
                 </View>
               ) : null}
             </View>
+            {showEditInline ? (
+              <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
+                Ubah
+              </Button>
+            ) : null}
           </View>
         </Card>
 
@@ -163,9 +202,11 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
         ) : null}
       </ScrollView>
 
-      <Modal isOpen={editVisible} onClose={() => setEditVisible(false)}>
-        <CustomerForm customer={customer} onDone={() => setEditVisible(false)} onCancel={() => setEditVisible(false)} />
-      </Modal>
+      {showEditInline ? (
+        <Modal isOpen={editVisible} onClose={() => setEditVisible(false)}>
+          <CustomerForm customer={customer} onDone={() => setEditVisible(false)} onCancel={() => setEditVisible(false)} />
+        </Modal>
+      ) : null}
 
       <Modal isOpen={paymentVisible} onClose={() => setPaymentVisible(false)}>
         <RecordPaymentForm

@@ -30,6 +30,7 @@ import { resolveSaleUnitChoices } from '@/utils/productUnits';
 import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radii, spacing } from '@/theme';
+import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 import { Button, FormControl, Input, Pressable, Select, Switch } from '@/components/ui/forms';
 import { Modal } from '@/components/ui/overlay';
 import { Card, EmptyState, Header, TabletTopBar } from '@/components/ui/recipes';
@@ -282,11 +283,13 @@ export default function POSScreen({ navigation }: Props) {
             placeholder={isTabletLandscape ? 'Cari produk atau scan barcode' : 'Cari produk (F2)'}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            leftElement={<SearchIcon size={17} color={colors.text.muted} strokeWidth={1.7} />}
+            leftElement={
+              <SearchIcon size={17} color={isTabletLandscape ? tabletColors.gray400 : colors.text.muted} strokeWidth={1.7} />
+            }
           />
         </View>
         <Pressable
-          style={styles.scanIconButton}
+          style={[styles.scanIconButton, isTabletLandscape && styles.scanIconButtonTablet]}
           accessibilityLabel="Scan barcode"
           onPress={() =>
             navigation.navigate('Scanner', {
@@ -294,7 +297,7 @@ export default function POSScreen({ navigation }: Props) {
             })
           }
         >
-          <BarcodeIcon size={19} color={colors.text.secondary} />
+          <BarcodeIcon size={19} color={isTabletLandscape ? tabletColors.gray600 : colors.text.secondary} />
         </Pressable>
       </View>
 
@@ -307,6 +310,7 @@ export default function POSScreen({ navigation }: Props) {
           <CategoryChip
             label="Semua"
             active={selectedCategoryId === null}
+            tablet={isTabletLandscape}
             onPress={() => setSelectedCategoryId(null)}
           />
           {categories.map((cat) => (
@@ -314,6 +318,7 @@ export default function POSScreen({ navigation }: Props) {
               key={cat.id}
               label={cat.categoryName}
               active={selectedCategoryId === cat.id}
+              tablet={isTabletLandscape}
               onPress={() => setSelectedCategoryId(cat.id)}
             />
           ))}
@@ -328,7 +333,7 @@ export default function POSScreen({ navigation }: Props) {
           renderItem={renderProduct}
           numColumns={isTabletLandscape ? 3 : 2}
           contentContainerStyle={[styles.grid, isTabletLandscape && styles.gridTabletPadding]}
-          columnWrapperStyle={styles.gridRow}
+          columnWrapperStyle={[styles.gridRow, isTabletLandscape && styles.gridRowTablet]}
           style={styles.gridList}
           onRefresh={() => dispatch(fetchProducts({}))}
           refreshing={status === 'loading'}
@@ -447,10 +452,32 @@ export default function POSScreen({ navigation }: Props) {
   );
 }
 
-function CategoryChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function CategoryChip({
+  label,
+  active,
+  tablet,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  tablet?: boolean;
+  onPress: () => void;
+}) {
   return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text size="sm" weight="semibold" color={active ? 'inverse' : 'secondary'}>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.chip,
+        tablet && styles.chipTablet,
+        active && (tablet ? styles.chipActiveTablet : styles.chipActive),
+      ]}
+    >
+      <Text
+        size="sm"
+        weight="semibold"
+        color={active ? 'inverse' : 'secondary'}
+        style={tablet && !active ? styles.chipLabelTablet : undefined}
+      >
         {label}
       </Text>
     </Pressable>
@@ -487,48 +514,54 @@ function ProductCard({ item, onPress }: { item: Product; onPress: () => void }) 
   );
 }
 
-function QtyStepper({ item }: { item: CartItem }) {
+function QtyStepper({ item, tablet }: { item: CartItem; tablet?: boolean }) {
   const dispatch = useAppDispatch();
   return (
-    <View style={styles.stepper}>
+    <View style={[styles.stepper, tablet && styles.stepperTablet]}>
       <Pressable
-        style={styles.stepperButton}
+        style={[styles.stepperButton, tablet && styles.stepperButtonTablet]}
         onPress={() => dispatch(decrementItem(item.product.id))}
         accessibilityLabel="Kurangi jumlah"
       >
-        <Text weight="bold">−</Text>
+        <Text weight="bold" style={tablet ? styles.stepperGlyphTablet : undefined}>
+          −
+        </Text>
       </Pressable>
-      <View style={styles.stepperQtyBox}>
-        <Text weight="bold">{item.quantity}</Text>
+      <View style={[styles.stepperQtyBox, tablet && styles.stepperQtyBoxTablet]}>
+        <Text weight="bold" style={tablet ? styles.stepperGlyphTablet : undefined}>
+          {item.quantity}
+        </Text>
       </View>
       <Pressable
-        style={styles.stepperButton}
+        style={[styles.stepperButton, tablet && styles.stepperButtonTablet]}
         onPress={() => dispatch(incrementItem(item.product.id))}
         accessibilityLabel="Tambah jumlah"
       >
-        <Text weight="bold">+</Text>
+        <Text weight="bold" style={tablet ? styles.stepperGlyphTablet : undefined}>
+          +
+        </Text>
       </Pressable>
     </View>
   );
 }
 
-function CartItemRow({ item }: { item: CartItem }) {
+function CartItemRow({ item, tablet }: { item: CartItem; tablet?: boolean }) {
   const unitPrice = item.product.sellingPrice * item.unitConversionToBase;
   const thumbnailColor = paletteColorFor(item.product.id);
   return (
-    <View style={styles.cartRow}>
-      <View style={[styles.cartRowThumbnail, { backgroundColor: thumbnailColor }]}>
+    <View style={[styles.cartRow, tablet && styles.cartRowTablet]}>
+      <View style={[styles.cartRowThumbnail, tablet && styles.cartRowThumbnailTablet, { backgroundColor: thumbnailColor }]}>
         <Text size="lg">{emojiForProduct(item.product)}</Text>
       </View>
       <View style={styles.cartRowInfo}>
-        <Text weight="semibold" numberOfLines={1}>
+        <Text weight="semibold" numberOfLines={1} style={tablet ? styles.cartRowNameTablet : undefined}>
           {item.product.productName}
         </Text>
-        <Text size="xs" color="muted">
+        <Text size="xs" color="muted" style={tablet ? styles.cartRowPriceTablet : undefined}>
           {formatRupiah(unitPrice)}
         </Text>
       </View>
-      <QtyStepper item={item} />
+      <QtyStepper item={item} tablet={tablet} />
     </View>
   );
 }
@@ -562,18 +595,21 @@ function OrderPanel({
   onHold: () => void;
   onAddNote: () => void;
 }) {
+  // OrderPanel cuma pernah dirender di mode tablet (lihat pemanggilnya di
+  // POSScreen), jadi semua warnanya boleh langsung pakai tabletColors persis
+  // .tpos-right/.cart-item/.summary-row di tablet-pos.html, tanpa ternary.
   return (
     <VStack style={styles.sidePanelInner}>
       <View style={styles.sidePanelHeader}>
         <View style={styles.sidePanelHeaderText}>
-          <Heading level="h4">Pesanan Saat Ini</Heading>
-          <Text size="xs" color="secondary">
+          <Text style={styles.sidePanelTitleTablet}>Pesanan Saat Ini</Text>
+          <Text style={styles.sidePanelMetaTablet}>
             {cartCount} item · Kasir: {cashierName}
           </Text>
         </View>
         {cartCount > 0 ? (
           <Pressable style={styles.clearIconButton} onPress={onClearCart} accessibilityLabel="Hapus keranjang">
-            <TrashIcon size={15} color={colors.text.secondary} />
+            <TrashIcon size={15} color={tabletColors.gray600} />
           </Pressable>
         ) : null}
       </View>
@@ -581,13 +617,13 @@ function OrderPanel({
       {cartItems.length > 0 ? (
         <ScrollView style={styles.sidePanelList} showsVerticalScrollIndicator={false}>
           {cartItems.map((item) => (
-            <CartItemRow key={`${item.product.id}-${item.unitId}`} item={item} />
+            <CartItemRow key={`${item.product.id}-${item.unitId}`} item={item} tablet />
           ))}
         </ScrollView>
       ) : (
         <View style={styles.sidePanelEmpty}>
           <View style={styles.sidePanelEmptyGlyph}>
-            <CartIcon size={22} color={colors.primary[600]} />
+            <CartIcon size={22} color={tabletColors.blue600} />
           </View>
           <Text color="muted" size="sm" style={styles.sidePanelEmptyText}>
             Belum ada item, ketuk produk untuk menambahkan.
@@ -595,54 +631,53 @@ function OrderPanel({
         </View>
       )}
 
-      <View style={styles.summaryDivider} />
+      <View style={styles.summaryDividerTablet} />
 
-      <View style={styles.summaryRow}>
-        <Text color="secondary">Subtotal</Text>
-        <Text weight="semibold">{formatRupiah(subtotal)}</Text>
+      <View style={styles.summaryRowTablet}>
+        <Text style={styles.summaryLabelTablet}>Subtotal</Text>
+        <Text style={styles.summaryValueTablet}>{formatRupiah(subtotal)}</Text>
       </View>
       {discountAmount > 0 ? (
-        <View style={styles.summaryRow}>
-          <Text color="secondary">Diskon</Text>
-          <Text weight="semibold" color="success">
+        <View style={styles.summaryRowTablet}>
+          <Text style={styles.summaryLabelTablet}>Diskon</Text>
+          <Text style={[styles.summaryValueTablet, { color: tabletColors.emerald600 }]}>
             − {formatRupiah(discountAmount)}
           </Text>
         </View>
       ) : null}
       {taxAmount > 0 ? (
-        <View style={styles.summaryRow}>
-          <Text color="secondary">Pajak (11%)</Text>
-          <Text weight="semibold">{formatRupiah(taxAmount)}</Text>
+        <View style={styles.summaryRowTablet}>
+          <Text style={styles.summaryLabelTablet}>Pajak (11%)</Text>
+          <Text style={styles.summaryValueTablet}>{formatRupiah(taxAmount)}</Text>
         </View>
       ) : null}
 
-      <View style={styles.totalRow}>
-        <Heading level="h5">Total</Heading>
-        <Heading level="h4">{formatRupiah(grandTotal)}</Heading>
+      <View style={styles.totalRowTablet}>
+        <Text style={styles.totalLabelTablet}>Total</Text>
+        <Text style={styles.totalValueTablet}>{formatRupiah(grandTotal)}</Text>
       </View>
 
       <View style={styles.actionRow}>
-        <Pressable style={styles.actionButton} onPress={onHold}>
-          <ClockIcon size={14} color={colors.text.secondary} />
-          <Text size="xs" weight="semibold" color="secondary">
-            Tahan
-          </Text>
+        <Pressable style={styles.actionButtonTablet} onPress={onHold}>
+          <ClockIcon size={14} color={tabletColors.gray700} />
+          <Text style={styles.actionButtonLabelTablet}>Tahan</Text>
         </Pressable>
-        <Pressable style={styles.actionButton} onPress={onOpenDiscount}>
-          <DiscountIcon size={14} color={colors.text.secondary} />
-          <Text size="xs" weight="semibold" color="secondary">
-            Diskon
-          </Text>
+        <Pressable style={styles.actionButtonTablet} onPress={onOpenDiscount}>
+          <DiscountIcon size={14} color={tabletColors.gray700} />
+          <Text style={styles.actionButtonLabelTablet}>Diskon</Text>
         </Pressable>
-        <Pressable style={styles.actionButton} onPress={onAddNote}>
-          <NoteIcon size={14} color={colors.text.secondary} />
-          <Text size="xs" weight="semibold" color="secondary">
-            Catatan
-          </Text>
+        <Pressable style={styles.actionButtonTablet} onPress={onAddNote}>
+          <NoteIcon size={14} color={tabletColors.gray700} />
+          <Text style={styles.actionButtonLabelTablet}>Catatan</Text>
         </Pressable>
       </View>
 
-      <Button fullWidth disabled={!canCheckout} onPress={onCheckout} style={styles.payButton}>
+      <Button
+        fullWidth
+        disabled={!canCheckout}
+        onPress={onCheckout}
+        style={[styles.payButton, styles.payButtonTablet]}
+      >
         {`Bayar Sekarang · ${formatRupiah(grandTotal)}`}
       </Button>
     </VStack>
@@ -1023,6 +1058,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scanIconButtonTablet: {
+    width: 46,
+    height: 46,
+    borderWidth: 1,
+    borderColor: tabletColors.gray200,
+    backgroundColor: tabletColors.white,
+  },
   sessionBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1058,20 +1100,32 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   chipActive: { backgroundColor: colors.primary[600], borderColor: colors.primary[600] },
+  chipTablet: {
+    minHeight: tabletLayout.touchTargetMinHeight,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderColor: tabletColors.gray200,
+    backgroundColor: tabletColors.white,
+  },
+  chipActiveTablet: { backgroundColor: tabletColors.navy900, borderColor: tabletColors.navy900 },
+  chipLabelTablet: { color: tabletColors.gray600 },
   body: { flex: 1, flexDirection: 'row' },
   gridList: { flex: 1 },
   grid: { paddingHorizontal: spacing.md, paddingBottom: 96 },
   gridTabletPadding: { paddingBottom: spacing.md },
   gridRow: { gap: spacing.md },
+  gridRowTablet: { gap: 14 },
   sidePanel: {
-    width: 340,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: colors.border,
-    backgroundColor: colors.surface,
+    width: 360,
+    borderLeftWidth: 1,
+    borderLeftColor: tabletColors.gray150,
+    backgroundColor: tabletColors.white,
   },
   sidePanelInner: { flex: 1, padding: spacing.base },
   sidePanelHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   sidePanelHeaderText: { flex: 1 },
+  sidePanelTitleTablet: { fontSize: 15, fontWeight: '700', color: tabletColors.gray900 },
+  sidePanelMetaTablet: { fontSize: 11.5, color: tabletColors.gray500, marginTop: 4 },
   clearIconButton: {
     width: 32,
     height: 32,
@@ -1092,7 +1146,11 @@ const styles = StyleSheet.create({
   },
   sidePanelEmptyText: { marginTop: spacing.xs, textAlign: 'center' },
   summaryDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.sm },
+  summaryDividerTablet: { height: 1, backgroundColor: tabletColors.gray150, marginTop: spacing.sm, marginBottom: 2 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
+  summaryRowTablet: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  summaryLabelTablet: { fontSize: 13, color: tabletColors.gray600 },
+  summaryValueTablet: { fontSize: 13, color: tabletColors.gray600 },
   discountLabel: { marginTop: spacing.sm, marginBottom: spacing.xs },
   discountRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'stretch' },
   discountTypeToggle: {
@@ -1122,6 +1180,17 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
+  totalRowTablet: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 6,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: tabletColors.gray150,
+  },
+  totalLabelTablet: { fontSize: 15, fontWeight: '700', color: tabletColors.gray900 },
+  totalValueTablet: { fontSize: 22, fontWeight: '800', color: tabletColors.navy900 },
   actionRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.base },
   actionButton: {
     flex: 1,
@@ -1133,7 +1202,22 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.background,
   },
+  actionButtonTablet: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: tabletLayout.touchTargetMinHeight,
+    paddingVertical: 6,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: tabletColors.gray300,
+    backgroundColor: tabletColors.white,
+  },
+  actionButtonLabelTablet: { fontSize: 12.5, fontWeight: '600', color: tabletColors.gray700 },
   payButton: { marginTop: spacing.base },
+  payButtonTablet: { backgroundColor: tabletColors.blue600, minHeight: tabletLayout.touchTargetMinHeight },
   card: { flex: 1, minHeight: 170, marginBottom: spacing.md, overflow: 'hidden' },
   cardImageWrap: {
     width: '100%',
@@ -1172,6 +1256,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
   },
+  cartRowTablet: { paddingVertical: 12, borderBottomColor: tabletColors.gray100 },
   cartRowThumbnail: {
     width: 40,
     height: 40,
@@ -1179,8 +1264,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cartRowThumbnailTablet: { width: 44, height: 44, borderRadius: 9 },
   cartRowInfo: { flex: 1 },
+  cartRowNameTablet: { fontSize: 13, color: tabletColors.gray900 },
+  cartRowPriceTablet: { fontSize: 11.5, color: tabletColors.gray500, marginTop: 2 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  stepperTablet: { gap: 8 },
   stepperButton: {
     width: 26,
     height: 26,
@@ -1190,6 +1279,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepperButtonTablet: { width: 30, height: 30, borderRadius: 6, borderColor: tabletColors.gray300, backgroundColor: tabletColors.white },
+  stepperGlyphTablet: { fontSize: 12.5, color: tabletColors.gray600 },
   stepperQtyBox: {
     minWidth: 26,
     height: 26,
@@ -1199,6 +1290,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xs,
+  },
+  stepperQtyBoxTablet: {
+    minWidth: 14,
+    height: 18,
+    borderRadius: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
   },
   modalTitle: { marginBottom: spacing.base },
   modalTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.base },

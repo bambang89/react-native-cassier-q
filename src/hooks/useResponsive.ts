@@ -1,6 +1,10 @@
 import { useWindowDimensions } from 'react-native';
 
-const TABLET_BREAKPOINT = 768;
+// 740 (bukan 768) supaya iPad mini ikut kehitung tablet — sisi pendeknya
+// cuma 744pt (logical points), di bawah breakpoint iPad "standar" 768pt.
+// Masih jauh di atas sisi pendek HP terbesar (~480pt), jadi tidak salah
+// mengenali HP landscape sebagai tablet.
+const TABLET_BREAKPOINT = 740;
 
 export interface Responsive {
   width: number;

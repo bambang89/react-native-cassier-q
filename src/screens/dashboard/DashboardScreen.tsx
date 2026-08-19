@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 
 import { fetchSalesSummary } from '@/api/reportsApi';
 import type { SalesSummary } from '@/types/models';
@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radii, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Card, Header, KpiCard, TabletTopBar } from '@/components/ui/recipes';
 import { Heading, Text } from '@/components/ui/typography';
 import { BarChartIcon, BoxIcon, LightbulbIcon, ReceiptIcon, RegisterIcon, TrendingIcon } from '@/components/icons/LineIcons';
@@ -94,8 +95,40 @@ export default function DashboardScreen() {
   const avgToday = today && today.orderCount > 0 ? today.grossSales / today.orderCount : 0;
   const weeklyTopSellers = days ? mergeTopSellers(days) : [];
 
+  // Ikon KPI pakai warna persis tablet-dashboard.html di mode tablet; mode HP
+  // tetap pakai brand color app supaya tampilan HP tidak ikut berubah.
+  const kpi = isTabletLandscape
+    ? {
+        success: tabletColors.emerald600,
+        successBg: tabletColors.emerald50,
+        primary: tabletColors.blue600,
+        primaryBg: tabletColors.blue50,
+        teal: tabletColors.teal700,
+        tealBg: tabletColors.teal50,
+        warning: tabletColors.amber600,
+        warningBg: tabletColors.amber50,
+        muted: tabletColors.gray500,
+        secondary: tabletColors.gray600,
+        border100: tabletColors.gray100,
+        thumbBg: tabletColors.gray100,
+      }
+    : {
+        success: colors.success[600],
+        successBg: colors.success[50],
+        primary: colors.primary[600],
+        primaryBg: colors.primary[50],
+        teal: colors.teal[700],
+        tealBg: colors.teal[50],
+        warning: colors.warning[600],
+        warningBg: colors.warning[50],
+        muted: colors.text.muted,
+        secondary: colors.text.secondary,
+        border100: colors.border,
+        thumbBg: colors.surface,
+      };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.container, isTabletLandscape && styles.containerTablet]} edges={['top', 'left', 'right']}>
       {isTabletLandscape ? (
         <TabletTopBar
           title={`Selamat datang, ${firstName}`}
@@ -108,7 +141,7 @@ export default function DashboardScreen() {
       )}
 
       <ScrollView
-        contentContainerStyle={styles.body}
+        contentContainerStyle={[styles.body, isTabletLandscape && styles.bodyTablet]}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
       >
         <View style={[styles.kpiGrid, isTabletLandscape && styles.kpiGridTablet]}>
@@ -117,8 +150,8 @@ export default function DashboardScreen() {
             label="Penjualan Hari Ini"
             value={today ? formatRupiah(today.grossSales) : '—'}
             icon={RegisterIcon}
-            iconColor={colors.success[600]}
-            iconBg={colors.success[50]}
+            iconColor={kpi.success}
+            iconBg={kpi.successBg}
             delta={today && yesterday ? percentDelta(today.grossSales, yesterday.grossSales) : null}
           />
           <KpiCard
@@ -126,8 +159,8 @@ export default function DashboardScreen() {
             label="Transaksi"
             value={today ? String(today.orderCount) : '—'}
             icon={ReceiptIcon}
-            iconColor={colors.primary[600]}
-            iconBg={colors.primary[50]}
+            iconColor={kpi.primary}
+            iconBg={kpi.primaryBg}
             delta={today && yesterday ? percentDelta(today.orderCount, yesterday.orderCount) : null}
           />
           <KpiCard
@@ -135,38 +168,66 @@ export default function DashboardScreen() {
             label="Rata-rata"
             value={today ? formatRupiah(avgToday) : '—'}
             icon={TrendingIcon}
-            iconColor={colors.teal[700]}
-            iconBg={colors.teal[50]}
+            iconColor={kpi.teal}
+            iconBg={kpi.tealBg}
           />
           <KpiCard
             style={styles.kpiCard}
             label="Produk Terjual"
             value={today ? String(todayUnitsSold) : '—'}
             icon={BoxIcon}
-            iconColor={colors.warning[600]}
-            iconBg={colors.warning[50]}
+            iconColor={kpi.warning}
+            iconBg={kpi.warningBg}
             delta={today && yesterday ? percentDelta(todayUnitsSold, yesterdayUnitsSold) : null}
           />
         </View>
 
         {today && today.orderCount > 0 ? (
-          <Card style={styles.insightCard}>
-            <View style={styles.insightIcon}>
-              <LightbulbIcon size={18} color={colors.primary[600]} />
+          isTabletLandscape ? (
+            <View style={styles.insightCardTablet}>
+              <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
+                <Defs>
+                  <LinearGradient id="insightGrad" x1="0" y1="0" x2="1" y2="1">
+                    <Stop offset="0%" stopColor={tabletColors.navy900} />
+                    <Stop offset="55%" stopColor="#0E3355" />
+                    <Stop offset="100%" stopColor={tabletColors.teal700} />
+                  </LinearGradient>
+                </Defs>
+                <Rect x={0} y={0} width="100%" height="100%" fill="url(#insightGrad)" />
+              </Svg>
+              <View style={styles.insightIconTablet}>
+                <LightbulbIcon size={17} color={tabletColors.white} />
+              </View>
+              <View style={styles.insightBody}>
+                <Text style={styles.insightLabelTablet}>INSIGHT CASSIER-Q</Text>
+                <Text style={styles.insightTextTablet}>
+                  {`Hari ini tercatat ${today.orderCount} transaksi dengan total ${formatRupiah(today.grossSales)}. ${
+                    weeklyTopSellers.length > 0
+                      ? `${weeklyTopSellers[0].productName} jadi produk terlaris minggu ini.`
+                      : ''
+                  }`}
+                </Text>
+              </View>
             </View>
-            <View style={styles.insightBody}>
-              <Text weight="semibold" size="sm" style={styles.insightLabel}>
-                Insight cassier-Q
-              </Text>
-              <Text size="sm" color="secondary">
-                {`Hari ini tercatat ${today.orderCount} transaksi dengan total ${formatRupiah(today.grossSales)}. ${
-                  weeklyTopSellers.length > 0
-                    ? `${weeklyTopSellers[0].productName} jadi produk terlaris minggu ini.`
-                    : ''
-                }`}
-              </Text>
-            </View>
-          </Card>
+          ) : (
+            <Card style={styles.insightCard}>
+              <View style={styles.insightIcon}>
+                <LightbulbIcon size={18} color={colors.primary[600]} />
+              </View>
+              <View style={styles.insightBody}>
+                <Text weight="semibold" size="sm" style={styles.insightLabel}>
+                  Insight cassier-Q
+                </Text>
+                <Text size="sm" color="secondary">
+                  {`Hari ini tercatat ${today.orderCount} transaksi dengan total ${formatRupiah(today.grossSales)}. ${
+                    weeklyTopSellers.length > 0
+                      ? `${weeklyTopSellers[0].productName} jadi produk terlaris minggu ini.`
+                      : ''
+                  }`}
+                </Text>
+              </View>
+            </Card>
+          )
         ) : null}
 
         <View style={[styles.bottomRow, isTabletLandscape && styles.bottomRowTablet]}>
@@ -178,10 +239,14 @@ export default function DashboardScreen() {
                   7 hari terakhir
                 </Text>
               </View>
-              <BarChartIcon size={16} color={colors.text.muted} />
+              <BarChartIcon size={16} color={kpi.muted} />
             </View>
             {days ? (
-              <SalesTrendChart values={days.map((d) => d.grossSales)} labels={DAY_LABELS} />
+              <SalesTrendChart
+                values={days.map((d) => d.grossSales)}
+                labels={DAY_LABELS}
+                lineColor={isTabletLandscape ? tabletColors.blue600 : colors.primary[600]}
+              />
             ) : (
               <View style={styles.chartLoading}>
                 <Text size="sm" color="muted">
@@ -201,9 +266,12 @@ export default function DashboardScreen() {
               </Text>
             ) : (
               weeklyTopSellers.map((seller) => (
-                <View key={seller.productId} style={styles.topSellerRow}>
-                  <View style={styles.topSellerThumb}>
-                    <BoxIcon size={15} color={colors.text.secondary} />
+                <View
+                  key={seller.productId}
+                  style={[styles.topSellerRow, isTabletLandscape && { borderBottomColor: kpi.border100 }]}
+                >
+                  <View style={[styles.topSellerThumb, isTabletLandscape && { backgroundColor: kpi.thumbBg }]}>
+                    <BoxIcon size={15} color={kpi.secondary} />
                   </View>
                   <View style={styles.topSellerInfo}>
                     <Text weight="semibold" size="sm" numberOfLines={1}>
@@ -226,7 +294,7 @@ export default function DashboardScreen() {
   );
 }
 
-function SalesTrendChart({ values, labels }: { values: number[]; labels: string[] }) {
+function SalesTrendChart({ values, labels, lineColor }: { values: number[]; labels: string[]; lineColor: string }) {
   const width = 620;
   const height = 160;
   const padding = 8;
@@ -244,12 +312,12 @@ function SalesTrendChart({ values, labels }: { values: number[]; labels: string[
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
           <LinearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor={colors.primary[600]} stopOpacity={0.16} />
-            <Stop offset="100%" stopColor={colors.primary[600]} stopOpacity={0} />
+            <Stop offset="0%" stopColor={lineColor} stopOpacity={0.16} />
+            <Stop offset="100%" stopColor={lineColor} stopOpacity={0} />
           </LinearGradient>
         </Defs>
         <Path d={areaPath} fill="url(#areaGrad)" />
-        <Path d={linePath} fill="none" stroke={colors.primary[600]} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+        <Path d={linePath} fill="none" stroke={lineColor} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
       <View style={styles.chartLabelRow}>
         {labels.map((label) => (
@@ -264,9 +332,11 @@ function SalesTrendChart({ values, labels }: { values: number[]; labels: string[
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerTablet: { backgroundColor: tabletColors.gray25 },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  bodyTablet: { paddingVertical: 22, paddingHorizontal: 24 },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  kpiGridTablet: { flexWrap: 'nowrap' },
+  kpiGridTablet: { flexWrap: 'nowrap', gap: 16 },
   kpiCard: { flexBasis: '47%', flexGrow: 1 },
   insightCard: {
     flexDirection: 'row',
@@ -275,6 +345,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[50],
     borderColor: colors.primary[100],
   },
+  insightCardTablet: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'flex-start',
+    marginTop: spacing.base,
+    padding: 20,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+  },
+  insightIconTablet: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  insightLabelTablet: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    color: '#8FE0C2',
+    marginBottom: 4,
+  },
+  insightTextTablet: { fontSize: 13.5, lineHeight: 21.6, color: '#E4ECF6' },
   insightIcon: {
     width: 34,
     height: 34,
@@ -286,7 +382,7 @@ const styles = StyleSheet.create({
   insightBody: { flex: 1 },
   insightLabel: { marginBottom: 2 },
   bottomRow: { gap: spacing.base, marginTop: spacing.base },
-  bottomRowTablet: { flexDirection: 'row', alignItems: 'flex-start' },
+  bottomRowTablet: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, marginTop: 18 },
   chartCard: { flex: 1.6 },
   cardHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   cardHeadSub: { marginTop: 1 },

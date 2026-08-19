@@ -16,6 +16,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Product } from '@/types/models';
 import { colors, radii, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input, Link, Pressable, Select } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import type { BadgeVariant } from '@/components/ui/dataDisplay';
@@ -111,7 +112,7 @@ export default function ProductsScreen({ navigation }: Props) {
 
   if (isTabletLandscape) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={[styles.container, styles.containerTablet]} edges={['top', 'left', 'right']}>
         <TabletTopBar
           title="Produk"
           subtitle={`${items.length} produk`}
@@ -122,6 +123,7 @@ export default function ProductsScreen({ navigation }: Props) {
               size="sm"
               leftIcon={<PlusIcon size={14} color={colors.white} />}
               onPress={() => navigation.navigate('ProductForm', { product: undefined })}
+              style={{ backgroundColor: tabletColors.blue600 }}
             >
               Tambah
             </Button>
@@ -138,7 +140,7 @@ export default function ProductsScreen({ navigation }: Props) {
               onChangeText={setSearchDraft}
               onSubmitEditing={onSearchSubmit}
               returnKeyType="search"
-              leftElement={<SearchIcon size={16} color={colors.text.muted} />}
+              leftElement={<SearchIcon size={16} color={tabletColors.gray400} />}
               style={styles.tabletSearchInput}
             />
           </View>
@@ -468,6 +470,7 @@ function RestockForm({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerTablet: { backgroundColor: tabletColors.gray25 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
   lowStockBanner: {
     flexDirection: 'row',
@@ -502,32 +505,44 @@ const styles = StyleSheet.create({
   modalTitle: { marginBottom: spacing.base },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
   modalAction: { minWidth: 90 },
-  tabletBody: { flex: 1, paddingHorizontal: spacing.base },
-  tabletSearchRow: { marginBottom: spacing.sm },
+  // Container/chip/tile di bawah ini cuma dipakai di cabang tablet (lihat
+  // pemanggilnya), jadi boleh langsung pakai tabletColors persis
+  // cassier-q-webapp/tablet-products.html tanpa ternary mode HP.
+  tabletBody: { flex: 1, paddingVertical: 22, paddingHorizontal: 24, backgroundColor: tabletColors.gray25 },
+  tabletSearchRow: { marginBottom: 14 },
   tabletSearchInput: { flex: 1 },
-  categoryRow: { paddingBottom: spacing.sm, gap: spacing.sm },
+  categoryRow: { paddingBottom: 14, gap: 8 },
   chip: {
-    paddingHorizontal: spacing.base,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
     borderRadius: 9999,
-    backgroundColor: colors.background,
+    backgroundColor: tabletColors.white,
     borderWidth: 1,
-    borderColor: colors.border,
-    marginRight: spacing.sm,
+    borderColor: tabletColors.gray200,
+    marginRight: 8,
   },
-  chipActive: { backgroundColor: colors.primary[600], borderColor: colors.primary[600] },
+  chipActive: { backgroundColor: tabletColors.navy900, borderColor: tabletColors.navy900 },
   grid: { paddingBottom: spacing['2xl'] },
-  gridRow: { gap: spacing.md },
-  tile: { flex: 1, minHeight: 160, marginBottom: spacing.md, overflow: 'hidden' },
+  gridRow: { gap: 14 },
+  tile: {
+    flex: 1,
+    minHeight: 160,
+    marginBottom: 14,
+    padding: 12,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: tabletColors.gray150,
+    backgroundColor: tabletColors.white,
+    overflow: 'hidden',
+  },
   tileImageWrap: {
     width: '100%',
     height: 90,
     alignItems: 'center',
     justifyContent: 'center',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    borderRadius: radii.md,
   },
-  tileImage: { width: '100%', height: '100%', borderTopLeftRadius: 8, borderTopRightRadius: 8 },
-  tileBody: { padding: spacing.sm, gap: spacing.xs },
-  tileName: { minHeight: 32 },
+  tileImage: { width: '100%', height: '100%', borderRadius: radii.md },
+  tileBody: { paddingTop: 10, gap: 4 },
+  tileName: { minHeight: 32, fontSize: 13, color: tabletColors.gray900 },
 });

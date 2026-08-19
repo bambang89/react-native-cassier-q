@@ -4,9 +4,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createCategory, deleteCategory, fetchCategories } from '@/store/slices/categoriesSlice';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { RootStackParamList } from '@/navigation/types';
 import type { Category } from '@/types/models';
 import { colors, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
@@ -18,6 +20,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Categories'>;
 
 export default function CategoriesScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.categories);
   const [formOpen, setFormOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
@@ -37,7 +40,7 @@ export default function CategoriesScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isTabletLandscape && styles.containerTablet]}>
       <AppBar
         title="Kategori"
         onBack={navigation.goBack}
@@ -53,7 +56,7 @@ export default function CategoriesScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         onRefresh={() => dispatch(fetchCategories())}
         refreshing={status === 'loading'}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, isTabletLandscape && styles.listTablet]}
         ItemSeparatorComponent={() => <Divider spacingY="xs" />}
         renderItem={({ item }) => (
           <Card shadow="none" style={styles.card}>
@@ -153,7 +156,9 @@ function NewCategoryForm({ onDone, onCancel }: { onDone: () => void; onCancel: (
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerTablet: { backgroundColor: tabletColors.gray25 },
   list: { padding: spacing.base },
+  listTablet: { maxWidth: 720, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },
   card: { paddingVertical: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   info: { flex: 1 },

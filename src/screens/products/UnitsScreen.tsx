@@ -4,9 +4,11 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createUnit, deleteUnit, fetchUnits, updateUnit } from '@/store/slices/unitsSlice';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { RootStackParamList } from '@/navigation/types';
 import type { Unit } from '@/types/models';
 import { colors, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
@@ -18,6 +20,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Units'>;
 
 export default function UnitsScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.units);
   const [editing, setEditing] = useState<Unit | 'new' | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Unit | null>(null);
@@ -37,7 +40,7 @@ export default function UnitsScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isTabletLandscape && styles.containerTablet]}>
       <AppBar
         title="Satuan"
         onBack={navigation.goBack}
@@ -53,7 +56,7 @@ export default function UnitsScreen({ navigation }: Props) {
         keyExtractor={(item) => item.id}
         onRefresh={() => dispatch(fetchUnits())}
         refreshing={status === 'loading'}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, isTabletLandscape && styles.listTablet]}
         ItemSeparatorComponent={() => <Divider spacingY="xs" />}
         renderItem={({ item }) => (
           <Card shadow="none" style={styles.card} onPress={() => setEditing(item)}>
@@ -157,7 +160,9 @@ function UnitForm({ unit, onDone, onCancel }: { unit: Unit | null; onDone: () =>
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerTablet: { backgroundColor: tabletColors.gray25 },
   list: { padding: spacing.base },
+  listTablet: { maxWidth: 720, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },
   card: { paddingVertical: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   info: { flex: 1 },

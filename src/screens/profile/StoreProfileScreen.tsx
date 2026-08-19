@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/dataDisplay';
 import { Card, Header } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 
-export default function StoreProfileScreen() {
+// Isi form profil toko — dipakai di StoreProfileScreen (HP) dan sebagai
+// konten pane "Profil Bisnis" di ProfileScreen mode tablet, biar tidak duplikat.
+export function StoreProfileForm({ contentContainerStyle }: { contentContainerStyle?: object }) {
   const dispatch = useAppDispatch();
   const { profile, status, updateStatus } = useAppSelector((state) => state.storeProfile);
 
@@ -51,58 +53,65 @@ export default function StoreProfileScreen() {
     }
   };
 
+  if (status === 'loading' && !profile) {
+    return (
+      <Text color="muted" align="center" style={styles.loading}>
+        Memuat profil toko...
+      </Text>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={[styles.body, contentContainerStyle]}>
+      {profile ? (
+        <Card style={styles.identityCard}>
+          <View style={styles.identityRow}>
+            <Text weight="semibold" size="lg">
+              {profile.storeCode}
+            </Text>
+            <View style={styles.badges}>
+              {profile.headOffice ? <Badge variant="primary">Kantor Pusat</Badge> : null}
+              <Badge variant={profile.status === 'ACTIVE' ? 'success' : 'neutral'}>{profile.status}</Badge>
+            </View>
+          </View>
+          <Text size="xs" color="muted" style={styles.identityHint}>
+            Kode toko & status ditetapkan sistem, tidak bisa diubah dari sini.
+          </Text>
+        </Card>
+      ) : null}
+
+      <FormControl label="Nama toko" isRequired>
+        <Input value={storeName} onChangeText={setStoreName} placeholder="Nama toko" />
+      </FormControl>
+      <FormControl label="Alamat">
+        <Input value={address} onChangeText={setAddress} placeholder="Opsional" />
+      </FormControl>
+      <FormControl label="Provinsi">
+        <Input value={province} onChangeText={setProvince} placeholder="Opsional" />
+      </FormControl>
+      <FormControl label="Kota">
+        <Input value={city} onChangeText={setCity} placeholder="Opsional" />
+      </FormControl>
+      <FormControl label="Telepon">
+        <Input value={phone} onChangeText={setPhone} placeholder="Opsional" keyboardType="phone-pad" />
+      </FormControl>
+
+      <Text size="xs" color="muted" style={styles.footerHint}>
+        Nama, alamat, dan telepon di sini dipakai sebagai kop struk (lihat layar Struk).
+      </Text>
+
+      <Button onPress={onSave} loading={updateStatus === 'loading'} disabled={!storeName} fullWidth>
+        Simpan
+      </Button>
+    </ScrollView>
+  );
+}
+
+export default function StoreProfileScreen() {
   return (
     <View style={styles.container}>
       <Header title="Outlet" subtitle="Profil & data toko" />
-
-      {status === 'loading' && !profile ? (
-        <Text color="muted" align="center" style={styles.loading}>
-          Memuat profil toko...
-        </Text>
-      ) : (
-        <ScrollView contentContainerStyle={styles.body}>
-          {profile ? (
-            <Card style={styles.identityCard}>
-              <View style={styles.identityRow}>
-                <Text weight="semibold" size="lg">
-                  {profile.storeCode}
-                </Text>
-                <View style={styles.badges}>
-                  {profile.headOffice ? <Badge variant="primary">Kantor Pusat</Badge> : null}
-                  <Badge variant={profile.status === 'ACTIVE' ? 'success' : 'neutral'}>{profile.status}</Badge>
-                </View>
-              </View>
-              <Text size="xs" color="muted" style={styles.identityHint}>
-                Kode toko & status ditetapkan sistem, tidak bisa diubah dari sini.
-              </Text>
-            </Card>
-          ) : null}
-
-          <FormControl label="Nama toko" isRequired>
-            <Input value={storeName} onChangeText={setStoreName} placeholder="Nama toko" />
-          </FormControl>
-          <FormControl label="Alamat">
-            <Input value={address} onChangeText={setAddress} placeholder="Opsional" />
-          </FormControl>
-          <FormControl label="Provinsi">
-            <Input value={province} onChangeText={setProvince} placeholder="Opsional" />
-          </FormControl>
-          <FormControl label="Kota">
-            <Input value={city} onChangeText={setCity} placeholder="Opsional" />
-          </FormControl>
-          <FormControl label="Telepon">
-            <Input value={phone} onChangeText={setPhone} placeholder="Opsional" keyboardType="phone-pad" />
-          </FormControl>
-
-          <Text size="xs" color="muted" style={styles.footerHint}>
-            Nama, alamat, dan telepon di sini dipakai sebagai kop struk (lihat layar Struk).
-          </Text>
-
-          <Button onPress={onSave} loading={updateStatus === 'loading'} disabled={!storeName} fullWidth>
-            Simpan
-          </Button>
-        </ScrollView>
-      )}
+      <StoreProfileForm />
     </View>
   );
 }

@@ -7,9 +7,11 @@ import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchUnits } from '@/store/slices/unitsSlice';
 import { fetchProductUnits, registerProductUnit } from '@/store/slices/productUnitsSlice';
 import { createProduct, updateProduct } from '@/store/slices/productsSlice';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { RootStackParamList } from '@/navigation/types';
 import type { Product, Unit } from '@/types/models';
 import { colors, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, CheckBox, FormControl, Input, Link, Select, TextArea } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
@@ -22,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
 export default function ProductFormScreen({ navigation, route }: Props) {
   const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
   const categories = useAppSelector((state) => state.categories.items);
   const units = useAppSelector((state) => state.units.items);
   const editing = route.params?.product;
@@ -106,7 +109,10 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[styles.flex, isTabletLandscape && styles.flexTablet]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <AppBar
         title={editing ? 'Ubah Produk' : 'Tambah Produk'}
         onBack={navigation.goBack}
@@ -121,7 +127,10 @@ export default function ProductFormScreen({ navigation, route }: Props) {
           </Button>
         }
       />
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[styles.body, isTabletLandscape && styles.bodyTablet]}
+        keyboardShouldPersistTaps="handled"
+      >
         <HStack space="md">
           <View style={styles.formHalf}>
             <FormControl label="SKU" isRequired>
@@ -386,7 +395,9 @@ const sectionStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
+  flexTablet: { backgroundColor: tabletColors.gray25 },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
+  bodyTablet: { maxWidth: 760, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },
   formHalf: { flex: 1 },
   unitsLink: { marginTop: spacing.xs },
   imagePreviewWrap: { marginTop: spacing.sm },

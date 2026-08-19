@@ -1,20 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createCustomer, fetchCustomers, updateCustomer } from '@/store/slices/customersSlice';
+import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Customer } from '@/types/models';
 import { colors, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
-import { Card, EmptyState, Header } from '@/components/ui/recipes';
+import { Card, EmptyState, Header, SplitItem, TabletSplitView, TabletTopBar } from '@/components/ui/recipes';
 import { CreditCardIcon, PeopleIcon, SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { CustomerDetailContent } from './CustomerDetailScreen';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Customers'>,
@@ -23,12 +28,17 @@ type Props = CompositeScreenProps<
 
 export default function CustomersScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.customers);
+  const user = useAppSelector((state) => state.auth.user);
+  const storeProfile = useAppSelector((state) => state.storeProfile.profile);
   const [search, setSearch] = useState('');
   const [formVisible, setFormVisible] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchCustomers());
+    dispatch(fetchStoreProfile());
   }, [dispatch]);
 
   const filtered = useMemo(() => {
@@ -43,6 +53,62 @@ export default function CustomersScreen({ navigation }: Props) {
   }, [items, search]);
 
   const totalDebt = useMemo(() => items.reduce((sum, c) => sum + Math.max(0, c.balance), 0), [items]);
+
+  useEffect(() => {
+    if (isTabletLandscape && !selectedCustomerId && items.length > 0) {
+      setSelectedCustomerId(items[0].id);
+    }
+  }, [isTabletLandscape, items, selectedCustomerId]);
+
+  const primaryRole = user?.roles?.[0] ?? null;
+  const storeName = storeProfile?.storeName ?? primaryRole?.storeName ?? '-';
+
+  if (isTabletLandscape) {
+    return (
+      <SafeAreaView style={[styles.container, styles.containerTablet]} edges={['top', 'left', 'right']}>
+        <TabletTopBar
+          title="Pelanggan"
+          subtitle={`${items.length} pelanggan · Rp ${totalDebt.toLocaleString('id-ID')} piutang`}
+          storeName={storeName}
+          userName={user?.name ?? 'Kasir'}
+          rightAction={
+            <Button size="sm" style={{ backgroundColor: tabletColors.blue600 }} onPress={() => setFormVisible(true)}>
+              + Baru
+            </Button>
+          }
+        />
+        <TabletSplitView
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Cari pelanggan"
+          detail={
+            selectedCustomerId ? (
+              <CustomerDetailContent key={selectedCustomerId} customerId={selectedCustomerId} />
+            ) : (
+              <View style={styles.detailEmpty}>
+                <Text color="muted">Pilih pelanggan di daftar untuk melihat detail.</Text>
+              </View>
+            )
+          }
+        >
+          {filtered.map((item) => (
+            <SplitItem
+              key={item.id}
+              active={item.id === selectedCustomerId}
+              onPress={() => setSelectedCustomerId(item.id)}
+              title={item.name}
+              amount={item.balance > 0 ? `Rp ${item.balance.toLocaleString('id-ID')}` : undefined}
+              meta={`${item.customerCode}${item.phone ? ` · ${item.phone}` : ''}`}
+            />
+          ))}
+        </TabletSplitView>
+
+        <Modal isOpen={formVisible} onClose={() => setFormVisible(false)}>
+          <CustomerForm onDone={() => setFormVisible(false)} onCancel={() => setFormVisible(false)} />
+        </Modal>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -218,6 +284,8 @@ export function CustomerForm({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerTablet: { backgroundColor: tabletColors.gray25 },
+  detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   summaryBanner: {
     flexDirection: 'row',
     alignItems: 'center',

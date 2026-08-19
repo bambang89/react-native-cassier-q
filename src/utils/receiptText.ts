@@ -26,7 +26,7 @@ function twoCol(left: string, right: string, width = WIDTH): string {
   return `${left}\n${' '.repeat(Math.max(0, width - right.length))}${right}`;
 }
 
-function paymentMethodLabel(method: string): string {
+export function paymentMethodLabel(method: string): string {
   return PAYMENT_METHODS.find((m) => m.value === method)?.label ?? method;
 }
 

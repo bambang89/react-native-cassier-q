@@ -3,21 +3,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 import { useAppSelector } from '@/store/hooks';
-import { colors, radii, spacing } from '@/theme';
+import { radii, spacing } from '@/theme';
+import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 import { Pressable } from '@/components/ui/forms';
 import { HelpIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { TAB_ICONS } from './tabIcons';
 import type { MainTabParamList } from './types';
 
-const RAIL_WIDTH = 88;
-const ICON_COLOR_INACTIVE = 'rgba(255,255,255,0.7)';
+const RAIL_WIDTH = tabletLayout.sidebarWidth;
+const ICON_COLOR_INACTIVE = '#8FA3BE';
 
-// Rail navigasi gelap khusus mode tablet-landscape — struktur & ikon persis
-// cassier-q-webapp/tablet-pos.html (.tablet-sidebar): logo brand di atas,
-// daftar menu, lalu Bantuan + avatar di bawah (Keluar ada di layar Pengaturan).
-// Dibuat lewat prop `tabBar` supaya bisa menaruh elemen non-route ini.
-// Di HP, navigator tetap pakai bottom tab bar bawaan.
 export default function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const user = useAppSelector((reduxState) => reduxState.auth.user);
 
@@ -55,7 +51,7 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
               accessibilityRole="button"
               accessibilityState={{ selected: isFocused }}
             >
-              <Icon size={20} color={isFocused ? colors.white : ICON_COLOR_INACTIVE} strokeWidth={1.7} />
+              <Icon size={20} color={isFocused ? tabletColors.white : ICON_COLOR_INACTIVE} strokeWidth={1.7} />
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -94,7 +90,7 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.darkBg,
+    backgroundColor: tabletColors.navy900,
     alignItems: 'center',
     paddingVertical: spacing.base,
   },
@@ -106,16 +102,16 @@ const styles = StyleSheet.create({
   menuList: { flex: 1, width: '100%' },
   menuListContent: { alignItems: 'center', paddingHorizontal: spacing.xs, gap: spacing.xs },
   menuItem: {
-    width: 72,
+    width: 54,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: spacing.sm,
-    borderRadius: radii.lg,
+    gap: 3,
+    borderRadius: radii.xl,
   },
-  menuItemActive: { backgroundColor: colors.primary[600] },
-  menuLabel: { fontSize: 10, color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
-  menuLabelActive: { color: colors.white, fontWeight: '700' },
+  menuItemActive: { backgroundColor: tabletColors.blue600 },
+  menuLabel: { fontSize: 8.5, fontWeight: '600', color: ICON_COLOR_INACTIVE, textAlign: 'center' },
+  menuLabelActive: { color: tabletColors.white, fontWeight: '700' },
   bottomSection: { width: '100%', alignItems: 'center' },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.15)', width: '80%', marginBottom: spacing.sm },
   bottomIcon: {
@@ -130,7 +126,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.primary[600],
+    backgroundColor: tabletColors.blue600,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.xs,

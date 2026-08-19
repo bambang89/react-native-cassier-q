@@ -5,8 +5,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
+import { useResponsive } from '@/hooks/useResponsive';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
+import { tabletColors } from '@/theme/tabletColors';
 import { Button, CheckBox, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { Heading, Text } from '@/components/ui/typography';
@@ -16,6 +18,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
+  const { isTabletLandscape } = useResponsive();
   const { status, error } = useAppSelector((state) => state.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -68,6 +71,7 @@ export default function LoginScreen({ navigation }: Props) {
           loading={isSubmitting}
           disabled={!username || !password}
           fullWidth
+          style={isTabletLandscape ? { backgroundColor: tabletColors.blue600 } : undefined}
         >
           Masuk
         </Button>

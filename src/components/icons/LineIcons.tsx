@@ -473,3 +473,47 @@ export function CheckIcon(props: LineIconProps) {
     </Base>
   );
 }
+
+// Path persis tombol "Cetak Ulang" di cassier-q-webapp/tablet-transactions.html.
+export function PrintIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M6 9V3h12v6" />
+      <Rect x={4} y={9} width={16} height={8} rx={1.5} />
+      <Path d="M6 14h12v7H6Z" />
+    </Base>
+  );
+}
+
+// Path persis tombol "Refund" di cassier-q-webapp/tablet-transactions.html.
+export function RefundIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M3 11a9 9 0 0 1 15.3-5.3L21 8" />
+      <Path d="M21 3v5h-5" />
+      <Path d="M21 13a9 9 0 0 1-15.3 5.3L3 16" />
+      <Path d="M3 21v-5h5" />
+    </Base>
+  );
+}
+
+// Path persis ikon "Ubah" di aksi tabel .dtable, cassier-q-webapp/employees.html.
+export function PencilIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M12.5 5.5 18 11 8 21H3v-5Z" />
+      <Path d="M15 3l5.5 5.5" />
+    </Base>
+  );
+}
+
+// Path persis ikon "..." di aksi tabel .dtable, cassier-q-webapp/employees.html.
+export function MoreIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Circle cx={5} cy={12} r={1.4} fill="currentColor" stroke="none" />
+      <Circle cx={12} cy={12} r={1.4} fill="currentColor" stroke="none" />
+      <Circle cx={19} cy={12} r={1.4} fill="currentColor" stroke="none" />
+    </Base>
+  );
+}

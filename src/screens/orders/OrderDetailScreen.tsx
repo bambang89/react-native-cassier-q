@@ -123,7 +123,7 @@ function SummaryRow({ label, value, bold }: { label: string; value: number; bold
   );
 }
 
-function VoidForm({
+export function VoidForm({
   orderId,
   onDone,
   onCancel,
