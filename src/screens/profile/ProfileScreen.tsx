@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -246,7 +246,7 @@ export default function ProfileScreen({ navigation }: Props) {
         </View>
         <Card>
           {session ? (
-            <>
+            <Fragment>
               <View style={styles.sessionOpenRow}>
                 <Badge variant="success">Sedang Buka</Badge>
                 <Text size="sm" color="secondary">
@@ -259,7 +259,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <Button variant="outline" size="sm" style={styles.closeSessionButton} onPress={() => setCloseSessionVisible(true)}>
                 Tutup Sesi
               </Button>
-            </>
+            </Fragment>
           ) : (
             <Text color="muted" size="sm">
               Belum ada sesi kasir yang dibuka hari ini. Buka sesi dari layar Kasir untuk mulai jualan.
@@ -278,7 +278,7 @@ export default function ProfileScreen({ navigation }: Props) {
         </Card>
 
         {env.appVariant !== 'production' ? (
-          <>
+          <Fragment>
             <View style={styles.sectionTitleRow}>
               <WrenchIcon size={15} color={colors.text.secondary} />
               <Text weight="bold">Environment API (dev only)</Text>
@@ -286,7 +286,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <Card>
               <EnvSwitcher />
             </Card>
-          </>
+          </Fragment>
         ) : null}
 
         <Button variant="danger" style={styles.logoutButton} onPress={() => setLogoutConfirmVisible(true)}>
@@ -422,7 +422,7 @@ function SettingsDetailPane({
 
         <Card style={styles.detailCard}>
           {session ? (
-            <>
+            <Fragment>
               <View style={styles.sessionOpenRow}>
                 <Badge variant="success">Sedang Buka</Badge>
                 <Text size="sm" color="secondary">
@@ -435,7 +435,7 @@ function SettingsDetailPane({
               <Button variant="outline" size="sm" style={styles.closeSessionButton} onPress={onCloseSession}>
                 Tutup Sesi
               </Button>
-            </>
+            </Fragment>
           ) : (
             <Text color="muted" size="sm">
               Belum ada sesi kasir yang dibuka hari ini.

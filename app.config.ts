@@ -81,7 +81,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
-    'expo-status-bar',
   ],
   extra: {
     apiEnv: API_ENV,

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import type { ReactNode } from 'react';
 
@@ -8,20 +9,14 @@ import { SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 export interface TabletSplitViewProps {
-  /** Lebar pane kiri (default 330, sesuai .split-view di layar list seperti Transaksi). */
   listWidth?: number;
-  /** Baris-baris `<SplitItem>` di pane kiri. */
   children: ReactNode;
-  /** Konten pane kanan (`.split-detail`). */
   detail: ReactNode;
   searchValue?: string;
   onSearchChange?: (text: string) => void;
   searchPlaceholder?: string;
 }
 
-// Pola master-detail persis .split-view/.split-list/.split-detail di
-// cassier-q-webapp/tablet-transactions.html & tablet-settings.html — pane kiri
-// lebar tetap (list + search opsional), pane kanan fleksibel dengan bg gray-25.
 export function TabletSplitView({
   listWidth = tabletLayout.splitListWidth,
   children,
@@ -60,17 +55,14 @@ export interface SplitItemProps {
   title: string;
   amount?: string;
   meta?: string;
-  /** Konten kustom untuk baris non-transaksi (mis. nama menu Settings). */
   children?: ReactNode;
 }
 
-// Baris `.split-item` — nama+jumlah di baris atas, meta di bawah; state aktif
-// = bg biru muda + garis biru 3px di kiri (box-shadow inset di webapp).
 export function SplitItem({ active, onPress, title, amount, meta, children }: SplitItemProps) {
   return (
     <Pressable onPress={onPress} style={[styles.item, active && styles.itemActive]}>
       {children ?? (
-        <>
+        <Fragment>
           <View style={styles.itemTop}>
             <Text style={[styles.itemName, active && styles.itemNameActive]} numberOfLines={1}>
               {title}
@@ -78,7 +70,7 @@ export function SplitItem({ active, onPress, title, amount, meta, children }: Sp
             {amount ? <Text style={styles.itemAmount}>{amount}</Text> : null}
           </View>
           {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
-        </>
+        </Fragment>
       )}
     </Pressable>
   );

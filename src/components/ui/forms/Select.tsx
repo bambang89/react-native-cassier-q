@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { FlatList, Modal, Pressable as RNPressable, SafeAreaView, StyleSheet, View } from 'react-native';
 
 import { colors, radii, spacing } from '@/theme';
@@ -32,7 +32,7 @@ export function Select<T extends string = string>({
   const selected = options.find((o) => o.value === value);
 
   return (
-    <>
+    <Fragment>
       <Pressable
         disabled={isDisabled}
         onPress={() => setOpen(true)}
@@ -72,7 +72,7 @@ export function Select<T extends string = string>({
           </View>
         </RNPressable>
       </Modal>
-    </>
+    </Fragment>
   );
 }
 

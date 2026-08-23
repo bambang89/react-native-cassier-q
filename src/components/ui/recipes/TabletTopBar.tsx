@@ -12,17 +12,11 @@ export interface TabletTopBarProps {
   subtitle: string;
   storeName: string;
   userName: string;
-  /** Slot ekstra di kiri outlet-pill, mis. tombol "+ Tambah" di layar Produk. */
   rightAction?: ReactNode;
   onNotificationPress?: () => void;
-  /** Titik merah di ikon lonceng, persis .dot-badge di webapp. */
   hasNotification?: boolean;
 }
 
-// Top bar mode tablet-landscape — struktur & ukuran persis .tablet-topbar +
-// .outlet-pill/.icon-btn/.t-avatar di cassier-q-webapp/tablet-*.html (title+sub
-// kiri, outlet-pill + bell + avatar kanan). Dipakai di Kasir, Dashboard, Produk,
-// Transaksi, Settings supaya konsisten satu tempat.
 export function TabletTopBar({
   title,
   subtitle,

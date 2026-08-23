@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -329,14 +329,14 @@ function EmployeeForm({
         <Input value={name} onChangeText={setName} placeholder="Nama lengkap" />
       </FormControl>
       {!employee ? (
-        <>
+        <Fragment>
           <FormControl label="Username" isRequired helperText="Dipakai untuk login, tidak bisa diubah nanti">
             <Input value={username} onChangeText={setUsername} placeholder="mis. kasir2" autoCapitalize="none" />
           </FormControl>
           <FormControl label="Kata sandi awal" isRequired helperText="Minimal 8 karakter">
             <Input value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
           </FormControl>
-        </>
+        </Fragment>
       ) : (
         <Text size="xs" color="muted" style={styles.usernameHint}>
           Username: @{employee.username} (tidak bisa diubah di sini)

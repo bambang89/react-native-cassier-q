@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useRef, useState } from 'react';
+import { Fragment, cloneElement, isValidElement, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import type { ReactElement } from 'react';
 
@@ -41,7 +41,7 @@ export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
   );
 
   return (
-    <>
+    <Fragment>
       {triggerElement}
       <Modal visible={!!anchor} transparent animationType="fade">
         {anchor ? (
@@ -52,7 +52,7 @@ export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
           </View>
         ) : null}
       </Modal>
-    </>
+    </Fragment>
   );
 }
 

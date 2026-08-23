@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -72,7 +72,7 @@ export default function ReportsScreen() {
           rightAction={rangeSwitcher}
         />
       ) : (
-        <>
+        <Fragment>
           <Header title="Laporan Penjualan" />
           <View style={styles.rangeRow}>
             <Button
@@ -92,7 +92,7 @@ export default function ReportsScreen() {
               30 Hari
             </Button>
           </View>
-        </>
+        </Fragment>
       )}
 
       {!summary ? (

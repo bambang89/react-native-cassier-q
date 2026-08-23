@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useRef, useState } from 'react';
+import { Fragment, cloneElement, isValidElement, useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import type { ReactElement, ReactNode } from 'react';
 
@@ -49,7 +49,7 @@ export function Popover({ trigger, children, placement = 'bottom' }: PopoverProp
   const left = anchor ? Math.min(Math.max(anchor.x, spacing.sm), windowWidth - spacing.sm - 220) : 0;
 
   return (
-    <>
+    <Fragment>
       {triggerElement}
       <Modal visible={isOpen} transparent animationType="fade" onRequestClose={close}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close}>
@@ -58,7 +58,7 @@ export function Popover({ trigger, children, placement = 'bottom' }: PopoverProp
           ) : null}
         </Pressable>
       </Modal>
-    </>
+    </Fragment>
   );
 }
 

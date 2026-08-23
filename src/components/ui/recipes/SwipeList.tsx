@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import type { FlatListProps } from 'react-native';
@@ -28,7 +29,7 @@ export function SwipeList<T>({ data, renderItem, rightActions, keyExtractor, ...
       renderItem={({ item, index }) => {
         const actions = rightActions?.(item, index) ?? [];
         if (actions.length === 0) {
-          return <>{renderItem(item, index)}</>;
+          return <Fragment>{renderItem(item, index)}</Fragment>;
         }
         return (
           <Swipeable

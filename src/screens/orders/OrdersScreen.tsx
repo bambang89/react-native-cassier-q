@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -203,9 +203,6 @@ export default function OrdersScreen({ navigation }: Props) {
   );
 }
 
-// Pane kanan split-view — struktur persis .split-detail di
-// cassier-q-webapp/tablet-transactions.html (badge, kartu info 2x2, tabel item,
-// ringkasan, tombol Cetak Ulang/Refund).
 function OrderDetailPane({
   order,
   receipt,
@@ -242,7 +239,7 @@ function OrderDetailPane({
           Memuat detail transaksi...
         </Text>
       ) : (
-        <>
+        <Fragment>
           <View style={styles.infoCard}>
             <View style={styles.infoGrid}>
               <InfoCell label="Pelanggan" value={receipt.customerName ?? 'Umum'} />
@@ -307,7 +304,7 @@ function OrderDetailPane({
               </Pressable>
             ) : null}
           </View>
-        </>
+        </Fragment>
       )}
     </View>
   );
@@ -332,8 +329,6 @@ const styles = StyleSheet.create({
   info: { flex: 1 },
   right: { alignItems: 'flex-end', gap: spacing.xs },
   empty: { marginTop: spacing['3xl'] },
-
-  // Split-detail (mode tablet) — persis .split-detail di tablet-transactions.html.
   detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   detailPad: { padding: 26 },
   detailHeadRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 },
