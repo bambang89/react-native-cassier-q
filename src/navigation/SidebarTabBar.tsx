@@ -18,78 +18,86 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
   const user = useAppSelector((reduxState) => reduxState.auth.user);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'bottom']} style={[styles.container, { width: RAIL_WIDTH }]}>
-      <Image
-        source={require('@/assets/branding/cassier-q-symbol.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
+    <SafeAreaView edges={['top', 'left']} style={[styles.safeArea, { width: RAIL_WIDTH }]}>
+      <View style={styles.container}>
+        <Image
+          source={require('@/assets/branding/cassier-q-symbol.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <ScrollView
-        style={styles.menuList}
-        contentContainerStyle={styles.menuListContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const label = (options.title ?? route.name) as string;
-          const isFocused = state.index === index;
-          const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
+        <ScrollView
+          style={styles.menuList}
+          contentContainerStyle={styles.menuListContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label = (options.title ?? route.name) as string;
+            const isFocused = state.index === index;
+            const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
 
-          const onPress = () => {
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+            const onPress = () => {
+              const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
 
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              style={[styles.menuItem, isFocused && styles.menuItemActive]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isFocused }}
-            >
-              <Icon size={20} color={isFocused ? tabletColors.white : ICON_COLOR_INACTIVE} strokeWidth={1.7} />
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.75}
-                style={[styles.menuLabel, isFocused && styles.menuLabelActive]}
+            return (
+              <Pressable
+                key={route.key}
+                onPress={onPress}
+                style={[styles.menuItem, isFocused && styles.menuItemActive]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isFocused }}
               >
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <Icon size={20} color={isFocused ? tabletColors.white : ICON_COLOR_INACTIVE} strokeWidth={1.7} />
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}
+                  style={[styles.menuLabel, isFocused && styles.menuLabelActive]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
 
-      <View style={styles.bottomSection}>
-        <View style={styles.divider} />
-        <Pressable
-          style={styles.bottomIcon}
-          onPress={() => Alert.alert('Bantuan', 'Hubungi admin toko atau dukungan cassier-Q untuk bantuan.')}
-          accessibilityLabel="Bantuan"
-        >
-          <HelpIcon size={19} color={ICON_COLOR_INACTIVE} />
-        </Pressable>
-        <Pressable
-          style={styles.avatar}
-          onPress={() => navigation.navigate('Profile')}
-          accessibilityLabel="Profil"
-        >
-          <Text weight="bold" color="inverse" size="sm">
-            {(user?.name ?? 'AN').charAt(0).toUpperCase()}
-          </Text>
-        </Pressable>
+        <View style={styles.bottomSection}>
+          <View style={styles.divider} />
+          <Pressable
+            style={styles.bottomIcon}
+            onPress={() => Alert.alert('Bantuan', 'Hubungi admin toko atau dukungan cassier-Q untuk bantuan.')}
+            accessibilityLabel="Bantuan"
+          >
+            <HelpIcon size={19} color={ICON_COLOR_INACTIVE} />
+          </Pressable>
+          <Pressable
+            style={styles.avatar}
+            onPress={() => navigation.navigate('Profile')}
+            accessibilityLabel="Profil"
+          >
+            <Text weight="bold" color="inverse" size="sm">
+              {(user?.name ?? 'AN').charAt(0).toUpperCase()}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    // No background here: the status-bar inset must stay transparent so the
+    // navy rail below doesn't bleed up behind the status bar / notch.
+    backgroundColor: 'transparent',
+  },
   container: {
+    flex: 1,
     backgroundColor: tabletColors.navy900,
     alignItems: 'center',
     paddingVertical: spacing.base,

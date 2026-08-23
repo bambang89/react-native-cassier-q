@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Fragment, useEffect } from 'react';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -45,32 +45,36 @@ export default function RootNavigator() {
   const isAuthenticated = status === 'authenticated';
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <>
-            <Stack.Screen name="Main" component={MainTabNavigator} />
-            <Stack.Screen
-              name="Scanner"
-              component={ScannerScreen}
-              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-            />
-            <Stack.Screen name="Categories" component={CategoriesScreen} />
-            <Stack.Screen name="Units" component={UnitsScreen} />
-            <Stack.Screen name="ProductForm" component={ProductFormScreen} />
-            <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
-            <Stack.Screen name="Receipt" component={ReceiptScreen} />
-            <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
-            <Stack.Screen name="Suppliers" component={SuppliersScreen} />
-            <Stack.Screen name="PurchaseOrders" component={PurchaseOrdersScreen} />
-            <Stack.Screen name="PurchaseOrderForm" component={PurchaseOrderFormScreen} />
-            <Stack.Screen name="PurchaseOrderDetail" component={PurchaseOrderDetailScreen} />
-          </>
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Fragment>
+      <StatusBar barStyle="dark-content" />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <Fragment>
+              <Stack.Screen name="Main" component={MainTabNavigator} />
+              <Stack.Screen
+                name="Scanner"
+                component={ScannerScreen}
+                options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+              />
+              <Stack.Screen name="Categories" component={CategoriesScreen} />
+              <Stack.Screen name="Units" component={UnitsScreen} />
+              <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+              <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
+              <Stack.Screen name="Receipt" component={ReceiptScreen} />
+              <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
+              <Stack.Screen name="Suppliers" component={SuppliersScreen} />
+              <Stack.Screen name="PurchaseOrders" component={PurchaseOrdersScreen} />
+              <Stack.Screen name="PurchaseOrderForm" component={PurchaseOrderFormScreen} />
+              <Stack.Screen name="PurchaseOrderDetail" component={PurchaseOrderDetailScreen} />
+            </Fragment>
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Fragment>
+
   );
 }
 
