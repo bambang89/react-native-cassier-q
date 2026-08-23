@@ -36,8 +36,6 @@ const PUBLIC_AUTH_PATHS = [
   '/auth/reset-password',
 ];
 
-const AUTH_API_PREFIX = '/auth/';
-
 const refreshClient = axios.create({ baseURL: env.apiBaseUrl, timeout: 15000 });
 
 let refreshPromise: Promise<TokenSet> | null = null;
@@ -94,8 +92,8 @@ async function forceLogoutOnExpiry(): Promise<void> {
 }
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  const isAuthApi = config.url?.includes(AUTH_API_PREFIX) ?? false;
-  if (!isAuthApi) {
+  const isPublicAuthApi = PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path));
+  if (!isPublicAuthApi) {
     const deviceId = await loadDeviceId();
     if (deviceId) config.headers.set('X-Device-Id', deviceId);
     config.headers.set('X-Device-OS', deviceOsVersion);

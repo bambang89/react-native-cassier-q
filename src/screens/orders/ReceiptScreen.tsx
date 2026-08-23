@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import { ActivityIndicator, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -53,7 +53,7 @@ export default function ReceiptScreen({ navigation, route }: Props) {
           ) : null}
         </View>
       ) : (
-        <>
+        <Fragment>
           <ScrollView contentContainerStyle={styles.body}>
             <Card>
               <Text style={styles.receiptText}>{receiptText}</Text>
@@ -72,7 +72,7 @@ export default function ReceiptScreen({ navigation, route }: Props) {
               Bagikan
             </Button>
           </View>
-        </>
+        </Fragment>
       )}
     </View>
   );

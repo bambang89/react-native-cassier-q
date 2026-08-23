@@ -4,6 +4,7 @@ const ACCESS_TOKEN_KEY = 'cassierq.auth.accessToken';
 const REFRESH_TOKEN_KEY = 'cassierq.auth.refreshToken';
 const EXPIRES_AT_KEY = 'cassierq.auth.expiresAt';
 const DEVICE_ID_KEY = 'cassierq.session.deviceId';
+const REMEMBERED_USERNAME_KEY = 'cassierq.auth.rememberedUsername';
 
 export type TokenSet = {
   accessToken: string;
@@ -48,4 +49,16 @@ export async function saveDeviceId(deviceId: string): Promise<void> {
 
 export async function loadDeviceId(): Promise<string | null> {
   return SecureStore.getItemAsync(DEVICE_ID_KEY);
+}
+
+export async function saveRememberedUsername(username: string): Promise<void> {
+  await SecureStore.setItemAsync(REMEMBERED_USERNAME_KEY, username);
+}
+
+export async function loadRememberedUsername(): Promise<string | null> {
+  return SecureStore.getItemAsync(REMEMBERED_USERNAME_KEY);
+}
+
+export async function clearRememberedUsername(): Promise<void> {
+  await SecureStore.deleteItemAsync(REMEMBERED_USERNAME_KEY);
 }

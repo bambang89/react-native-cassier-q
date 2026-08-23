@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { login } from '@/store/slices/authSlice';
+import { clearRememberedUsername, loadRememberedUsername, saveRememberedUsername } from '@/api/tokenStorage';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { AuthStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
@@ -25,6 +26,23 @@ export default function LoginScreen({ navigation }: Props) {
   const [rememberMe, setRememberMe] = useState(true);
 
   const isSubmitting = status === 'authenticating';
+
+  useEffect(() => {
+    loadRememberedUsername().then((remembered) => {
+      if (remembered) setUsername(remembered);
+    });
+  }, []);
+
+  const handleLogin = async () => {
+    const result = await dispatch(login({ username, password }));
+    if (login.fulfilled.match(result)) {
+      if (rememberMe) {
+        await saveRememberedUsername(username);
+      } else {
+        await clearRememberedUsername();
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.flex}>
@@ -67,7 +85,7 @@ export default function LoginScreen({ navigation }: Props) {
         </View>
 
         <Button
-          onPress={() => dispatch(login({ username, password }))}
+          onPress={handleLogin}
           loading={isSubmitting}
           disabled={!username || !password}
           fullWidth

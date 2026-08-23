@@ -95,8 +95,6 @@ export default function DashboardScreen() {
   const avgToday = today && today.orderCount > 0 ? today.grossSales / today.orderCount : 0;
   const weeklyTopSellers = days ? mergeTopSellers(days) : [];
 
-  // Ikon KPI pakai warna persis tablet-dashboard.html di mode tablet; mode HP
-  // tetap pakai brand color app supaya tampilan HP tidak ikut berubah.
   const kpi = isTabletLandscape
     ? {
         success: tabletColors.emerald600,
@@ -146,7 +144,7 @@ export default function DashboardScreen() {
       >
         <View style={[styles.kpiGrid, isTabletLandscape && styles.kpiGridTablet]}>
           <KpiCard
-            style={styles.kpiCard}
+            style={[styles.kpiCard, isTabletLandscape && styles.kpiCardTablet]}
             label="Penjualan Hari Ini"
             value={today ? formatRupiah(today.grossSales) : '—'}
             icon={RegisterIcon}
@@ -155,7 +153,7 @@ export default function DashboardScreen() {
             delta={today && yesterday ? percentDelta(today.grossSales, yesterday.grossSales) : null}
           />
           <KpiCard
-            style={styles.kpiCard}
+            style={[styles.kpiCard, isTabletLandscape && styles.kpiCardTablet]}
             label="Transaksi"
             value={today ? String(today.orderCount) : '—'}
             icon={ReceiptIcon}
@@ -164,7 +162,7 @@ export default function DashboardScreen() {
             delta={today && yesterday ? percentDelta(today.orderCount, yesterday.orderCount) : null}
           />
           <KpiCard
-            style={styles.kpiCard}
+            style={[styles.kpiCard, isTabletLandscape && styles.kpiCardTablet]}
             label="Rata-rata"
             value={today ? formatRupiah(avgToday) : '—'}
             icon={TrendingIcon}
@@ -172,7 +170,7 @@ export default function DashboardScreen() {
             iconBg={kpi.tealBg}
           />
           <KpiCard
-            style={styles.kpiCard}
+            style={[styles.kpiCard, isTabletLandscape && styles.kpiCardTablet]}
             label="Produk Terjual"
             value={today ? String(todayUnitsSold) : '—'}
             icon={BoxIcon}
@@ -338,6 +336,7 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   kpiGridTablet: { flexWrap: 'nowrap', gap: 16 },
   kpiCard: { flexBasis: '47%', flexGrow: 1 },
+  kpiCardTablet: { flexBasis: 0 },
   insightCard: {
     flexDirection: 'row',
     gap: spacing.sm,
