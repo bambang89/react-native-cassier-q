@@ -36,7 +36,7 @@ const LOW_STOCK_THRESHOLD = 5;
 export default function ProductsScreen({ navigation }: Props) {
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
-  const { items, search, page, totalPages, status } = useAppSelector((state) => state.products);
+  const { items, search, page, totalPages, status, error } = useAppSelector((state) => state.products);
   const categories = useAppSelector((state) => state.categories.items);
   const user = useAppSelector((state) => state.auth.user);
   const storeProfile = useAppSelector((state) => state.storeProfile.profile);
@@ -185,6 +185,14 @@ export default function ProductsScreen({ navigation }: Props) {
                 <Text color="muted" align="center" style={styles.empty}>
                   Memuat produk...
                 </Text>
+              ) : status === 'failed' ? (
+                <EmptyState
+                  icon={AlertTriangleIcon}
+                  title="Produk gagal dimuat"
+                  description={error ?? 'Terjadi kesalahan saat mengambil data produk. Coba lagi.'}
+                  actionLabel="Coba Lagi"
+                  onAction={() => dispatch(fetchProducts({ search }))}
+                />
               ) : search || selectedCategoryId ? (
                 <EmptyState icon={SearchIcon} title="Produk tidak ditemukan" description="Coba kata kunci atau kategori lain." />
               ) : (
@@ -312,6 +320,14 @@ export default function ProductsScreen({ navigation }: Props) {
             <Text color="muted" align="center" style={styles.empty}>
               Memuat produk...
             </Text>
+          ) : status === 'failed' ? (
+            <EmptyState
+              icon={AlertTriangleIcon}
+              title="Produk gagal dimuat"
+              description={error ?? 'Terjadi kesalahan saat mengambil data produk. Coba lagi.'}
+              actionLabel="Coba Lagi"
+              onAction={() => dispatch(fetchProducts({ search }))}
+            />
           ) : search ? (
             <EmptyState
               icon={SearchIcon}

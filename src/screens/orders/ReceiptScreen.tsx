@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { clearReceipt, fetchReceipt } from '@/store/slices/ordersSlice';
 import type { RootStackParamList } from '@/navigation/types';
-import { formatReceiptText } from '@/utils/receiptText';
+import { buildReceiptRows, formatReceiptText } from '@/utils/receiptText';
 import { colors, spacing } from '@/theme';
 import { Button } from '@/components/ui/forms';
 import { Card, AppBar } from '@/components/ui/recipes';
@@ -29,6 +29,7 @@ export default function ReceiptScreen({ navigation, route }: Props) {
   }, [dispatch, orderId]);
 
   const receiptText = receipt ? formatReceiptText(receipt) : '';
+  const receiptRows = receipt ? buildReceiptRows(receipt) : [];
 
   const onShare = async () => {
     if (!receipt) return;
@@ -55,8 +56,31 @@ export default function ReceiptScreen({ navigation, route }: Props) {
       ) : (
         <Fragment>
           <ScrollView contentContainerStyle={styles.body}>
-            <Card>
-              <Text style={styles.receiptText}>{receiptText}</Text>
+            <Card style={styles.receiptCard}>
+              {receiptRows.map((row, index) => {
+                switch (row.kind) {
+                  case 'center':
+                    return (
+                      <Text key={index} style={[styles.receiptLine, styles.receiptCenterLine]}>
+                        {row.text}
+                      </Text>
+                    );
+                  case 'line':
+                  case 'divider':
+                    return (
+                      <Text key={index} style={styles.receiptLine}>
+                        {row.text}
+                      </Text>
+                    );
+                  case 'pair':
+                    return (
+                      <View key={index} style={styles.receiptRow}>
+                        <Text style={styles.receiptLine}>{row.label}</Text>
+                        <Text style={styles.receiptLine}>{row.value}</Text>
+                      </View>
+                    );
+                }
+              })}
             </Card>
           </ScrollView>
 
@@ -82,10 +106,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { marginTop: spacing.sm },
-  body: { padding: spacing.base },
-  receiptText: { fontFamily: MONOSPACE_FONT, fontSize: 12, lineHeight: 18 },
+  body: { padding: spacing.base, alignItems: 'center' },
+  receiptCard: { alignSelf: 'center', maxWidth: 370 },
+  receiptLine: { fontFamily: MONOSPACE_FONT, fontSize: 12, lineHeight: 18 },
+  receiptCenterLine: { textAlign: 'center' },
+  receiptRow: { flexDirection: 'row', justifyContent: 'space-between' },
   actions: {
     flexDirection: 'row',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 370,
     gap: spacing.sm,
     padding: spacing.base,
     borderTopWidth: StyleSheet.hairlineWidth,

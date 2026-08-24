@@ -2,8 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 
 import * as authApi from '@/api/authApi';
 import { loadPersistedApiEnvOverride } from '@/api/client';
-import { loadDeviceId, loadTokens, saveDeviceId } from '@/api/tokenStorage';
-import { generateDeviceId } from '@/config/deviceInfo';
+import { ensureDeviceId, loadTokens } from '@/api/tokenStorage';
 import type { RegisterPayload } from '@/api/authApi';
 import type { User } from '@/types/models';
 
@@ -29,9 +28,7 @@ export const bootstrapAuth = createAsyncThunk('auth/bootstrap', async () => {
   await loadPersistedApiEnvOverride();
   const tokens = await loadTokens();
   if (!tokens) return null;
-  if (!(await loadDeviceId())) {
-    await saveDeviceId(generateDeviceId());
-  }
+  await ensureDeviceId();
   return authApi.fetchCurrentUser();
 });
 

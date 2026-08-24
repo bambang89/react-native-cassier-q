@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-export const deviceType = Platform.OS;
+export const deviceType = Platform.OS === 'android' ? 'ANDROID' : Platform.OS === 'ios' ? 'IOS' : 'WEB';
 
 export const deviceOsVersion = String(Platform.Version ?? 'unknown');
 

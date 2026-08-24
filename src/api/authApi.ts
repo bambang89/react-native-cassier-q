@@ -1,6 +1,5 @@
 import { apiClient } from './client';
-import { clearTokens, loadTokens, saveDeviceId, saveTokens, type TokenSet } from './tokenStorage';
-import { generateDeviceId } from '@/config/deviceInfo';
+import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
 import type { AuthResponse, User } from '@/types/models';
 
 async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
@@ -10,7 +9,6 @@ async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
     expiresAt: Date.now() + data.expiresInSeconds * 1000,
   };
   await saveTokens(tokens);
-  await saveDeviceId(generateDeviceId());
   return tokens;
 }
 

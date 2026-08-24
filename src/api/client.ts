@@ -5,7 +5,7 @@ import { defaultBaseUrlFor, env } from '@/config/env';
 import { isApiEnvName } from '@/config/apiEnvironments';
 import type { ApiEnvName } from '@/config/apiEnvironments';
 import { appVersion, deviceOsVersion, deviceType } from '@/config/deviceInfo';
-import { clearTokens, loadDeviceId, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
+import { clearTokens, ensureDeviceId, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
 
 type SessionExpiredHandler = () => void;
 let onSessionExpired: SessionExpiredHandler | null = null;
@@ -91,17 +91,22 @@ async function forceLogoutOnExpiry(): Promise<void> {
   return forceLogoutPromise;
 }
 
-apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  const isPublicAuthApi = PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path));
-  if (!isPublicAuthApi) {
-    const deviceId = await loadDeviceId();
-    if (deviceId) config.headers.set('X-Device-Id', deviceId);
-    config.headers.set('X-Device-OS', deviceOsVersion);
-    config.headers.set('X-App-Version', appVersion);
-    config.headers.set('X-Device-Type', deviceType);
-  }
+// Device headers go on every request, including login/register/refresh —
+// the server only records a device from the headers sent on those auth
+// calls (see AuthService.issueTokens -> recordDevice), so skipping them
+// there meant the device was never registered and later requests got
+// rejected as "device not recognized".
+async function attachDeviceHeaders(config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> {
+  const deviceId = await ensureDeviceId();
+  config.headers.set('X-Device-Id', deviceId);
+  config.headers.set('X-Device-OS', deviceOsVersion);
+  config.headers.set('X-App-Version', appVersion);
+  config.headers.set('X-Device-Type', deviceType);
   return config;
-});
+}
+
+apiClient.interceptors.request.use(attachDeviceHeaders);
+refreshClient.interceptors.request.use(attachDeviceHeaders);
 
 // --- Bearer token attachment --------------------------------------------
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {

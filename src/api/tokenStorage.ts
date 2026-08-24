@@ -1,5 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
+import { generateDeviceId } from '@/config/deviceInfo';
+
 const ACCESS_TOKEN_KEY = 'cassierq.auth.accessToken';
 const REFRESH_TOKEN_KEY = 'cassierq.auth.refreshToken';
 const EXPIRES_AT_KEY = 'cassierq.auth.expiresAt';
@@ -49,6 +51,15 @@ export async function saveDeviceId(deviceId: string): Promise<void> {
 
 export async function loadDeviceId(): Promise<string | null> {
   return SecureStore.getItemAsync(DEVICE_ID_KEY);
+}
+
+/** Returns the persisted device id, generating and saving one on first use. */
+export async function ensureDeviceId(): Promise<string> {
+  const existing = await loadDeviceId();
+  if (existing) return existing;
+  const generated = generateDeviceId();
+  await saveDeviceId(generated);
+  return generated;
 }
 
 export async function saveRememberedUsername(username: string): Promise<void> {

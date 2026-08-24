@@ -2,7 +2,7 @@ import { PAYMENT_METHODS } from '@/types/models';
 import type { Receipt } from '@/types/models';
 
 // Lebar kolom ala kertas thermal 58mm (32 karakter font monospace) — dipakai
-// juga buat versi teks yang di-share (WhatsApp dkk render monospace kalau
+// buat versi teks yang di-share (WhatsApp dkk render monospace kalau
 // dibungkus tanda kutip tiga, tapi tanpa itu pun tetap gampang dibaca).
 const WIDTH = 32;
 
@@ -31,47 +31,86 @@ export function paymentMethodLabel(method: string): string {
 }
 
 /**
- * Render struk resmi (dari GET /orders/{id}/receipt) sebagai teks polos ala
- * thermal printer 58mm — dipakai untuk tampilan di layar (font monospace)
- * dan untuk isi pesan tombol "Bagikan".
+ * Baris terstruktur untuk render di layar (`ReceiptScreen`) — `pair` dirender
+ * sebagai flex row (`justifyContent: 'space-between'`) supaya nominal harga
+ * benar-benar rata ke tepi kanan kartu, bukan cuma diganjal spasi ala teks
+ * monospace (yang gampang meleset kalau font tidak benar-benar fixed-width).
  */
-export function formatReceiptText(receipt: Receipt): string {
-  const rows: string[] = [];
+export type ReceiptRow =
+  | { kind: 'center'; text: string }
+  | { kind: 'line'; text: string }
+  | { kind: 'divider'; text: string }
+  | { kind: 'pair'; label: string; value: string };
 
-  rows.push(center(receipt.storeName ?? 'cassier-Q'));
-  if (receipt.storeAddress) rows.push(center(receipt.storeAddress));
-  if (receipt.storePhone) rows.push(center(receipt.storePhone));
-  rows.push(divider('='));
-  rows.push(`No: ${receipt.transactionNumber}`);
-  rows.push(`Tgl: ${new Date(receipt.transactionDate).toLocaleString('id-ID')}`);
-  rows.push(`Kasir: ${receipt.cashierName}`);
-  if (receipt.customerName) rows.push(`Pelanggan: ${receipt.customerName}`);
-  rows.push(divider('-'));
+export function buildReceiptRows(receipt: Receipt): ReceiptRow[] {
+  const rows: ReceiptRow[] = [];
+
+  rows.push({ kind: 'center', text: receipt.storeName ?? 'cassier-Q' });
+  if (receipt.storeAddress) rows.push({ kind: 'center', text: receipt.storeAddress });
+  if (receipt.storePhone) rows.push({ kind: 'center', text: receipt.storePhone });
+  rows.push({ kind: 'divider', text: divider('=') });
+  rows.push({ kind: 'line', text: `No: ${receipt.transactionNumber}` });
+  rows.push({ kind: 'line', text: `Tgl: ${new Date(receipt.transactionDate).toLocaleString('id-ID')}` });
+  rows.push({ kind: 'line', text: `Kasir: ${receipt.cashierName}` });
+  if (receipt.customerName) rows.push({ kind: 'line', text: `Pelanggan: ${receipt.customerName}` });
+  rows.push({ kind: 'divider', text: divider('-') });
 
   for (const item of receipt.items) {
-    rows.push(item.productName);
-    rows.push(twoCol(`  ${item.quantity} ${item.unitName} x ${money(item.unitPrice)}`, money(item.subtotal)));
+    rows.push({ kind: 'line', text: item.productName });
+    rows.push({
+      kind: 'pair',
+      label: `  ${item.quantity} ${item.unitName} x ${money(item.unitPrice)}`,
+      value: money(item.subtotal),
+    });
   }
 
-  rows.push(divider('-'));
-  rows.push(twoCol('Subtotal', money(receipt.subtotal)));
-  if (receipt.discountAmount > 0) rows.push(twoCol('Diskon', `-${money(receipt.discountAmount)}`));
-  if (receipt.taxAmount > 0) rows.push(twoCol('Pajak', money(receipt.taxAmount)));
-  rows.push(twoCol('TOTAL', money(receipt.grandTotal)));
-  rows.push(twoCol(`Bayar (${paymentMethodLabel(receipt.paymentMethod)})`, money(receipt.paymentAmount)));
-  rows.push(twoCol('Kembalian', money(receipt.changeAmount)));
+  rows.push({ kind: 'divider', text: divider('-') });
+  rows.push({ kind: 'pair', label: 'Subtotal', value: money(receipt.subtotal) });
+  if (receipt.discountAmount > 0) {
+    rows.push({ kind: 'pair', label: 'Diskon', value: `-${money(receipt.discountAmount)}` });
+  }
+  if (receipt.taxAmount > 0) rows.push({ kind: 'pair', label: 'Pajak', value: money(receipt.taxAmount) });
+  rows.push({ kind: 'pair', label: 'TOTAL', value: money(receipt.grandTotal) });
+  rows.push({
+    kind: 'pair',
+    label: `Bayar (${paymentMethodLabel(receipt.paymentMethod)})`,
+    value: money(receipt.paymentAmount),
+  });
+  rows.push({ kind: 'pair', label: 'Kembalian', value: money(receipt.changeAmount) });
 
   if (receipt.debtAmount && receipt.debtAmount > 0) {
-    rows.push(twoCol('Sisa Utang', money(receipt.debtAmount)));
+    rows.push({ kind: 'pair', label: 'Sisa Utang', value: money(receipt.debtAmount) });
   }
-  rows.push(divider('='));
+  rows.push({ kind: 'divider', text: divider('=') });
 
   if (receipt.status === 'VOID') {
-    rows.push(center('** TRANSAKSI DIBATALKAN **'));
-    rows.push(divider('='));
+    rows.push({ kind: 'center', text: '** TRANSAKSI DIBATALKAN **' });
+    rows.push({ kind: 'divider', text: divider('=') });
   } else {
-    rows.push(center('Terima kasih!'));
+    rows.push({ kind: 'center', text: 'Terima kasih!' });
   }
 
-  return rows.join('\n');
+  return rows;
+}
+
+/**
+ * Render struk resmi (dari GET /orders/{id}/receipt) sebagai teks polos ala
+ * thermal printer 58mm — dipakai untuk isi pesan tombol "Bagikan" (dan
+ * dibangun dari data terstruktur yang sama dengan `buildReceiptRows`, jadi
+ * kedua versi tidak pernah dobel-maintain atau saling berbeda).
+ */
+export function formatReceiptText(receipt: Receipt): string {
+  return buildReceiptRows(receipt)
+    .map((row) => {
+      switch (row.kind) {
+        case 'center':
+          return center(row.text);
+        case 'line':
+        case 'divider':
+          return row.text;
+        case 'pair':
+          return twoCol(row.label, row.value);
+      }
+    })
+    .join('\n');
 }

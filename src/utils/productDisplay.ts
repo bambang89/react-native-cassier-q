@@ -12,8 +12,6 @@ export function paletteColorFor(seed: string): string {
   return THUMBNAIL_PALETTE[hash];
 }
 
-// Belum ada field ikon per-produk di data — tebak emoji dari nama/kategori
-// biar kartu placeholder tidak seragam semua "🛍️".
 export function emojiForProduct(product: Product): string {
   const name = product.productName.toLowerCase();
   if (name.includes('kopi') || name.includes('coffee') || name.includes('americano') || name.includes('espresso'))
