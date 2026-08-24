@@ -12,7 +12,13 @@ export interface ModalProps {
 
 export function Modal({ isOpen, onClose, children, closeOnBackdropPress = true }: ModalProps) {
   return (
-    <RNModal visible={isOpen} transparent animationType="fade" onRequestClose={onClose}>
+    <RNModal
+      visible={isOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+      supportedOrientations={['landscape-left', 'landscape-right']}
+    >
       <Pressable
         style={styles.backdrop}
         onPress={closeOnBackdropPress ? onClose : undefined}

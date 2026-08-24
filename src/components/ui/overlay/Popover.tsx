@@ -51,7 +51,13 @@ export function Popover({ trigger, children, placement = 'bottom' }: PopoverProp
   return (
     <Fragment>
       {triggerElement}
-      <Modal visible={isOpen} transparent animationType="fade" onRequestClose={close}>
+      <Modal
+        visible={isOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={close}
+        supportedOrientations={['landscape-left', 'landscape-right']}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={close}>
           {anchor ? (
             <View style={[styles.popover, { top, left }]}>{children}</View>

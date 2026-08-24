@@ -23,7 +23,13 @@ export interface ActionSheetProps {
 
 export function ActionSheet({ isOpen, onClose, title, actions, children }: ActionSheetProps) {
   return (
-    <Modal visible={isOpen} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      supportedOrientations={['landscape-left', 'landscape-right']}
+    >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <SafeAreaView edges={['bottom']}>

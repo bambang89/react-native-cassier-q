@@ -32,8 +32,6 @@ export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
 
   if (!isValidElement(children)) return null;
 
-  // Ref ditaruh di View pembungkus (bukan di-clone ke trigger) supaya tidak
-  // bergantung pada trigger meneruskan ref ke node native-nya.
   const triggerElement = (
     <View ref={triggerRef} collapsable={false}>
       {cloneElement(children as ReactElement<{ onLongPress?: () => void }>, { onLongPress: show })}
@@ -43,7 +41,12 @@ export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
   return (
     <Fragment>
       {triggerElement}
-      <Modal visible={!!anchor} transparent animationType="fade">
+      <Modal
+        visible={!!anchor}
+        transparent
+        animationType="fade"
+        supportedOrientations={['landscape-left', 'landscape-right']}
+      >
         {anchor ? (
           <View style={[styles.bubble, { top: anchor.y - 36, left: Math.max(anchor.x, spacing.sm) }]}>
             <Text size="xs" style={styles.text}>

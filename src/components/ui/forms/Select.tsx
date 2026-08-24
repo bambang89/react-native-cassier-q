@@ -45,7 +45,13 @@ export function Select<T extends string = string>({
         <Text size="sm" color="muted">▾</Text>
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+        supportedOrientations={['landscape-left', 'landscape-right']}
+      >
         <RNPressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <View style={styles.sheet} onStartShouldSetResponder={() => true}>
             <SafeAreaView>
