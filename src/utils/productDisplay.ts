@@ -1,5 +1,10 @@
 import type { Product } from '@/types/models';
 
+// Ambang stok menipis dipakai bareng oleh kartu produk Kasir & Produk
+// (lihat components/product/ProductGridCard.tsx) supaya badge/label
+// "Menipis" konsisten di kedua layar.
+export const LOW_STOCK_THRESHOLD = 5;
+
 // Warna pastel bergantian buat latar thumbnail produk (kartu grid Kasir/Produk,
 // baris keranjang) supaya konsisten walau produk belum punya foto — dipilih
 // dari hash id produk biar produk yang sama selalu dapat warna yang sama di

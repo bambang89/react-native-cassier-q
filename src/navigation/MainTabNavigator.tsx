@@ -15,37 +15,34 @@ export default function MainTabNavigator() {
   const { isTabletLandscape } = useResponsive();
 
   return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <Tab.Navigator
-        tabBar={isTabletLandscape ? (props) => <SidebarTabBar {...props} /> : undefined}
-        screenOptions={{
-          headerShown: false,
-          tabBarPosition: isTabletLandscape ? 'left' : 'bottom',
-          tabBarActiveTintColor: colors.primary[600],
-          tabBarInactiveTintColor: colors.text.muted,
-          tabBarLabelStyle: { fontFamily: fontFamilies.semibold, fontSize: 12 },
-          tabBarStyle: isTabletLandscape
-            ? styles.sidebar
-            : { borderTopColor: colors.border, height: 64, paddingTop: 6, paddingBottom: 8 },
-          tabBarItemStyle: isTabletLandscape ? styles.sidebarItem : undefined,
-          tabBarLabelPosition: isTabletLandscape ? 'beside-icon' : 'below-icon',
-        }}
-      >
-        {TAB_SCREENS.map(({ name, title, component }) => (
-          <Tab.Screen
-            key={name}
-            name={name}
-            component={component}
-            options={{
-              title,
-              tabBarIcon: ({ focused }) => <TabIcon name={name} focused={focused} />,
-              tabBarButton: !isTabletLandscape && !PHONE_CORE_TABS.has(name) ? () => null : undefined,
-            }}
-          />
-        ))}
-      </Tab.Navigator>
-    </Fragment>
+    <Tab.Navigator
+      tabBar={isTabletLandscape ? (props) => <SidebarTabBar {...props} /> : undefined}
+      screenOptions={{
+        headerShown: false,
+        tabBarPosition: isTabletLandscape ? 'left' : 'bottom',
+        tabBarActiveTintColor: colors.primary[600],
+        tabBarInactiveTintColor: colors.text.muted,
+        tabBarLabelStyle: { fontFamily: fontFamilies.semibold, fontSize: 12 },
+        tabBarStyle: isTabletLandscape
+          ? styles.sidebar
+          : { borderTopColor: colors.border, height: 64, paddingTop: 6, paddingBottom: 8 },
+        tabBarItemStyle: isTabletLandscape ? styles.sidebarItem : undefined,
+        tabBarLabelPosition: isTabletLandscape ? 'beside-icon' : 'below-icon',
+      }}
+    >
+      {TAB_SCREENS.map(({ name, title, component }) => (
+        <Tab.Screen
+          key={name}
+          name={name}
+          component={component}
+          options={{
+            title,
+            tabBarIcon: ({ focused }) => <TabIcon name={name} focused={focused} />,
+            tabBarButton: !isTabletLandscape && !PHONE_CORE_TABS.has(name) ? () => null : undefined,
+          }}
+        />
+      ))}
+    </Tab.Navigator>
   );
 }
 

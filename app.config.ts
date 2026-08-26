@@ -46,6 +46,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         'cassier-Q needs camera access to scan product barcodes at checkout.',
       NSMicrophoneUsageDescription:
         'cassier-Q does not record audio; this permission is required by the camera module.',
+      NSBluetoothAlwaysUsageDescription:
+        'cassier-Q needs Bluetooth access to find and connect to your receipt printer.',
+      NSBluetoothPeripheralUsageDescription:
+        'cassier-Q needs Bluetooth access to find and connect to your receipt printer.',
+      NSLocalNetworkUsageDescription:
+        'cassier-Q needs local network access to find network-connected receipt printers.',
       ITSAppUsesNonExemptEncryption: false,
       'UISupportedInterfaceOrientations~ipad': [
         'UIInterfaceOrientationLandscapeLeft',
@@ -61,7 +67,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './assets/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
-    permissions: ['android.permission.CAMERA'],
+    permissions: [
+      'android.permission.CAMERA',
+      // Dibutuhkan react-native-earl-thermal-printer untuk cari & sambung ke
+      // printer struk Bluetooth (thermal/dot-matrix) — lihat src/services/printing.
+      'android.permission.BLUETOOTH',
+      'android.permission.BLUETOOTH_ADMIN',
+      'android.permission.BLUETOOTH_CONNECT',
+      'android.permission.BLUETOOTH_SCAN',
+      'android.permission.ACCESS_FINE_LOCATION',
+      'android.permission.ACCESS_NETWORK_STATE',
+      'android.permission.CHANGE_WIFI_MULTICAST_STATE',
+    ],
   },
   web: {
     favicon: './assets/favicon.png',

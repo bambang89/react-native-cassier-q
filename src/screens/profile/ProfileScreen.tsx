@@ -26,6 +26,7 @@ import {
   EmployeeIcon,
   LockIcon,
   PeopleIcon,
+  PrintIcon,
   ReceiptIcon,
   RegisterIcon,
   StoreIcon,
@@ -227,6 +228,21 @@ export default function ProfileScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('PurchaseOrders')}
           >
             Purchase Order
+          </Button>
+        </Card>
+
+        <View style={styles.sectionTitleRow}>
+          <PrintIcon size={15} color={colors.text.secondary} />
+          <Text weight="bold">Printer</Text>
+        </View>
+        <Card padding="none">
+          <Button
+            variant="ghost"
+            style={styles.rowButton}
+            leftIcon={<PrintIcon size={16} color={colors.text.secondary} />}
+            onPress={() => navigation.navigate('PrinterSettings')}
+          >
+            Pilih Printer
           </Button>
         </Card>
 
@@ -469,6 +485,15 @@ function SettingsDetailPane({
             onPress={() => navigation.navigate('PurchaseOrders')}
           >
             Purchase Order
+          </Button>
+          <Divider />
+          <Button
+            variant="ghost"
+            style={styles.rowButton}
+            leftIcon={<PrintIcon size={16} color={colors.text.secondary} />}
+            onPress={() => navigation.navigate('PrinterSettings')}
+          >
+            Pilih Printer
           </Button>
         </Card>
 

@@ -14,6 +14,7 @@ import UnitsScreen from '@/screens/products/UnitsScreen';
 import ProductFormScreen from '@/screens/products/ProductFormScreen';
 import OrderDetailScreen from '@/screens/orders/OrderDetailScreen';
 import ReceiptScreen from '@/screens/orders/ReceiptScreen';
+import PrinterSettingsScreen from '@/screens/profile/PrinterSettingsScreen';
 import CustomerDetailScreen from '@/screens/customers/CustomerDetailScreen';
 import SuppliersScreen from '@/screens/suppliers/SuppliersScreen';
 import PurchaseOrdersScreen from '@/screens/purchaseOrders/PurchaseOrdersScreen';
@@ -62,6 +63,7 @@ export default function RootNavigator() {
               <Stack.Screen name="ProductForm" component={ProductFormScreen} />
               <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
               <Stack.Screen name="Receipt" component={ReceiptScreen} />
+              <Stack.Screen name="PrinterSettings" component={PrinterSettingsScreen} />
               <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
               <Stack.Screen name="Suppliers" component={SuppliersScreen} />
               <Stack.Screen name="PurchaseOrders" component={PurchaseOrdersScreen} />

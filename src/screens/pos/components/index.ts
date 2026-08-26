@@ -1,5 +1,3 @@
-export { CategoryChip } from './CategoryChip';
-export { ProductCard } from './ProductCard';
 export { QtyStepper } from './QtyStepper';
 export { CartItemRow } from './CartItemRow';
 export { OrderPanel } from './OrderPanel';

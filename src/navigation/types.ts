@@ -51,6 +51,7 @@ export type RootStackParamList = {
   ProductForm: { product?: Product; prefillBarcode?: string };
   OrderDetail: { orderId: string };
   Receipt: { orderId: string };
+  PrinterSettings: undefined;
   CustomerDetail: { customerId: string };
   Suppliers: undefined;
   PurchaseOrders: undefined;

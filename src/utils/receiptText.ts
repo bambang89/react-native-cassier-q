@@ -1,9 +1,6 @@
 import { PAYMENT_METHODS } from '@/types/models';
 import type { Receipt } from '@/types/models';
 
-// Lebar kolom ala kertas thermal 58mm (32 karakter font monospace) — dipakai
-// buat versi teks yang di-share (WhatsApp dkk render monospace kalau
-// dibungkus tanda kutip tiga, tapi tanpa itu pun tetap gampang dibaca).
 const WIDTH = 32;
 
 function money(value: number): string {
@@ -93,12 +90,6 @@ export function buildReceiptRows(receipt: Receipt): ReceiptRow[] {
   return rows;
 }
 
-/**
- * Render struk resmi (dari GET /orders/{id}/receipt) sebagai teks polos ala
- * thermal printer 58mm — dipakai untuk isi pesan tombol "Bagikan" (dan
- * dibangun dari data terstruktur yang sama dengan `buildReceiptRows`, jadi
- * kedua versi tidak pernah dobel-maintain atau saling berbeda).
- */
 export function formatReceiptText(receipt: Receipt): string {
   return buildReceiptRows(receipt)
     .map((row) => {

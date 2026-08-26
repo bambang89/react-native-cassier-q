@@ -1,15 +1,17 @@
-import { Fragment, useEffect } from 'react';
-import { ActivityIndicator, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { Fragment, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { clearReceipt, fetchReceipt } from '@/store/slices/ordersSlice';
 import type { RootStackParamList } from '@/navigation/types';
 import { buildReceiptRows, formatReceiptText } from '@/utils/receiptText';
+import { getPrinter, getPrinterConfig, saveReceiptText } from '@/services/printing';
 import { colors, spacing } from '@/theme';
 import { Button } from '@/components/ui/forms';
 import { Card, AppBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
+import { FolderIcon, PrintIcon } from '@/components/icons/LineIcons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Receipt'>;
 
@@ -31,12 +33,40 @@ export default function ReceiptScreen({ navigation, route }: Props) {
   const receiptText = receipt ? formatReceiptText(receipt) : '';
   const receiptRows = receipt ? buildReceiptRows(receipt) : [];
 
+  const [printing, setPrinting] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const onShare = async () => {
     if (!receipt) return;
     try {
       await Share.share({ message: receiptText });
     } catch {
       // User batal share atau share sheet gagal dibuka — tidak perlu ditampilkan sebagai error.
+    }
+  };
+
+  const onPrint = async () => {
+    if (!receipt) return;
+    setPrinting(true);
+    try {
+      const config = await getPrinterConfig();
+      await getPrinter(config?.type ?? 'SYSTEM').print(receipt);
+    } catch (error) {
+      Alert.alert('Gagal mencetak', error instanceof Error ? error.message : 'Terjadi kesalahan saat mencetak struk.');
+    } finally {
+      setPrinting(false);
+    }
+  };
+
+  const onSaveReceipt = async () => {
+    if (!receipt) return;
+    setSaving(true);
+    try {
+      await saveReceiptText(receipt);
+    } catch {
+      // User batal share atau share sheet gagal dibuka — tidak perlu ditampilkan sebagai error.
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -85,16 +115,38 @@ export default function ReceiptScreen({ navigation, route }: Props) {
           </ScrollView>
 
           <View style={styles.actions}>
-            <Button
-              variant="outline"
-              style={styles.action}
-              onPress={() => navigation.navigate('Main', { screen: 'POS' })}
-            >
-              Selesai
-            </Button>
-            <Button style={styles.action} onPress={onShare}>
-              Bagikan
-            </Button>
+            <View style={styles.actionRow}>
+              <Button
+                variant="outline"
+                style={styles.action}
+                onPress={() => navigation.navigate('Main', { screen: 'POS' })}
+              >
+                Selesai
+              </Button>
+              <Button
+                variant="outline"
+                style={styles.action}
+                leftIcon={<PrintIcon size={16} color={colors.primary[600]} />}
+                loading={printing}
+                onPress={onPrint}
+              >
+                Cetak
+              </Button>
+            </View>
+            <View style={styles.actionRow}>
+              <Button
+                variant="outline"
+                style={styles.action}
+                leftIcon={<FolderIcon size={16} color={colors.primary[600]} />}
+                loading={saving}
+                onPress={onSaveReceipt}
+              >
+                Simpan
+              </Button>
+              <Button style={styles.action} onPress={onShare}>
+                Bagikan
+              </Button>
+            </View>
           </View>
         </Fragment>
       )}
@@ -112,7 +164,6 @@ const styles = StyleSheet.create({
   receiptCenterLine: { textAlign: 'center' },
   receiptRow: { flexDirection: 'row', justifyContent: 'space-between' },
   actions: {
-    flexDirection: 'row',
     alignSelf: 'center',
     width: '100%',
     maxWidth: 370,
@@ -121,5 +172,6 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
+  actionRow: { flexDirection: 'row', gap: spacing.sm },
   action: { flex: 1 },
 });

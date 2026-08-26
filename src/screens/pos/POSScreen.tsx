@@ -22,18 +22,12 @@ import { Modal } from '@/components/ui/overlay';
 import { EmptyState, Header, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 import { BarcodeIcon, BoxIcon, CartIcon, SearchIcon, UnlockIcon } from '@/components/icons/LineIcons';
+import { CategoryChip, ProductGridCard } from '@/components/product';
 
 import type { POSScreenProps } from './POSScreen.types';
 import { styles } from './POSScreen.styles';
 import { formatRupiah, greetingForNow, PPN_RATE, sessionTimeLabel, todayLabel } from './POSScreen.utils';
-import {
-  CategoryChip,
-  CheckoutForm,
-  DiscountForm,
-  OpenSessionForm,
-  OrderPanel,
-  ProductCard,
-} from './components';
+import { CheckoutForm, DiscountForm, OpenSessionForm, OrderPanel } from './components';
 
 export default function POSScreen({ navigation }: POSScreenProps) {
   const dispatch = useAppDispatch();
@@ -174,7 +168,7 @@ export default function POSScreen({ navigation }: POSScreenProps) {
   };
 
   const renderProduct = ({ item }: { item: Product }) => (
-    <ProductCard item={item} onPress={() => onAddToCart(item)} tablet={isTabletLandscape} />
+    <ProductGridCard item={item} onPress={() => onAddToCart(item)} tablet={isTabletLandscape} variant="pos" />
   );
 
   // Search + kategori + grid produk dirender sebagai satu unit supaya, di mode

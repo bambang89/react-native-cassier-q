@@ -1,39 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { CompositeScreenProps } from '@react-navigation/native';
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { deleteProduct, fetchProducts, restockProduct, setSearch } from '@/store/slices/productsSlice';
-import { fetchProductUnits } from '@/store/slices/productUnitsSlice';
+import { deleteProduct, fetchProducts, setSearch } from '@/store/slices/productsSlice';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
-import { resolvePurchaseUnitChoices } from '@/utils/productUnits';
-import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
+import { LOW_STOCK_THRESHOLD } from '@/utils/productDisplay';
 import { useResponsive } from '@/hooks/useResponsive';
-import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Product } from '@/types/models';
-import { colors, radii, spacing } from '@/theme';
+import { colors } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
-import { Button, FormControl, Input, Link, Pressable, Select } from '@/components/ui/forms';
-import { Badge } from '@/components/ui/dataDisplay';
-import type { BadgeVariant } from '@/components/ui/dataDisplay';
+import { Button, Input, Link, Pressable } from '@/components/ui/forms';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { Card, EmptyState, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
+import { EmptyState, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 import { AlertTriangleIcon, BarcodeIcon, BoxIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
+import { CategoryChip, ProductGridCard } from '@/components/product';
 
-type Props = CompositeScreenProps<
-  BottomTabScreenProps<MainTabParamList, 'Products'>,
-  NativeStackScreenProps<RootStackParamList>
->;
+import type { ProductsScreenProps } from './ProductsScreen.types';
+import { styles } from './ProductsScreen.styles';
+import { ProductListItem, RestockForm } from './components';
 
-// Sama dengan ambang di layar Kasir — dipakai buat badge stok & banner peringatan di sini.
-const LOW_STOCK_THRESHOLD = 5;
-
-export default function ProductsScreen({ navigation }: Props) {
+export default function ProductsScreen({ navigation }: ProductsScreenProps) {
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
   const { items, search, page, totalPages, status, error } = useAppSelector((state) => state.products);
@@ -148,12 +137,14 @@ export default function ProductsScreen({ navigation }: Props) {
           {categories.length > 0 ? (
             <ScrollView
               horizontal
+              style={{ height: 70 }}
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryRow}
+              contentContainerStyle={[styles.categoryRow]}
             >
               <CategoryChip
                 label="Semua"
                 active={selectedCategoryId === null}
+                tablet={isTabletLandscape}
                 onPress={() => setSelectedCategoryId(null)}
               />
               {categories.map((cat) => (
@@ -161,6 +152,7 @@ export default function ProductsScreen({ navigation }: Props) {
                   key={cat.id}
                   label={cat.categoryName}
                   active={selectedCategoryId === cat.id}
+                  tablet={isTabletLandscape}
                   onPress={() => setSelectedCategoryId(cat.id)}
                 />
               ))}
@@ -178,7 +170,12 @@ export default function ProductsScreen({ navigation }: Props) {
             onEndReached={onLoadMore}
             onEndReachedThreshold={0.4}
             renderItem={({ item }) => (
-              <ProductTile item={item} onPress={() => navigation.navigate('ProductForm', { product: item })} />
+              <ProductGridCard
+                item={item}
+                tablet
+                variant="catalog"
+                onPress={() => navigation.navigate('ProductForm', { product: item })}
+              />
             )}
             ListEmptyComponent={
               status === 'loading' ? (
@@ -277,43 +274,7 @@ export default function ProductsScreen({ navigation }: Props) {
           { label: 'Hapus', onPress: () => setDeleteTarget(item) },
         ]}
         renderItem={(item) => (
-          <Card
-            onPress={() => navigation.navigate('ProductForm', { product: item })}
-            style={styles.card}
-            shadow="none"
-          >
-            <View style={styles.row}>
-              {item.imageUrl ? (
-                <Image source={{ uri: item.imageUrl }} style={styles.rowImage} />
-              ) : (
-                <View style={styles.rowImagePlaceholder} />
-              )}
-              <View style={styles.info}>
-                <Text weight="semibold" numberOfLines={1}>
-                  {item.productName}
-                </Text>
-                <Text size="xs" color="secondary">
-                  {item.sku} · {item.categoryName}
-                </Text>
-              </View>
-              <View style={styles.right}>
-                <Text weight="bold" color="link">
-                  Rp {item.sellingPrice.toLocaleString('id-ID')}
-                </Text>
-                <Badge
-                  variant={
-                    item.stockQuantity <= 0
-                      ? 'error'
-                      : item.stockQuantity <= LOW_STOCK_THRESHOLD
-                        ? 'warning'
-                        : 'neutral'
-                  }
-                >
-                  {`${item.stockQuantity} ${item.baseUnitName}`}
-                </Badge>
-              </View>
-            </View>
-          </Card>
+          <ProductListItem item={item} onPress={() => navigation.navigate('ProductForm', { product: item })} />
         )}
         ListEmptyComponent={
           status === 'loading' ? (
@@ -368,197 +329,3 @@ export default function ProductsScreen({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-
-function CategoryChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, active && styles.chipActive]}>
-      <Text size="sm" weight="semibold" color={active ? 'inverse' : 'secondary'}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function stockStatus(product: Product): { label: string; variant: BadgeVariant } {
-  if (product.stockQuantity <= 0) return { label: 'Habis', variant: 'error' };
-  if (product.stockQuantity <= LOW_STOCK_THRESHOLD) return { label: 'Menipis', variant: 'warning' };
-  return { label: 'Aman', variant: 'success' };
-}
-
-function ProductTile({ item, onPress }: { item: Product; onPress: () => void }) {
-  const thumbnailColor = paletteColorFor(item.id);
-  const badge = stockStatus(item);
-  return (
-    <Card padding="none" style={styles.tile} onPress={onPress}>
-      <View style={[styles.tileImageWrap, !item.imageUrl && { backgroundColor: thumbnailColor }]}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.tileImage} />
-        ) : (
-          <Text size="2xl">{emojiForProduct(item)}</Text>
-        )}
-      </View>
-      <View style={styles.tileBody}>
-        <Text weight="semibold" size="xs" numberOfLines={2} style={styles.tileName}>
-          {item.productName}
-        </Text>
-        <Text weight="bold" size="sm">
-          Rp {item.sellingPrice.toLocaleString('id-ID')}
-        </Text>
-        <Badge variant={badge.variant}>{badge.label}</Badge>
-      </View>
-    </Card>
-  );
-}
-
-function RestockForm({
-  product,
-  onDone,
-  onCancel,
-}: {
-  product: Product;
-  onDone: () => void;
-  onCancel: () => void;
-}) {
-  const dispatch = useAppDispatch();
-  const units = useAppSelector((state) => state.productUnits.byProductId[product.id]);
-  const [quantity, setQuantity] = useState('');
-  const [notes, setNotes] = useState('');
-  const [unitId, setUnitId] = useState(product.baseUnitId);
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!units) dispatch(fetchProductUnits(product.id));
-  }, [dispatch, product.id, units]);
-
-  const choices = resolvePurchaseUnitChoices(units ?? [], product);
-  const selectedUnitName = choices.find((c) => c.unitId === unitId)?.unitName ?? product.baseUnitName;
-
-  const onSubmit = async () => {
-    const parsed = Number(quantity);
-    if (!parsed || parsed <= 0) return;
-    setSubmitting(true);
-    try {
-      await dispatch(
-        restockProduct({
-          id: product.id,
-          payload: { unitId, quantity: parsed, notes: notes || undefined },
-        }),
-      ).unwrap();
-      onDone();
-    } catch {
-      Alert.alert('Gagal', 'Restock gagal, coba lagi.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        Tambah Stok — {product.productName}
-      </Text>
-      {choices.length > 1 ? (
-        <FormControl label="Satuan restock">
-          <Select
-            value={unitId}
-            onChange={setUnitId}
-            options={choices.map((c) => ({ label: c.unitName, value: c.unitId }))}
-          />
-        </FormControl>
-      ) : null}
-      <FormControl label={`Jumlah (${selectedUnitName})`}>
-        <Input keyboardType="numeric" value={quantity} onChangeText={setQuantity} placeholder="0" />
-      </FormControl>
-      <FormControl label="Catatan (opsional)">
-        <Input value={notes} onChangeText={setNotes} placeholder="mis. pembelian dari supplier X" />
-      </FormControl>
-      <View style={styles.modalActions}>
-        <Button variant="ghost" onPress={onCancel} style={styles.modalAction}>
-          Batal
-        </Button>
-        <Button onPress={onSubmit} loading={submitting} disabled={!quantity} style={styles.modalAction}>
-          Simpan
-        </Button>
-      </View>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  containerTablet: { backgroundColor: tabletColors.gray25 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
-  lowStockBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginHorizontal: spacing.base,
-    marginBottom: spacing.sm,
-    padding: spacing.sm + 2,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.warning[200],
-    backgroundColor: colors.warning[50],
-  },
-  lowStockBannerText: { flex: 1 },
-  lowStockGlyph: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    backgroundColor: colors.warning[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchBar: { paddingHorizontal: spacing.base, marginBottom: spacing.sm },
-  list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
-  card: { marginBottom: spacing.sm },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rowImage: { width: 40, height: 40, borderRadius: 6, marginRight: spacing.sm, backgroundColor: colors.gray[100] },
-  rowImagePlaceholder: { width: 40, height: 40, borderRadius: 6, marginRight: spacing.sm, backgroundColor: colors.gray[100] },
-  info: { flex: 1, marginRight: spacing.sm },
-  right: { alignItems: 'flex-end', gap: spacing.xs },
-  empty: { marginTop: spacing['3xl'] },
-  modalTitle: { marginBottom: spacing.base },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
-  modalAction: { minWidth: 90 },
-  // Container/chip/tile di bawah ini cuma dipakai di cabang tablet (lihat
-  // pemanggilnya), jadi boleh langsung pakai tabletColors persis
-  // cassier-q-webapp/tablet-products.html tanpa ternary mode HP.
-  tabletBody: { flex: 1, paddingVertical: 22, paddingHorizontal: 24, backgroundColor: tabletColors.gray25 },
-  tabletSearchRow: { marginBottom: 14 },
-  tabletSearchInput: { flex: 1 },
-  categoryRow: { paddingBottom: 14, gap: 8 },
-  chip: {
-    paddingHorizontal: 13,
-    paddingVertical: 7,
-    borderRadius: 9999,
-    backgroundColor: tabletColors.white,
-    borderWidth: 1,
-    borderColor: tabletColors.gray200,
-    marginRight: 8,
-  },
-  chipActive: { backgroundColor: tabletColors.navy900, borderColor: tabletColors.navy900 },
-  grid: { paddingBottom: spacing['2xl'] },
-  gridRow: { gap: 14 },
-  tile: {
-    flex: 1,
-    minHeight: 160,
-    marginBottom: 14,
-    padding: 12,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: tabletColors.gray150,
-    backgroundColor: tabletColors.white,
-    overflow: 'hidden',
-  },
-  tileImageWrap: {
-    width: '100%',
-    height: 90,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-  },
-  tileImage: { width: '100%', height: '100%', borderRadius: radii.md },
-  tileBody: { paddingTop: 10, gap: 4 },
-  tileName: { minHeight: 32, fontSize: 13, color: tabletColors.gray900 },
-});
