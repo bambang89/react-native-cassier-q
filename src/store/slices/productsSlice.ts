@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import * as productsApi from '@/api/productsApi';
-import type { FetchProductsParams, ProductPayload, RestockPayload } from '@/api/productsApi';
+import type { FetchProductsParams, ProductPayload, ProductPhotoFile, RestockPayload } from '@/api/productsApi';
 import type { Product } from '@/types/models';
 
 type ProductsState = {
@@ -43,6 +43,11 @@ export const createProduct = createAsyncThunk('products/create', async (payload:
 export const updateProduct = createAsyncThunk(
   'products/update',
   async ({ id, payload }: { id: string; payload: ProductPayload }) => productsApi.updateProduct(id, payload),
+);
+
+export const uploadProductPhoto = createAsyncThunk(
+  'products/uploadPhoto',
+  async ({ id, file }: { id: string; file: ProductPhotoFile }) => productsApi.uploadProductPhoto(id, file),
 );
 
 export const deleteProduct = createAsyncThunk('products/delete', async (id: string) => {
@@ -103,6 +108,10 @@ const productsSlice = createSlice({
       .addCase(updateProduct.rejected, (state, action) => {
         state.mutationStatus = 'failed';
         state.mutationError = action.error.message ?? 'Produk tidak bisa disimpan';
+      })
+      .addCase(uploadProductPhoto.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index >= 0) state.items[index] = action.payload;
       })
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);

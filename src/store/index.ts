@@ -4,6 +4,7 @@ import authReducer from './slices/authSlice';
 import cartReducer from './slices/cartSlice';
 import productsReducer from './slices/productsSlice';
 import productUnitsReducer from './slices/productUnitsSlice';
+import productPhotosReducer from './slices/productPhotosSlice';
 import categoriesReducer from './slices/categoriesSlice';
 import unitsReducer from './slices/unitsSlice';
 import cashierSessionReducer from './slices/cashierSessionSlice';
@@ -22,6 +23,7 @@ export const store = configureStore({
     cart: cartReducer,
     products: productsReducer,
     productUnits: productUnitsReducer,
+    productPhotos: productPhotosReducer,
     categories: categoriesReducer,
     units: unitsReducer,
     cashierSession: cashierSessionReducer,

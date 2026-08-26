@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Page, Product, ProductUnit, Stock } from '@/types/models';
+import type { Page, Product, ProductPhoto, ProductUnit, Stock } from '@/types/models';
 
 export interface FetchProductsParams {
   search?: string;
@@ -56,6 +56,42 @@ export async function updateProduct(id: string, payload: ProductPayload): Promis
 
 export async function deleteProduct(id: string): Promise<void> {
   await apiClient.delete(`/products/${id}`);
+}
+
+export interface ProductPhotoFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+/** Upload/ganti foto produk (JPG/PNG/WEBP, maks 5MB) — balikan produk lengkap dgn imageUrl baru. */
+export async function uploadProductPhoto(id: string, file: ProductPhotoFile): Promise<Product> {
+  const formData = new FormData();
+  formData.append('file', file as unknown as Blob);
+  const { data } = await apiClient.post<Product>(`/products/${id}/photo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+/** Daftar foto galeri produk (di luar foto utama/imageUrl). */
+export async function fetchProductPhotos(productId: string): Promise<ProductPhoto[]> {
+  const { data } = await apiClient.get<ProductPhoto[]>(`/products/${productId}/photos`);
+  return data;
+}
+
+/** Tambah 1 foto ke galeri produk (JPG/PNG/WEBP, maks 5MB). */
+export async function addProductPhoto(productId: string, file: ProductPhotoFile): Promise<ProductPhoto> {
+  const formData = new FormData();
+  formData.append('file', file as unknown as Blob);
+  const { data } = await apiClient.post<ProductPhoto>(`/products/${productId}/photos`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+export async function deleteProductPhoto(productId: string, photoId: string): Promise<void> {
+  await apiClient.delete(`/products/${productId}/photos/${photoId}`);
 }
 
 export interface RestockPayload {

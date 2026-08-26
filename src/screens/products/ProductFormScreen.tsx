@@ -5,20 +5,18 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchUnits } from '@/store/slices/unitsSlice';
-import { fetchProductUnits, registerProductUnit } from '@/store/slices/productUnitsSlice';
-import { createProduct, updateProduct } from '@/store/slices/productsSlice';
+import { createProduct, updateProduct, uploadProductPhoto } from '@/store/slices/productsSlice';
+import type { ProductPhotoFile } from '@/api/productsApi';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { RootStackParamList } from '@/navigation/types';
-import type { Product, Unit } from '@/types/models';
 import { colors, spacing } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
-import { Button, CheckBox, FormControl, Input, Link, Select, TextArea } from '@/components/ui/forms';
-import { Badge } from '@/components/ui/dataDisplay';
-import { Modal } from '@/components/ui/overlay';
-import { AppBar, Card } from '@/components/ui/recipes';
+import { Button, FormControl, Input, Link, Select, TextArea } from '@/components/ui/forms';
+import { AppBar } from '@/components/ui/recipes';
 import { BarcodeIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
+import { ProductPhotoGallery, ProductUnitsSection } from './components';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
@@ -36,6 +34,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   const [brand, setBrand] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [pickedImage, setPickedImage] = useState<ProductPhotoFile | null>(null);
   const [baseUnitId, setBaseUnitId] = useState<string | null>(null);
   const [sellingPrice, setSellingPrice] = useState('');
   const [costPrice, setCostPrice] = useState('');
@@ -46,10 +45,6 @@ export default function ProductFormScreen({ navigation, route }: Props) {
     dispatch(fetchUnits());
   }, [dispatch]);
 
-  // Form ini bisa "berpindah target" tanpa remount — lihat tombol Scan di
-  // bawah, yang update route.params via setParams saat produk ketemu/tidak
-  // ketemu. Reset semua field tiap kali target (atau prefill barcode) itu
-  // berubah, karena useState hanya baca nilai awal sekali saat mount.
   useEffect(() => {
     const p = route.params?.product;
     setSku(p?.sku ?? '');
@@ -59,6 +54,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
     setBrand(p?.brand ?? '');
     setDescription(p?.description ?? '');
     setImageUrl(p?.imageUrl ?? '');
+    setPickedImage(null);
     setBaseUnitId(p?.baseUnitId ?? null);
     setSellingPrice(p?.sellingPrice ? String(p.sellingPrice) : '');
     setCostPrice(p?.costPrice ? String(p.costPrice) : '');
@@ -95,11 +91,18 @@ export default function ProductFormScreen({ navigation, route }: Props) {
         sellingPrice: Number(sellingPrice),
         costPrice: costPrice ? Number(costPrice) : undefined,
       };
-      if (editing) {
-        await dispatch(updateProduct({ id: editing.id, payload })).unwrap();
-      } else {
-        await dispatch(createProduct(payload)).unwrap();
+      const saved = editing
+        ? await dispatch(updateProduct({ id: editing.id, payload })).unwrap()
+        : await dispatch(createProduct(payload)).unwrap();
+
+      if (pickedImage) {
+        try {
+          await dispatch(uploadProductPhoto({ id: saved.id, file: pickedImage })).unwrap();
+        } catch {
+          Alert.alert('Produk tersimpan', 'Tapi foto gagal diupload — coba lagi dari menu edit produk.');
+        }
       }
+
       navigation.goBack();
     } catch {
       Alert.alert('Gagal', 'Produk tidak bisa disimpan. Cek kembali data yang diisi.');
@@ -107,6 +110,17 @@ export default function ProductFormScreen({ navigation, route }: Props) {
       setSubmitting(false);
     }
   };
+
+  const onOpenCamera = () => {
+    navigation.navigate('ProductPhotoCamera', { onCaptured: setPickedImage });
+  };
+
+  const onRemovePhoto = () => {
+    setPickedImage(null);
+    setImageUrl('');
+  };
+
+  const photoPreviewUri = pickedImage?.uri || imageUrl || null;
 
   return (
     <KeyboardAvoidingView
@@ -182,19 +196,28 @@ export default function ProductFormScreen({ navigation, route }: Props) {
         <FormControl label="Deskripsi">
           <TextArea value={description} onChangeText={setDescription} placeholder="Opsional" />
         </FormControl>
-        <FormControl label="URL Gambar" helperText="Tempel link gambar produk (belum ada upload langsung dari HP)">
-          <Input
-            value={imageUrl}
-            onChangeText={setImageUrl}
-            placeholder="https://..."
-            autoCapitalize="none"
-            keyboardType="url"
-          />
-          {imageUrl ? (
-            <View style={styles.imagePreviewWrap}>
-              <Image source={{ uri: imageUrl }} style={styles.imagePreview} />
+        <FormControl label="Foto produk">
+          <View style={styles.photoRow}>
+            {photoPreviewUri ? (
+              <Image source={{ uri: photoPreviewUri }} style={styles.imagePreview} />
+            ) : (
+              <View style={[styles.imagePreview, styles.imagePlaceholder]}>
+                <Text size="xs" color="muted" align="center">
+                  Belum ada foto
+                </Text>
+              </View>
+            )}
+            <View style={styles.photoActions}>
+              <Button size="sm" variant="outline" onPress={onOpenCamera}>
+                {photoPreviewUri ? 'Ganti Foto' : 'Ambil Foto'}
+              </Button>
+              {photoPreviewUri ? (
+                <Button size="sm" variant="ghost" onPress={onRemovePhoto}>
+                  Hapus
+                </Button>
+              ) : null}
             </View>
-          ) : null}
+          </View>
         </FormControl>
 
         <HStack space="md">
@@ -209,6 +232,8 @@ export default function ProductFormScreen({ navigation, route }: Props) {
             </FormControl>
           </View>
         </HStack>
+
+        {editing ? <ProductPhotoGallery productId={editing.id} navigation={navigation} /> : null}
 
         {editing ? <ProductUnitsSection product={editing} allUnits={units} /> : null}
 
@@ -227,172 +252,6 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   );
 }
 
-function ProductUnitsSection({ product, allUnits }: { product: Product; allUnits: Unit[] }) {
-  const dispatch = useAppDispatch();
-  const productUnits = useAppSelector((state) => state.productUnits.byProductId[product.id]);
-  const [formOpen, setFormOpen] = useState(false);
-
-  useEffect(() => {
-    dispatch(fetchProductUnits(product.id));
-  }, [dispatch, product.id]);
-
-  const registeredIds = new Set((productUnits ?? []).map((u) => u.unitId));
-  const availableUnits = allUnits.filter((u) => !registeredIds.has(u.id));
-
-  return (
-    <FormControl label="Satuan alternatif">
-      <Card>
-        {!productUnits ? (
-          <Text size="sm" color="muted">
-            Memuat...
-          </Text>
-        ) : productUnits.length === 0 ? (
-          <Text size="sm" color="muted">
-            Cuma dijual dalam satuan dasar ({product.baseUnitName}).
-          </Text>
-        ) : (
-          productUnits.map((u) => (
-            <View key={u.unitId} style={sectionStyles.row}>
-              <View style={sectionStyles.rowInfo}>
-                <Text weight="medium">{u.unitName}</Text>
-                <Text size="xs" color="secondary">
-                  1 {u.unitName} = {u.conversionToBase} {product.baseUnitName}
-                </Text>
-              </View>
-              <View style={sectionStyles.badges}>
-                {u.baseUnit ? <Badge variant="neutral">Dasar</Badge> : null}
-                {u.saleUnit ? <Badge variant="success">Jual</Badge> : null}
-                {u.purchaseUnit ? <Badge variant="primary">Restock</Badge> : null}
-              </View>
-            </View>
-          ))
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          style={sectionStyles.addButton}
-          onPress={() => setFormOpen(true)}
-          disabled={availableUnits.length === 0}
-        >
-          {availableUnits.length === 0 ? 'Semua satuan sudah didaftarkan' : '+ Tambah satuan alternatif'}
-        </Button>
-      </Card>
-
-      <Modal isOpen={formOpen} onClose={() => setFormOpen(false)}>
-        <RegisterUnitForm
-          product={product}
-          availableUnits={availableUnits}
-          onDone={() => setFormOpen(false)}
-          onCancel={() => setFormOpen(false)}
-        />
-      </Modal>
-    </FormControl>
-  );
-}
-
-function RegisterUnitForm({
-  product,
-  availableUnits,
-  onDone,
-  onCancel,
-}: {
-  product: Product;
-  availableUnits: Unit[];
-  onDone: () => void;
-  onCancel: () => void;
-}) {
-  const dispatch = useAppDispatch();
-  const [unitId, setUnitId] = useState<string | null>(null);
-  const [conversionToBase, setConversionToBase] = useState('');
-  const [saleUnit, setSaleUnit] = useState(true);
-  const [purchaseUnit, setPurchaseUnit] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-
-  const selectedUnitName = availableUnits.find((u) => u.id === unitId)?.unitName ?? '';
-  const ratio = Number(conversionToBase);
-  const canSubmit = !!unitId && ratio > 0;
-
-  const onSubmit = async () => {
-    if (!unitId) return;
-    setSubmitting(true);
-    try {
-      await dispatch(
-        registerProductUnit({
-          productId: product.id,
-          payload: { unitId, conversionToBase: ratio, saleUnit, purchaseUnit },
-        }),
-      ).unwrap();
-      onDone();
-    } catch {
-      Alert.alert('Gagal', 'Satuan tidak bisa didaftarkan.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <View>
-      <Text weight="semibold" size="lg" style={sectionStyles.modalTitle}>
-        Tambah Satuan Alternatif
-      </Text>
-      <FormControl label="Satuan" isRequired>
-        <Select
-          value={unitId}
-          onChange={setUnitId}
-          placeholder="Pilih satuan"
-          options={availableUnits.map((u) => ({ label: `${u.unitName} (${u.unitCode})`, value: u.id }))}
-        />
-      </FormControl>
-      <FormControl
-        label={`Rasio ke satuan dasar (${product.baseUnitName})`}
-        isRequired
-        helperText={
-          selectedUnitName ? `mis. isi 24 kalau 1 ${selectedUnitName} = 24 ${product.baseUnitName}` : undefined
-        }
-      >
-        <Input
-          value={conversionToBase}
-          onChangeText={setConversionToBase}
-          placeholder="0"
-          keyboardType="numeric"
-        />
-      </FormControl>
-      <View style={sectionStyles.checkboxRow}>
-        <CheckBox value={saleUnit} onChange={setSaleUnit} label="Bisa dijual (muncul di kasir)" />
-      </View>
-      <View style={sectionStyles.checkboxRow}>
-        <CheckBox value={purchaseUnit} onChange={setPurchaseUnit} label="Bisa dipakai untuk restock" />
-      </View>
-      <View style={sectionStyles.modalActions}>
-        <Button variant="ghost" onPress={onCancel} style={sectionStyles.modalAction}>
-          Batal
-        </Button>
-        <Button onPress={onSubmit} loading={submitting} disabled={!canSubmit} style={sectionStyles.modalAction}>
-          Simpan
-        </Button>
-      </View>
-    </View>
-  );
-}
-
-const sectionStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  rowInfo: { flex: 1, marginRight: spacing.sm },
-  badges: { flexDirection: 'row', gap: spacing.xs },
-  addButton: { marginTop: spacing.sm, alignSelf: 'flex-start' },
-  modalTitle: { marginBottom: spacing.base },
-  checkboxRow: { marginBottom: spacing.sm },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
-  modalAction: { minWidth: 90 },
-});
-
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   flexTablet: { backgroundColor: tabletColors.gray25 },
@@ -400,7 +259,9 @@ const styles = StyleSheet.create({
   bodyTablet: { maxWidth: 760, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },
   formHalf: { flex: 1 },
   unitsLink: { marginTop: spacing.xs },
-  imagePreviewWrap: { marginTop: spacing.sm },
-  imagePreview: { width: 80, height: 80, borderRadius: 8, backgroundColor: colors.gray[100] },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
+  imagePreview: { width: 72, height: 72, borderRadius: 8, backgroundColor: colors.gray[100] },
+  imagePlaceholder: { alignItems: 'center', justifyContent: 'center', padding: spacing.xs },
+  photoActions: { flexDirection: 'row', gap: spacing.sm },
   prefillNote: { marginBottom: spacing.base },
 });

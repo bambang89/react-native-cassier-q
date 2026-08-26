@@ -80,6 +80,13 @@ export type ProductUnit = {
   saleUnit: boolean;
 };
 
+/** Foto galeri produk (di luar `Product.imageUrl`), dari GET/POST /products/{id}/photos. */
+export type ProductPhoto = {
+  id: string;
+  imageUrl: string;
+  sortOrder: number;
+};
+
 export type Stock = {
   productId: string;
   productName: string;
