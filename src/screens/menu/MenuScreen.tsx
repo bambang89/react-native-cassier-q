@@ -6,37 +6,24 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
-import type { RootStackParamList, MainTabParamList } from '@/navigation/types';
 import { colors, radii, spacing, staggerDelay } from '@/theme';
 import {
-  BarChartIcon,
   ChevronRightIcon,
-  ClipboardIcon,
-  EmployeeIcon,
-  FolderIcon,
   HelpIcon,
-  LayersIcon,
+  LockIcon,
   LogoutIcon,
-  PeopleIcon,
-  PlugIcon,
-  PrintIcon,
-  ReceiptIcon,
-  ScaleIcon,
   SettingsIcon,
   StoreIcon,
-  TruckIcon,
-  WalletIcon,
 } from '@/components/icons/LineIcons';
 import type { LineIconProps } from '@/components/icons/LineIcons';
 import { Header } from '@/components/ui/recipes';
 import { AlertDialog } from '@/components/ui/overlay';
 import { FadeInView, PressableScale } from '@/components/ui/motion';
 import { Heading, Text } from '@/components/ui/typography';
+import { MENU_CATALOG, useMenuAccess } from '@/navigation/menuCatalog';
+import type { MenuKey, MenuTarget } from '@/navigation/menuCatalog';
 
-type MenuTarget =
-  | { tab: keyof MainTabParamList }
-  | { stack: Exclude<keyof RootStackParamList, 'Auth' | 'Main'> }
-  | { action: 'help' };
+type MenuAction = MenuTarget | { action: 'help' };
 
 type MenuItem = {
   label: string;
@@ -44,40 +31,14 @@ type MenuItem = {
   icon: ComponentType<LineIconProps>;
   tint: string;
   tintBg: string;
-  target: MenuTarget;
+  target: MenuAction;
 };
 
-const SECTIONS: { title: string; items: MenuItem[] }[] = [
-  {
-    title: 'Operasional',
-    items: [
-      { label: 'Pesanan', hint: 'Antrian pesanan masuk', icon: ClipboardIcon, tint: colors.primary[600], tintBg: colors.primary[50], target: { tab: 'Pesanan' } },
-      { label: 'Inventori', hint: 'Stok & mutasi gudang', icon: LayersIcon, tint: colors.teal[700], tintBg: colors.teal[50], target: { tab: 'Inventory' } },
-      { label: 'Pelanggan', hint: 'Data & utang pelanggan', icon: PeopleIcon, tint: colors.success[600], tintBg: colors.success[50], target: { tab: 'Customers' } },
-      { label: 'Pengeluaran', hint: 'Biaya operasional', icon: WalletIcon, tint: colors.warning[600], tintBg: colors.warning[50], target: { tab: 'Expenses' } },
-    ],
-  },
-  {
-    title: 'Bisnis',
-    items: [
-      { label: 'Laporan', hint: 'Penjualan & produk terlaris', icon: BarChartIcon, tint: colors.primary[600], tintBg: colors.primary[50], target: { tab: 'Reports' } },
-      { label: 'Supplier', hint: 'Pemasok barang', icon: TruckIcon, tint: colors.teal[700], tintBg: colors.teal[50], target: { stack: 'Suppliers' } },
-      { label: 'Purchase Order', hint: 'Pembelian ke supplier', icon: ReceiptIcon, tint: colors.success[600], tintBg: colors.success[50], target: { stack: 'PurchaseOrders' } },
-      { label: 'Kategori', hint: 'Kelompok produk', icon: FolderIcon, tint: colors.warning[600], tintBg: colors.warning[50], target: { stack: 'Categories' } },
-      { label: 'Satuan', hint: 'Pcs, dus, kg, ...', icon: ScaleIcon, tint: colors.primary[600], tintBg: colors.primary[50], target: { stack: 'Units' } },
-      { label: 'Karyawan', hint: 'Tim & hak akses', icon: EmployeeIcon, tint: colors.teal[700], tintBg: colors.teal[50], target: { tab: 'Employees' } },
-      { label: 'Outlet', hint: 'Profil & data toko', icon: StoreIcon, tint: colors.success[600], tintBg: colors.success[50], target: { tab: 'StoreProfile' } },
-      { label: 'Integrasi', hint: 'Layanan pihak ketiga', icon: PlugIcon, tint: colors.warning[600], tintBg: colors.warning[50], target: { tab: 'Integrations' } },
-    ],
-  },
-  {
-    title: 'Akun & Perangkat',
-    items: [
-      { label: 'Pengaturan', hint: 'Akun, sesi kasir, kata sandi', icon: SettingsIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { tab: 'Profile' } },
-      { label: 'Printer Struk', hint: 'Bluetooth & ukuran kertas', icon: PrintIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { stack: 'PrinterSettings' } },
-      { label: 'Bantuan', hint: 'Hubungi dukungan cassier-Q', icon: HelpIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { action: 'help' } },
-    ],
-  },
+const fromCatalog = (key: MenuKey): MenuItem & { key: MenuKey } => ({ ...MENU_CATALOG[key] });
+
+const SECTION_KEYS: { title: string; keys: MenuKey[] }[] = [
+  { title: 'Operasional', keys: ['pesanan', 'inventory', 'customers', 'expenses'] },
+  { title: 'Bisnis', keys: ['reports', 'suppliers', 'purchase_orders', 'categories', 'units', 'employees', 'outlet', 'integrations'] },
 ];
 
 /** Menu sekunder di HP (mockup mobile-menu.html) — pintu ke semua layar di luar bottom tab bar. */
@@ -85,18 +46,40 @@ export default function MenuScreen() {
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const activeStore = useAppSelector((state) => state.access.activeStore);
+  const { can, isManager, isSuperadmin } = useMenuAccess();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const role = user?.roles?.[0];
-  const roleLabel = user?.superadmin ? 'Super Admin' : (role?.roleName ?? '-');
+  const roleLabel = user?.superadmin ? 'Pemilik Aplikasi' : (role?.roleName ?? '-');
+  const storeLabel = isSuperadmin ? (activeStore?.name ?? 'Belum memilih toko') : (role?.storeName ?? '-');
+
+  // Menu yang tidak diizinkan Kepala Toko untuk role ini tidak ditampilkan.
+  const sections: { title: string; items: MenuItem[] }[] = [
+    ...SECTION_KEYS.map((section) => ({
+      title: section.title,
+      items: section.keys.filter(can).map(fromCatalog),
+    })),
+    {
+      title: 'Akun & Perangkat',
+      items: [
+        ...(isManager
+          ? [{ label: 'Hak Akses Menu', hint: 'Atur menu untuk Produk, Gudang & Kasir', icon: LockIcon, tint: colors.primary[600], tintBg: colors.primary[50], target: { stack: 'MenuAccess' } as MenuAction }]
+          : []),
+        { label: 'Pengaturan', hint: 'Akun, sesi kasir, kata sandi', icon: SettingsIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { tab: 'Profile' } as MenuAction },
+        ...(can('printer') ? [fromCatalog('printer')] : []),
+        { label: 'Bantuan', hint: 'Hubungi dukungan cassier-Q', icon: HelpIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { action: 'help' } as MenuAction },
+      ],
+    },
+  ].filter((section) => section.items.length > 0);
   const initials = (user?.name ?? '?')
     .split(' ')
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join('');
 
-  const open = (target: MenuTarget) => {
+  const open = (target: MenuAction) => {
     if ('tab' in target) {
       navigation.navigate('Main', { screen: target.tab });
     } else if ('stack' in target) {
@@ -134,13 +117,22 @@ export default function MenuScreen() {
                 {user?.name ?? '-'}
               </Heading>
               <Text size="xs" numberOfLines={1} style={styles.profileMeta}>
-                {`${roleLabel} · ${role?.storeName ?? 'Semua toko'}`}
+                {`${roleLabel} · ${storeLabel}`}
               </Text>
             </View>
           </View>
+          {isSuperadmin ? (
+            <PressableScale style={styles.switchStore} onPress={() => navigation.navigate('StorePicker')}>
+              <StoreIcon size={16} color={colors.primary[600]} />
+              <Text size="sm" weight="semibold" style={styles.switchStoreLabel}>
+                Ganti toko yang dibantu
+              </Text>
+              <ChevronRightIcon size={16} color={colors.primary[600]} />
+            </PressableScale>
+          ) : null}
         </FadeInView>
 
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <View key={section.title} style={styles.section}>
             <Text size="xs" weight="semibold" color="muted" style={styles.sectionTitle}>
               {section.title.toUpperCase()}
@@ -225,6 +217,19 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.18)',
   },
   profileInitials: { color: colors.white, fontSize: 17 },
+  switchStore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary[50],
+    borderWidth: 1,
+    borderColor: colors.primary[100],
+  },
+  switchStoreLabel: { flex: 1, color: colors.primary[700] },
   profileInfo: { flex: 1 },
   profileName: { color: colors.white },
   profileMeta: { color: 'rgba(255,255,255,0.7)', marginTop: 2 },

@@ -63,6 +63,10 @@ export type RootStackParamList = {
   PurchaseOrders: undefined;
   PurchaseOrderForm: undefined;
   PurchaseOrderDetail: { purchaseOrderId: string };
+  /** SUPERADMIN: pilih toko yang sedang dibantu. */
+  StorePicker: undefined;
+  /** KEPALA_TOKO/SUPERADMIN: atur menu yang tampil untuk tiap role staf. */
+  MenuAccess: undefined;
 };
 
 declare global {

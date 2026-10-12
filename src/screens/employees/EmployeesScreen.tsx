@@ -24,12 +24,21 @@ import { EmployeeIcon, MoreIcon, PencilIcon, PlusIcon } from '@/components/icons
 import { Text } from '@/components/ui/typography';
 
 // Dipakai kalau GET /roles belum sempat termuat — biar Select role tidak kosong melompong.
+// Hanya role staf: Kepala Toko mengelola Produk, Gudang & Kasir (role Kepala Toko
+// hanya bisa diberikan pemilik aplikasi, dan backend yang menentukan daftarnya).
 const FALLBACK_ROLE_OPTIONS = [
   { label: 'Kasir', value: 'KASIR' },
   { label: 'Staf Produk', value: 'PRODUCT' },
   { label: 'Staf Gudang', value: 'GUDANG' },
-  { label: 'Kepala Toko', value: 'KEPALA_TOKO' },
 ];
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPERADMIN: 'Pemilik Aplikasi',
+  KEPALA_TOKO: 'Kepala Toko',
+  PRODUCT: 'Staf Produk',
+  GUDANG: 'Staf Gudang',
+  KASIR: 'Kasir',
+};
 
 export default function EmployeesScreen() {
   const dispatch = useAppDispatch();
@@ -48,7 +57,12 @@ export default function EmployeesScreen() {
   }, [dispatch]);
 
   const roleOptions = roles.length > 0 ? roles.map((r) => ({ label: r.roleName, value: r.roleCode })) : FALLBACK_ROLE_OPTIONS;
-  const roleLabel = (code: string) => roleOptions.find((r) => r.value === code)?.label ?? code;
+  const roleLabel = (code: string) =>
+    roleOptions.find((r) => r.value === code)?.label ?? ROLE_LABELS[code] ?? code;
+  // Kepala Toko tidak bisa menonaktifkan dirinya sendiri atau sesama Kepala Toko
+  // (backend juga menolaknya) — tombolnya tidak ditampilkan.
+  const canToggle = (employee: Employee) =>
+    employee.userId !== user?.id && (!!user?.superadmin || !employee.roles.includes('KEPALA_TOKO'));
 
   const onToggleActive = async (employee: Employee) => {
     try {
@@ -149,13 +163,15 @@ export default function EmployeesScreen() {
                     <Pressable style={styles.tableIconButton} onPress={() => setEditing(item)} accessibilityLabel="Ubah">
                       <PencilIcon size={14} color={tabletColors.gray600} />
                     </Pressable>
-                    <Pressable
-                      style={styles.tableIconButton}
-                      onPress={() => setToggleTarget(item)}
-                      accessibilityLabel={item.active ? 'Nonaktifkan' : 'Aktifkan'}
-                    >
-                      <MoreIcon size={14} color={tabletColors.gray600} />
-                    </Pressable>
+                    {canToggle(item) ? (
+                      <Pressable
+                        style={styles.tableIconButton}
+                        onPress={() => setToggleTarget(item)}
+                        accessibilityLabel={item.active ? 'Nonaktifkan' : 'Aktifkan'}
+                      >
+                        <MoreIcon size={14} color={tabletColors.gray600} />
+                      </Pressable>
+                    ) : null}
                   </View>
                 </View>
               )}
@@ -212,9 +228,11 @@ export default function EmployeesScreen() {
               </View>
               <View style={styles.rightCol}>
                 <Badge variant={item.active ? 'success' : 'neutral'}>{item.active ? 'Aktif' : 'Nonaktif'}</Badge>
-                <Button variant="ghost" size="sm" onPress={() => setToggleTarget(item)}>
-                  {item.active ? 'Nonaktifkan' : 'Aktifkan'}
-                </Button>
+                {canToggle(item) ? (
+                  <Button variant="ghost" size="sm" onPress={() => setToggleTarget(item)}>
+                    {item.active ? 'Nonaktifkan' : 'Aktifkan'}
+                  </Button>
+                ) : null}
               </View>
             </View>
           </Card>

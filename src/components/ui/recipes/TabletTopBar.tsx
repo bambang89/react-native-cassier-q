@@ -1,4 +1,7 @@
 import { Alert, StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+import { useAppSelector } from '@/store/hooks';
 import type { ReactNode } from 'react';
 
 import { radii } from '@/theme';
@@ -26,6 +29,10 @@ export function TabletTopBar({
   onNotificationPress,
   hasNotification,
 }: TabletTopBarProps) {
+  const navigation = useNavigation();
+  const isSuperadmin = useAppSelector((state) => !!state.auth.user?.superadmin);
+  const activeStoreName = useAppSelector((state) => state.access.activeStore?.name);
+
   return (
     <View style={styles.topBar}>
       <View>
@@ -38,11 +45,16 @@ export function TabletTopBar({
         {rightAction}
         <Pressable
           style={styles.outletChip}
-          onPress={() => Alert.alert('Segera hadir', 'Fitur ganti outlet belum tersedia.')}
+          // Pemilik aplikasi bisa berpindah ke toko mana pun; user lain hanya punya tokonya sendiri.
+          onPress={() =>
+            isSuperadmin
+              ? navigation.navigate('StorePicker')
+              : Alert.alert('Outlet', 'Akun ini terhubung ke satu outlet.')
+          }
         >
           <StoreIcon size={14} color={tabletColors.gray700} />
           <Text style={styles.outletChipLabel} numberOfLines={1}>
-            {storeName}
+            {isSuperadmin ? (activeStoreName ?? storeName) : storeName}
           </Text>
           <ChevronDownIcon size={14} color={tabletColors.gray700} />
         </Pressable>

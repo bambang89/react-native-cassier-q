@@ -12,6 +12,7 @@ import { HelpIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { TAB_ICONS } from './tabIcons';
 import type { MainTabParamList } from './types';
+import { useMenuAccess } from './menuCatalog';
 
 const RAIL_WIDTH = tabletLayout.sidebarWidth;
 const ITEM_HEIGHT = 50;
@@ -20,16 +21,22 @@ const ICON_COLOR_INACTIVE = '#8FA3BE';
 
 export default function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const user = useAppSelector((reduxState) => reduxState.auth.user);
+  const { canTab } = useMenuAccess();
+  // Hanya menu yang diizinkan Kepala Toko untuk role user ini.
+  const routes = state.routes.filter((route) => canTab(route.name as keyof MainTabParamList));
+  const focusedKey = state.routes[state.index]?.key;
+  const visibleIndex = routes.findIndex((route) => route.key === focusedKey);
   // Sorotan biru bergeser (spring) dari item lama ke item baru, bukan berpindah instan.
-  const highlightY = useRef(new Animated.Value(state.index * (ITEM_HEIGHT + ITEM_GAP))).current;
+  const highlightY = useRef(new Animated.Value(Math.max(visibleIndex, 0) * (ITEM_HEIGHT + ITEM_GAP))).current;
 
   useEffect(() => {
+    if (visibleIndex < 0) return;
     Animated.spring(highlightY, {
-      toValue: state.index * (ITEM_HEIGHT + ITEM_GAP),
+      toValue: visibleIndex * (ITEM_HEIGHT + ITEM_GAP),
       useNativeDriver: true,
       ...motion.spring.gentle,
     }).start();
-  }, [state.index, highlightY]);
+  }, [visibleIndex, highlightY]);
 
   return (
     <SafeAreaView edges={['top', 'left']} style={[styles.safeArea, { width: RAIL_WIDTH }]}>
@@ -46,11 +53,13 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.menuColumn}>
-          <Animated.View style={[styles.highlight, { transform: [{ translateY: highlightY }] }]} />
-          {state.routes.map((route, index) => {
+          <Animated.View
+            style={[styles.highlight, { opacity: visibleIndex < 0 ? 0 : 1, transform: [{ translateY: highlightY }] }]}
+          />
+          {routes.map((route) => {
             const { options } = descriptors[route.key];
             const label = (options.title ?? route.name) as string;
-            const isFocused = state.index === index;
+            const isFocused = route.key === focusedKey;
             const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
 
             const onPress = () => {

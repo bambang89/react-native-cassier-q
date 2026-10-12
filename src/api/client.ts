@@ -6,6 +6,7 @@ import { isApiEnvName } from '@/config/apiEnvironments';
 import type { ApiEnvName } from '@/config/apiEnvironments';
 import { appVersion, deviceOsVersion, deviceType } from '@/config/deviceInfo';
 import { clearTokens, ensureDeviceId, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
+import { getActiveStoreId } from './storeContext';
 
 type SessionExpiredHandler = () => void;
 let onSessionExpired: SessionExpiredHandler | null = null;
@@ -120,6 +121,14 @@ async function attachDeviceHeaders(config: InternalAxiosRequestConfig): Promise<
 
 apiClient.interceptors.request.use(attachDeviceHeaders);
 refreshClient.interceptors.request.use(attachDeviceHeaders);
+
+// SUPERADMIN bekerja atas nama toko yang dipilihnya; backend mengabaikan
+// header ini untuk user lain (mereka selalu di toko sendiri).
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const storeId = getActiveStoreId();
+  if (storeId) config.headers.set('X-Store-Id', storeId);
+  return config;
+});
 
 // --- Bearer token attachment --------------------------------------------
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {

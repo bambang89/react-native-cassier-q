@@ -8,8 +8,9 @@ import { colors, fontFamilies, motion, radii, shadows, spacing } from '@/theme';
 import { CartIcon, DashboardIcon, BoxIcon, MoreIcon, ReceiptIcon } from '@/components/icons/LineIcons';
 import type { LineIconProps } from '@/components/icons/LineIcons';
 import { PressableScale } from '@/components/ui/motion/PressableScale';
-import { isPhoneTabBarRoute, PHONE_TAB_BAR_ROUTES, PHONE_TAB_LABELS } from './phoneTabs';
+import { isPhoneTabBarRoute, PHONE_TAB_LABELS } from './phoneTabs';
 import type { PhoneTabBarRoute } from './phoneTabs';
+import { useMenuAccess } from './menuCatalog';
 import type { ComponentType } from 'react';
 
 const ICONS: Record<PhoneTabBarRoute, ComponentType<LineIconProps>> = {
@@ -21,7 +22,22 @@ const ICONS: Record<PhoneTabBarRoute, ComponentType<LineIconProps>> = {
 };
 
 const INDICATOR_WIDTH = 22;
-const CENTER_INDEX = PHONE_TAB_BAR_ROUTES.indexOf('POS');
+
+type Slot = PhoneTabBarRoute | 'spacer';
+
+/**
+ * Susun slot tab bar dari menu yang diizinkan. Kasir tetap di tengah: kalau
+ * jumlah item kiri & kanan tidak sama (karena ada menu disembunyikan), sisi
+ * yang lebih sedikit diberi slot kosong.
+ */
+function buildSlots(canShow: (route: PhoneTabBarRoute) => boolean): Slot[] {
+  const left = (['Dashboard', 'Orders'] as const).filter(canShow);
+  const right = (['Products', 'Menu'] as const).filter(canShow);
+  if (!canShow('POS')) return [...left, ...right];
+  const pad = (n: number): Slot[] => Array.from({ length: n }, () => 'spacer' as const);
+  const diff = left.length - right.length;
+  return [...pad(Math.max(0, -diff)), ...left, 'POS', ...right, ...pad(Math.max(0, diff))];
+}
 
 /**
  * Bottom tab bar HP sesuai mockup mobile-*.html: Beranda · Transaksi ·
@@ -30,14 +46,17 @@ const CENTER_INDEX = PHONE_TAB_BAR_ROUTES.indexOf('POS');
  */
 export default function PhoneTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { canTab } = useMenuAccess();
   const [barWidth, setBarWidth] = useState(0);
+  const slots = buildSlots((route) => route === 'Menu' || canTab(route));
   const focusedName = state.routes[state.index]?.name ?? 'Dashboard';
   const activeRoute: PhoneTabBarRoute = isPhoneTabBarRoute(focusedName) ? focusedName : 'Menu';
-  const activeIndex = PHONE_TAB_BAR_ROUTES.indexOf(activeRoute);
+  const activeIndex = slots.indexOf(activeRoute);
+  const centerIndex = slots.indexOf('POS');
 
   const indicatorX = useRef(new Animated.Value(0)).current;
   const indicatorOpacity = useRef(new Animated.Value(0)).current;
-  const slotWidth = barWidth / PHONE_TAB_BAR_ROUTES.length;
+  const slotWidth = barWidth / Math.max(slots.length, 1);
 
   useEffect(() => {
     if (!barWidth) return;
@@ -49,12 +68,12 @@ export default function PhoneTabBar({ state, navigation }: BottomTabBarProps) {
       }),
       // Kasir punya tombol bulat sendiri sebagai penanda aktif.
       Animated.timing(indicatorOpacity, {
-        toValue: activeIndex === CENTER_INDEX ? 0 : 1,
+        toValue: activeIndex < 0 || activeIndex === centerIndex ? 0 : 1,
         duration: motion.duration.fast,
         useNativeDriver: true,
       }),
     ]).start();
-  }, [activeIndex, barWidth, slotWidth, indicatorX, indicatorOpacity]);
+  }, [activeIndex, centerIndex, barWidth, slotWidth, indicatorX, indicatorOpacity]);
 
   const onPress = (name: PhoneTabBarRoute) => {
     const route = state.routes.find((r) => r.name === name);
@@ -73,8 +92,10 @@ export default function PhoneTabBar({ state, navigation }: BottomTabBarProps) {
       <Animated.View
         style={[styles.indicator, { opacity: indicatorOpacity, transform: [{ translateX: indicatorX }] }]}
       />
-      {PHONE_TAB_BAR_ROUTES.map((name, index) =>
-        index === CENTER_INDEX ? (
+      {slots.map((name, index) =>
+        name === 'spacer' ? (
+          <View key={`spacer-${index}`} style={styles.slot} />
+        ) : name === 'POS' ? (
           <View key={name} style={styles.slot}>
             <PressableScale
               activeScale={0.9}

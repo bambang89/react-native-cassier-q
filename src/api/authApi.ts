@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { clearTokens, loadTokens, saveTokens, type TokenSet } from './tokenStorage';
 import type { AuthResponse, User } from '@/types/models';
+import { setActiveStore } from './storeContext';
 
 async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
   const tokens: TokenSet = {
@@ -41,6 +42,7 @@ export async function logout(): Promise<void> {
     }
   } finally {
     await clearTokens();
+    await setActiveStore(null);
   }
 }
 
@@ -49,6 +51,7 @@ export async function logoutAll(): Promise<void> {
     await apiClient.post('/auth/logout-all');
   } finally {
     await clearTokens();
+    await setActiveStore(null);
   }
 }
 

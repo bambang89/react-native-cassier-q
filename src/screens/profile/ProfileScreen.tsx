@@ -47,7 +47,7 @@ const SETTINGS_SECTIONS = [
   { key: 'pembayaran', label: 'Pembayaran', available: false },
   { key: 'pajak', label: 'Pajak', available: false },
   { key: 'struk', label: 'Struk', available: false },
-  { key: 'pengguna', label: 'Pengguna & Izin', available: false },
+  { key: 'pengguna', label: 'Pengguna & Izin', available: true },
   { key: 'integrasi', label: 'Integrasi', available: false },
   { key: 'notifikasi', label: 'Notifikasi', available: false },
   { key: 'keamanan', label: 'Keamanan', available: true },
@@ -389,6 +389,36 @@ function SettingsDetailPane({
           <StoreProfileForm contentContainerStyle={styles.formContent} />
         </View>
       </View>
+    );
+  }
+
+  if (section === 'pengguna') {
+    const isSuperadmin = !!user?.superadmin;
+    const isManager = isSuperadmin || !!user?.roles.some((r) => r.roleCode === 'KEPALA_TOKO');
+    return (
+      <ScrollView contentContainerStyle={styles.detailPad}>
+        <Text style={styles.detailTitle}>Pengguna & Izin</Text>
+        <Text style={styles.detailDesc}>
+          {isManager
+            ? 'Kelola akun karyawan dan tentukan menu yang boleh dilihat tiap role.'
+            : 'Pengaturan pengguna hanya bisa diubah oleh Kepala Toko.'}
+        </Text>
+        {isManager ? (
+          <Card style={styles.detailCard} padding="none">
+            <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Employees')}>
+              Kelola Karyawan
+            </Button>
+            <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('MenuAccess')}>
+              Hak Akses Menu per Role
+            </Button>
+            {isSuperadmin ? (
+              <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StorePicker')}>
+                Ganti Toko yang Dibantu
+              </Button>
+            ) : null}
+          </Card>
+        ) : null}
+      </ScrollView>
     );
   }
 

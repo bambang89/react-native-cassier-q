@@ -7,6 +7,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { setSessionExpiredHandler } from '@/api/client';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapAuth, sessionExpired } from '@/store/slices/authSlice';
+import { fetchMyMenus, restoreActiveStore } from '@/store/slices/accessSlice';
+import StorePickerScreen from '@/screens/admin/StorePickerScreen';
+import MenuAccessScreen from '@/screens/admin/MenuAccessScreen';
 import { store } from '@/store';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
@@ -58,6 +61,8 @@ const linking: LinkingOptions<RootStackParamList> = {
       Suppliers: 'suppliers',
       PurchaseOrders: 'purchase-orders',
       PrinterSettings: 'printer',
+      MenuAccess: 'menu-access',
+      StorePicker: 'stores',
       OrderDetail: 'orders/:orderId',
       CustomerDetail: 'customers/:customerId',
     },
@@ -67,7 +72,24 @@ const linking: LinkingOptions<RootStackParamList> = {
 export default function RootNavigator() {
   const dispatch = useAppDispatch();
   const status = useAppSelector((state) => state.auth.status);
+  const isSuperadmin = useAppSelector((state) => !!state.auth.user?.superadmin);
+  const { activeStore, activeStoreLoaded } = useAppSelector((state) => state.access);
   const { isPhone } = useResponsive();
+  const isAuthenticated = status === 'authenticated';
+  // SUPERADMIN tidak terikat toko: wajib memilih toko dulu sebelum masuk app.
+  const needsStore = isAuthenticated && isSuperadmin && activeStoreLoaded && !activeStore;
+  const storeKey = activeStore?.id ?? 'own-store';
+
+  useEffect(() => {
+    if (isAuthenticated && isSuperadmin) dispatch(restoreActiveStore());
+  }, [dispatch, isAuthenticated, isSuperadmin]);
+
+  // Menu yang diizinkan Kepala Toko — dimuat ulang tiap login & tiap ganti toko.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (isSuperadmin && !activeStore) return;
+    dispatch(fetchMyMenus());
+  }, [dispatch, isAuthenticated, isSuperadmin, activeStore]);
 
   useEffect(() => {
     // Biasanya sudah dimulai App selama splash; jangan cek ulang kalau begitu.
@@ -76,7 +98,7 @@ export default function RootNavigator() {
     return () => setSessionExpiredHandler(null);
   }, [dispatch]);
 
-  if (status === 'idle' || status === 'checking') {
+  if (status === 'idle' || status === 'checking' || (isAuthenticated && isSuperadmin && !activeStoreLoaded)) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color={colors.primary[600]} />
@@ -84,7 +106,6 @@ export default function RootNavigator() {
     );
   }
 
-  const isAuthenticated = status === 'authenticated';
 
   return (
     <Fragment>
@@ -101,9 +122,17 @@ export default function RootNavigator() {
             contentStyle: { backgroundColor: colors.canvas },
           }}
         >
-          {isAuthenticated ? (
+          {needsStore ? (
+            <Stack.Screen name="StorePicker" component={StorePickerScreen} options={{ animation: 'fade' }} />
+          ) : isAuthenticated ? (
             <Fragment>
-              <Stack.Screen name="Main" component={MainTabNavigator} options={{ animation: 'fade' }} />
+              {/* navigationKey: ganti toko (SUPERADMIN) memasang ulang semua tab → data termuat ulang. */}
+              <Stack.Screen
+                name="Main"
+                component={MainTabNavigator}
+                navigationKey={storeKey}
+                options={{ animation: 'fade' }}
+              />
               <Stack.Screen
                 name="Scanner"
                 component={ScannerScreen}
@@ -125,6 +154,12 @@ export default function RootNavigator() {
               <Stack.Screen name="PurchaseOrders" component={PurchaseOrdersScreen} />
               <Stack.Screen name="PurchaseOrderForm" component={PurchaseOrderFormScreen} />
               <Stack.Screen name="PurchaseOrderDetail" component={PurchaseOrderDetailScreen} />
+              <Stack.Screen name="MenuAccess" component={MenuAccessScreen} />
+              <Stack.Screen
+                name="StorePicker"
+                component={StorePickerScreen}
+                options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+              />
             </Fragment>
           ) : (
             <Stack.Screen name="Auth" component={AuthNavigator} options={{ animation: 'fade' }} />

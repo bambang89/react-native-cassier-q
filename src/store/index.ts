@@ -16,6 +16,7 @@ import suppliersReducer from './slices/suppliersSlice';
 import purchaseOrdersReducer from './slices/purchaseOrdersSlice';
 import employeesReducer from './slices/employeesSlice';
 import rolesReducer from './slices/rolesSlice';
+import accessReducer from './slices/accessSlice';
 
 export const store = configureStore({
   reducer: {
@@ -35,6 +36,7 @@ export const store = configureStore({
     purchaseOrders: purchaseOrdersReducer,
     employees: employeesReducer,
     roles: rolesReducer,
+    access: accessReducer,
   },
 });
 
