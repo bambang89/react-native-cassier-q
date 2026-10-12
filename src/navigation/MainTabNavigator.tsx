@@ -1,65 +1,40 @@
-import { Fragment } from 'react';
-import { StatusBar, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+import PhoneTabBar from './PhoneTabBar';
 import SidebarTabBar from './SidebarTabBar';
-import { TabIcon } from './tabIcons';
-import { PHONE_CORE_TABS, TAB_SCREENS } from './types';
+import { TAB_SCREENS } from './types';
 import type { MainTabParamList } from './types';
+import MenuScreen from '@/screens/menu/MenuScreen';
 import { useResponsive } from '@/hooks/useResponsive';
-import { colors, fontFamilies, radii, spacing } from '@/theme';
+import { colors } from '@/theme';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
+/**
+ * Dua kerangka navigasi:
+ * - Tablet (landscape): sidebar ikon di kiri berisi semua layar.
+ * - HP (portrait): bottom tab bar 5 item + layar Menu untuk sisanya.
+ * Pindah tab dianimasikan (HP: geser/shift, tablet: fade).
+ */
 export default function MainTabNavigator() {
-  const { isTabletLandscape } = useResponsive();
+  const { isPhone } = useResponsive();
 
   return (
     <Tab.Navigator
-      tabBar={isTabletLandscape ? (props) => <SidebarTabBar {...props} /> : undefined}
+      // Tombol back Android kembali ke tab sebelumnya (mis. Pelanggan → Menu), bukan selalu ke Beranda.
+      backBehavior="history"
+      tabBar={(props) => (isPhone ? <PhoneTabBar {...props} /> : <SidebarTabBar {...props} />)}
       screenOptions={{
         headerShown: false,
-        tabBarPosition: isTabletLandscape ? 'left' : 'bottom',
-        tabBarActiveTintColor: colors.primary[600],
-        tabBarInactiveTintColor: colors.text.muted,
-        tabBarLabelStyle: { fontFamily: fontFamilies.semibold, fontSize: 12 },
-        tabBarStyle: isTabletLandscape
-          ? styles.sidebar
-          : { borderTopColor: colors.border, height: 64, paddingTop: 6, paddingBottom: 8 },
-        tabBarItemStyle: isTabletLandscape ? styles.sidebarItem : undefined,
-        tabBarLabelPosition: isTabletLandscape ? 'beside-icon' : 'below-icon',
+        tabBarPosition: isPhone ? 'bottom' : 'left',
+        animation: isPhone ? 'shift' : 'fade',
+        sceneStyle: { backgroundColor: colors.canvas },
       }}
     >
       {TAB_SCREENS.map(({ name, title, component }) => (
-        <Tab.Screen
-          key={name}
-          name={name}
-          component={component}
-          options={{
-            title,
-            tabBarIcon: ({ focused }) => <TabIcon name={name} focused={focused} />,
-            tabBarButton: !isTabletLandscape && !PHONE_CORE_TABS.has(name) ? () => null : undefined,
-          }}
-        />
+        <Tab.Screen key={name} name={name} component={component} options={{ title }} />
       ))}
+      {isPhone ? <Tab.Screen name="Menu" component={MenuScreen} options={{ title: 'Menu' }} /> : null}
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  sidebar: {
-    width: 220,
-    borderTopWidth: 0,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: colors.border,
-    backgroundColor: colors.background,
-    paddingTop: spacing.xl,
-    paddingHorizontal: spacing.sm,
-  },
-  sidebarItem: {
-    flexDirection: 'row',
-    borderRadius: radii.md,
-    marginBottom: spacing.xs,
-    paddingVertical: spacing.sm,
-  },
-});

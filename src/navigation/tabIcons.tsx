@@ -5,6 +5,7 @@ import {
   CartIcon,
   ClipboardIcon,
   DashboardIcon,
+  MoreIcon,
   EmployeeIcon,
   LayersIcon,
   PeopleIcon,
@@ -32,6 +33,7 @@ export const TAB_ICONS: Record<keyof MainTabParamList, ComponentType<LineIconPro
   Integrations: PlugIcon,
   Expenses: ReceiptIcon,
   Profile: SettingsIcon,
+  Menu: MoreIcon,
 };
 
 export function TabIcon({ name, focused }: { name: keyof MainTabParamList; focused: boolean }) {

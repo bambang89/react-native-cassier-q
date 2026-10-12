@@ -38,6 +38,8 @@ export type MainTabParamList = {
   Integrations: undefined;
   Expenses: undefined;
   Profile: undefined;
+  /** Hanya di HP: menu sekunder (mockup mobile-menu.html). */
+  Menu: undefined;
 };
 
 export type RootStackParamList = {
@@ -69,18 +71,9 @@ declare global {
   }
 }
 
-export const PHONE_CORE_TABS = new Set<keyof MainTabParamList>([
-  'Dashboard',
-  'POS',
-  'Products',
-  'Orders',
-  'Reports',
-  'Expenses',
-  'Profile',
-]);
-
+/** Semua layar tab (tablet: tampil di sidebar; HP: lima di bottom bar, sisanya lewat Menu). */
 export const TAB_SCREENS: {
-  name: keyof MainTabParamList;
+  name: Exclude<keyof MainTabParamList, 'Menu'>;
   title: string;
   component: ComponentType<any>;
 }[] = [
