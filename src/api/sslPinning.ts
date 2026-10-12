@@ -28,7 +28,7 @@ export async function setupSslPinning(): Promise<void> {
   if (initialized) return;
 
   if (env.apiEnv === 'development' || !env.apiBaseUrl.startsWith('https://')) {
-    console.warn('[SSL Pinning] dilewati untuk environment ini (bukan https):', env.apiBaseUrl);
+    console.info('[SSL Pinning] dilewati untuk environment ini (bukan https):', env.apiBaseUrl);
     initialized = true;
     return;
   }
