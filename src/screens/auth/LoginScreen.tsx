@@ -8,12 +8,15 @@ import { login } from '@/store/slices/authSlice';
 import { clearRememberedUsername, loadRememberedUsername, saveRememberedUsername } from '@/api/tokenStorage';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing, staggerDelay } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 import { Button, CheckBox, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
 import { Heading, Text } from '@/components/ui/typography';
 import { GoogleIcon } from '@/components/icons/GoogleIcon';
+import { CheckIcon } from '@/components/icons/LineIcons';
+import { FadeInView } from '@/components/ui/motion';
+import { GradientBackground } from '@/components/ui/recipes';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -44,26 +47,26 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.flex}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+  const form = (
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Image
-          source={require('@/assets/branding/cassier-q-symbol.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <FadeInView fromScale={0.6} offsetY={0} duration={520}>
+          <Image
+            source={require('@/assets/branding/cassier-q-symbol.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </FadeInView>
 
-        <Heading level="h4" align="center" style={styles.title}>
-          Selamat datang kembali
-        </Heading>
-        <Text color="secondary" align="center" style={styles.subtitle}>
-          Masuk untuk mengelola bisnis Anda.
-        </Text>
+        <FadeInView delay={120}>
+          <Heading level="h4" align="center" style={styles.title}>
+            Selamat datang kembali
+          </Heading>
+          <Text color="secondary" align="center" style={styles.subtitle}>
+            Masuk untuk mengelola bisnis Anda.
+          </Text>
+        </FadeInView>
 
+        <FadeInView delay={220}>
         <FormControl label="Email atau Username">
           <Input
             placeholder="nama@bisnis.com"
@@ -116,9 +119,57 @@ export default function LoginScreen({ navigation }: Props) {
           </Text>
           <Link onPress={() => navigation.navigate('Register')}>Daftar sekarang</Link>
         </View>
+        </FadeInView>
       </ScrollView>
+  );
+
+  return (
+    <SafeAreaView style={styles.flex} edges={isTabletLandscape ? [] : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {isTabletLandscape ? (
+          <View style={styles.split}>
+            <BrandPanel />
+            <View style={styles.flex}>{form}</View>
+          </View>
+        ) : (
+          form
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+const HIGHLIGHTS = [
+  'Kasir cepat dengan scan barcode & struk Bluetooth',
+  'Stok, pelanggan, dan utang tercatat otomatis',
+  'Laporan penjualan harian dalam satu layar',
+];
+
+/** Panel brand di sisi kiri layar login tablet. */
+function BrandPanel() {
+  return (
+    <View style={styles.brandPanel}>
+      <GradientBackground colors={[colors.darkBg, '#123E7A', colors.primary[600]]} />
+      <View style={styles.brandGlow} />
+      <FadeInView offsetX={-24} offsetY={0} duration={600}>
+        <Text weight="bold" style={styles.brandEyebrow}>
+          CASSIER-Q
+        </Text>
+        <Text style={styles.brandHeadline}>Kasir pintar untuk bisnis yang terus bertumbuh.</Text>
+      </FadeInView>
+      <View style={styles.brandList}>
+        {HIGHLIGHTS.map((item, index) => (
+          <FadeInView key={item} delay={staggerDelay(index, 300)} offsetX={-16} offsetY={0}>
+            <View style={styles.brandItem}>
+              <View style={styles.brandCheck}>
+                <CheckIcon size={14} color={colors.white} strokeWidth={2.4} />
+              </View>
+              <Text style={styles.brandItemLabel}>{item}</Text>
+            </View>
+          </FadeInView>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -154,5 +205,42 @@ const styles = StyleSheet.create({
   },
   dividerLine: { flex: 1 },
   dividerLabel: { flexShrink: 0 },
+  split: { flex: 1, flexDirection: 'row' },
+  brandPanel: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing['4xl'],
+    backgroundColor: colors.darkBg,
+    overflow: 'hidden',
+  },
+  brandGlow: {
+    position: 'absolute',
+    right: -120,
+    bottom: -140,
+    width: 380,
+    height: 380,
+    borderRadius: 190,
+    backgroundColor: 'rgba(96,165,250,0.18)',
+  },
+  brandEyebrow: { color: '#8FE0C2', letterSpacing: 2, fontSize: 13 },
+  brandHeadline: {
+    marginTop: spacing.md,
+    color: colors.white,
+    fontSize: 34,
+    lineHeight: 44,
+    fontFamily: 'Poppins_700Bold',
+    maxWidth: 440,
+  },
+  brandList: { marginTop: spacing['2xl'], gap: spacing.base },
+  brandItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  brandCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(16,185,129,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandItemLabel: { color: 'rgba(255,255,255,0.88)', fontSize: 15, flexShrink: 1 },
   registerLink: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.lg },
 });
