@@ -159,7 +159,7 @@ function UnitForm({ unit, onDone, onCancel }: { unit: Unit | null; onDone: () =>
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   containerTablet: { backgroundColor: tabletColors.gray25 },
   list: { padding: spacing.base },
   listTablet: { maxWidth: 720, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },

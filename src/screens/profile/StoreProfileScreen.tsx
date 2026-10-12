@@ -117,7 +117,7 @@ export default function StoreProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   loading: { marginTop: spacing['3xl'] },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   identityCard: { marginBottom: spacing.lg },

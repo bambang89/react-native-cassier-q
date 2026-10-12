@@ -202,7 +202,7 @@ export default function PrinterSettingsScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   list: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   hint: { marginBottom: spacing.base },
   currentCard: { marginBottom: spacing.base },

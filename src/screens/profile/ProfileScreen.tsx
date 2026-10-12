@@ -645,7 +645,7 @@ function EnvSwitcher() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: {

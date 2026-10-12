@@ -155,7 +155,7 @@ export default function ReceiptScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { marginTop: spacing.sm },
   body: { padding: spacing.base, alignItems: 'center' },

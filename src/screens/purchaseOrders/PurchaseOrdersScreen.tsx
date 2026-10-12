@@ -101,7 +101,7 @@ export default function PurchaseOrdersScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   statsRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.base, marginBottom: spacing.sm },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing.xl },
   card: { marginBottom: spacing.sm },

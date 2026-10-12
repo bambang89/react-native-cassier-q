@@ -73,7 +73,7 @@ export default function ResetPasswordScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   body: { padding: spacing.xl },
   logo: { width: 56, height: 56, alignSelf: 'center', marginBottom: spacing.base },
   title: { marginBottom: spacing.xs },

@@ -242,7 +242,7 @@ function ReceiveForm({ po, onDone, onCancel }: { po: PurchaseOrder; onDone: () =
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
