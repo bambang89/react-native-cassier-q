@@ -11,7 +11,7 @@ import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { Order, OrderStatus, Receipt } from '@/types/models';
-import { colors, radii, spacing } from '@/theme';
+import { colors, radii, spacing, staggerDelay } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 import { paymentMethodLabel } from '@/utils/receiptText';
 import { Badge } from '@/components/ui/dataDisplay';
@@ -20,6 +20,8 @@ import { Modal } from '@/components/ui/overlay';
 import { Pressable } from '@/components/ui/forms';
 import { PrintIcon, ReceiptIcon, RefundIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { FadeInView, PressableScale } from '@/components/ui/motion';
+import { CategoryChip } from '@/components/product';
 import { VoidForm } from './OrderDetailScreen';
 
 type Props = CompositeScreenProps<
@@ -41,6 +43,14 @@ function statusLabel(status: OrderStatus) {
   return STATUS_LABEL[status] ?? status;
 }
 
+type StatusFilter = 'ALL' | 'PAID' | 'VOID';
+
+const PHONE_FILTERS: { label: string; value: StatusFilter }[] = [
+  { label: 'Semua', value: 'ALL' },
+  { label: 'Lunas', value: 'PAID' },
+  { label: 'Dibatalkan', value: 'VOID' },
+];
+
 function money(value: number) {
   return `Rp ${value.toLocaleString('id-ID')}`;
 }
@@ -56,6 +66,7 @@ export default function OrdersScreen({ navigation }: Props) {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [voidModalVisible, setVoidModalVisible] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
 
   const primaryRole = user?.roles?.[0] ?? null;
   const storeName = storeProfile?.storeName ?? primaryRole?.storeName ?? '-';
@@ -139,24 +150,25 @@ export default function OrdersScreen({ navigation }: Props) {
     );
   }
 
+  const phoneItems = statusFilter === 'ALL' ? items : items.filter((order) => order.status === statusFilter);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Header title="Riwayat Transaksi" />
+      <Header title="Transaksi" subtitle={`${totalElements.toLocaleString('id-ID')} transaksi tercatat`} />
 
-      {totalElements > 0 ? (
-        <View style={styles.statsRow}>
-          <KpiCard
-            icon={ReceiptIcon}
-            iconColor={colors.primary[600]}
-            iconBg={colors.primary[50]}
-            label="Total Transaksi"
-            value={totalElements.toLocaleString('id-ID')}
+      <View style={styles.filterRow}>
+        {PHONE_FILTERS.map((filter) => (
+          <CategoryChip
+            key={filter.value}
+            label={filter.label}
+            active={statusFilter === filter.value}
+            onPress={() => setStatusFilter(filter.value)}
           />
-        </View>
-      ) : null}
+        ))}
+      </View>
 
       <FlatList
-        data={items}
+        data={phoneItems}
         keyExtractor={(item) => item.id}
         onRefresh={() => dispatch(fetchOrders({ page: 0 }))}
         refreshing={status === 'loading' && page === 0}
@@ -165,26 +177,41 @@ export default function OrdersScreen({ navigation }: Props) {
         }}
         onEndReachedThreshold={0.4}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Card
-            shadow="none"
-            style={styles.card}
-            onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })}
-          >
-            <View style={styles.row}>
-              <View style={styles.info}>
-                <Text weight="semibold">{item.transactionNumber}</Text>
-                <Text size="xs" color="secondary">
-                  {new Date(item.transactionDate).toLocaleString('id-ID')}
-                </Text>
-              </View>
-              <View style={styles.right}>
-                <Text weight="bold">Rp {item.grandTotal.toLocaleString('id-ID')}</Text>
-                <Badge variant={STATUS_VARIANT[item.status] ?? 'neutral'}>{statusLabel(item.status)}</Badge>
-              </View>
-            </View>
-          </Card>
-        )}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item, index }) => {
+          const isVoid = item.status === 'VOID';
+          return (
+            <FadeInView delay={staggerDelay(index)} offsetY={10}>
+              <PressableScale
+                activeScale={0.98}
+                style={styles.orderRow}
+                onPress={() => navigation.navigate('OrderDetail', { orderId: item.id })}
+              >
+                <View style={[styles.orderIcon, isVoid && styles.orderIconVoid]}>
+                  {isVoid ? (
+                    <RefundIcon size={18} color={colors.error[600]} />
+                  ) : (
+                    <ReceiptIcon size={18} color={colors.primary[600]} />
+                  )}
+                </View>
+                <View style={styles.info}>
+                  <Text weight="semibold" size="sm" numberOfLines={1}>
+                    {`#${item.transactionNumber.split('-').pop()}`}
+                  </Text>
+                  <Text size="xs" color="muted" numberOfLines={1}>
+                    {`${timeLabel(item.transactionDate)} · ${item.items.length} item · ${item.cashierName}`}
+                  </Text>
+                </View>
+                <View style={styles.right}>
+                  <Text weight="bold" size="sm" style={isVoid ? styles.amountVoid : undefined}>
+                    {money(item.grandTotal)}
+                  </Text>
+                  <Badge variant={STATUS_VARIANT[item.status] ?? 'neutral'}>{statusLabel(item.status)}</Badge>
+                </View>
+              </PressableScale>
+            </FadeInView>
+          );
+        }}
         ListEmptyComponent={
           status === 'loading' ? (
             <Text color="muted" align="center" style={styles.empty}>
@@ -193,14 +220,27 @@ export default function OrdersScreen({ navigation }: Props) {
           ) : (
             <EmptyState
               icon={ReceiptIcon}
-              title="Belum Ada Transaksi"
-              description="Riwayat penjualan bakal muncul di sini setelah kamu mencatat transaksi pertama di kasir."
+              title={statusFilter === 'ALL' ? 'Belum Ada Transaksi' : 'Tidak ada transaksi'}
+              description={
+                statusFilter === 'ALL'
+                  ? 'Riwayat penjualan bakal muncul di sini setelah kamu mencatat transaksi pertama di kasir.'
+                  : 'Belum ada transaksi dengan status ini.'
+              }
             />
           )
         }
       />
     </SafeAreaView>
   );
+}
+
+function timeLabel(iso: string): string {
+  const date = new Date(iso);
+  const today = new Date();
+  const time = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  return date.toDateString() === today.toDateString()
+    ? `Hari ini ${time}`
+    : `${date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} ${time}`;
 }
 
 function OrderDetailPane({
@@ -320,13 +360,31 @@ function InfoCell({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   containerTablet: { backgroundColor: tabletColors.gray25 },
-  statsRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.base, marginBottom: spacing.sm },
-  list: { paddingHorizontal: spacing.base, paddingBottom: spacing.xl },
-  card: { marginBottom: spacing.sm },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  info: { flex: 1 },
+  filterRow: { flexDirection: 'row', paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing['2xl'], gap: spacing.sm },
+  orderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  orderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.lg,
+    backgroundColor: colors.primary[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  orderIconVoid: { backgroundColor: colors.error[50] },
+  amountVoid: { color: colors.text.muted, textDecorationLine: 'line-through' },
+  info: { flex: 1, gap: 2 },
   right: { alignItems: 'flex-end', gap: spacing.xs },
   empty: { marginTop: spacing['3xl'] },
   detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
