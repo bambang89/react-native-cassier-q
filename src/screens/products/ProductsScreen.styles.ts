@@ -4,7 +4,7 @@ import { colors, radii, spacing } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   containerTablet: { backgroundColor: tabletColors.gray25 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
   lowStockBanner: {
@@ -28,8 +28,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchBar: { paddingHorizontal: spacing.base, marginBottom: spacing.sm },
-  list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
+  searchBar: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, marginBottom: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 96 },
+  phoneChipScroll: { flexGrow: 0, flexShrink: 0 },
+  phoneChipRow: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, paddingBottom: spacing.md, alignItems: 'center' },
   empty: { marginTop: spacing['3xl'] },
   tabletBody: { flex: 1, paddingVertical: 22, paddingHorizontal: 24, backgroundColor: tabletColors.gray25 },
   tabletSearchRow: { marginBottom: 14 },

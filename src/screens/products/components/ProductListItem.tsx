@@ -3,7 +3,8 @@ import { Image, StyleSheet, View } from 'react-native';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Card } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { colors, spacing } from '@/theme';
+import { colors, radii, spacing } from '@/theme';
+import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
 import type { Product } from '@/types/models';
 
 import { productStockBadgeVariant } from '../ProductsScreen.utils';
@@ -17,7 +18,9 @@ export function ProductListItem({ item, onPress }: { item: Product; onPress: () 
         {item.imageUrl ? (
           <Image source={{ uri: item.imageUrl }} style={styles.rowImage} />
         ) : (
-          <View style={styles.rowImagePlaceholder} />
+          <View style={[styles.rowImagePlaceholder, { backgroundColor: paletteColorFor(item.id) }]}>
+            <Text size="xl">{emojiForProduct(item)}</Text>
+          </View>
         )}
         <View style={styles.info}>
           <Text weight="semibold" numberOfLines={1}>
@@ -39,10 +42,17 @@ export function ProductListItem({ item, onPress }: { item: Product; onPress: () 
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: spacing.sm },
+  card: { marginBottom: spacing.sm, padding: spacing.md },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  rowImage: { width: 40, height: 40, borderRadius: 6, marginRight: spacing.sm, backgroundColor: colors.gray[100] },
-  rowImagePlaceholder: { width: 40, height: 40, borderRadius: 6, marginRight: spacing.sm, backgroundColor: colors.gray[100] },
+  rowImage: { width: 48, height: 48, borderRadius: radii.lg, marginRight: spacing.md, backgroundColor: colors.gray[100] },
+  rowImagePlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.lg,
+    marginRight: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   info: { flex: 1, marginRight: spacing.sm },
   right: { alignItems: 'flex-end', gap: spacing.xs },
 });

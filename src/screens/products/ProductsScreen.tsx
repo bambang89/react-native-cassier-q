@@ -11,9 +11,9 @@ import { useResponsive } from '@/hooks/useResponsive';
 import type { Product } from '@/types/models';
 import { colors } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
-import { Button, Input, Link, Pressable } from '@/components/ui/forms';
+import { Button, Input, Pressable } from '@/components/ui/forms';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { EmptyState, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
+import { EmptyState, Fab, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 import { AlertTriangleIcon, BarcodeIcon, BoxIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
 import { CategoryChip, ProductGridCard } from '@/components/product';
@@ -230,18 +230,7 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Header
-        title="Produk"
-        rightElement={
-          <View style={styles.headerActions}>
-            <Link onPress={() => navigation.navigate('Categories')}>Kategori</Link>
-            <Link onPress={() => navigation.navigate('Units')}>Satuan</Link>
-            <Button size="sm" onPress={() => navigation.navigate('ProductForm', { product: undefined })}>
-              + Tambah
-            </Button>
-          </View>
-        }
-      />
+      <Header title="Produk" subtitle={`${items.length} produk · geser kiri untuk restock`} />
 
       {lowStockBanner}
 
@@ -261,8 +250,27 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
         />
       </View>
 
+      {categories.length > 0 ? (
+        <ScrollView
+          horizontal
+          style={styles.phoneChipScroll}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.phoneChipRow}
+        >
+          <CategoryChip label="Semua" active={selectedCategoryId === null} onPress={() => setSelectedCategoryId(null)} />
+          {categories.map((cat) => (
+            <CategoryChip
+              key={cat.id}
+              label={cat.categoryName}
+              active={selectedCategoryId === cat.id}
+              onPress={() => setSelectedCategoryId(cat.id)}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
+
       <SwipeList
-        data={items}
+        data={gridProducts}
         keyExtractor={(item) => item.id}
         onRefresh={() => dispatch(fetchProducts({ search }))}
         refreshing={status === 'loading' && page === 0}
@@ -325,6 +333,12 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
         confirmText="Nonaktifkan"
         isDanger
         onConfirm={() => deleteTarget && onDelete(deleteTarget)}
+      />
+
+      <Fab
+        icon={PlusIcon}
+        accessibilityLabel="Tambah produk"
+        onPress={() => navigation.navigate('ProductForm', { product: undefined })}
       />
     </SafeAreaView>
   );
