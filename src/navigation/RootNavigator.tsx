@@ -92,9 +92,10 @@ export default function RootNavigator() {
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
-            // HP: dorong dari kanan (pola iOS/Android); tablet: naik halus dari bawah
-            // seperti panel, karena layar lebar tidak cocok dengan geser penuh.
-            animation: isPhone ? 'slide_from_right' : 'fade_from_bottom',
+            // HP: dorong dari kanan dengan paralaks ala iOS (juga di Android);
+            // tablet: naik halus dari bawah seperti panel, karena layar lebar
+            // tidak cocok dengan geser penuh.
+            animation: isPhone ? 'ios_from_right' : 'fade_from_bottom',
             animationDuration: 280,
             gestureEnabled: true,
             contentStyle: { backgroundColor: colors.canvas },

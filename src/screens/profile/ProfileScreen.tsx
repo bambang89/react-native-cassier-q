@@ -88,6 +88,7 @@ export default function ProfileScreen({ navigation }: Props) {
         />
         <TabletSplitView
           listWidth={260}
+          detailKey={selectedSection}
           detail={
             <SettingsDetailPane
               section={selectedSection}

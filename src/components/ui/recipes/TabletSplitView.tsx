@@ -7,11 +7,14 @@ import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 import { Pressable } from '@/components/ui/forms/Pressable';
 import { SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { FadeInView } from '@/components/ui/motion';
 
 export interface TabletSplitViewProps {
   listWidth?: number;
   children: ReactNode;
   detail: ReactNode;
+  /** Id item yang sedang dibuka — setiap kali berubah, panel detail masuk dengan animasi. */
+  detailKey?: string | null;
   searchValue?: string;
   onSearchChange?: (text: string) => void;
   searchPlaceholder?: string;
@@ -21,6 +24,7 @@ export function TabletSplitView({
   listWidth = tabletLayout.splitListWidth,
   children,
   detail,
+  detailKey,
   searchValue,
   onSearchChange,
   searchPlaceholder,
@@ -44,7 +48,11 @@ export function TabletSplitView({
         ) : null}
         <ScrollView showsVerticalScrollIndicator={false}>{children}</ScrollView>
       </View>
-      <View style={styles.detail}>{detail}</View>
+      <View style={styles.detail}>
+        <FadeInView key={detailKey ?? 'empty'} offsetY={0} offsetX={18} duration={320} style={styles.detailInner}>
+          {detail}
+        </FadeInView>
+      </View>
     </View>
   );
 }
@@ -119,4 +127,5 @@ const styles = StyleSheet.create({
   itemAmount: { fontSize: 13, fontWeight: '700', color: tabletColors.gray900 },
   itemMeta: { fontSize: 11.5, color: tabletColors.gray500 },
   detail: { flex: 1, backgroundColor: tabletColors.gray25 },
+  detailInner: { flex: 1 },
 });

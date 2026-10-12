@@ -108,6 +108,7 @@ export default function OrdersScreen({ navigation }: Props) {
           userName={user?.name ?? 'Kasir'}
         />
         <TabletSplitView
+          detailKey={selectedOrderId}
           searchValue={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder="Cari transaksi"

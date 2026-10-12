@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import PhoneTabBar from './PhoneTabBar';
 import SidebarTabBar from './SidebarTabBar';
+import { tabTransition } from './transitions';
 import { TAB_SCREENS } from './types';
 import type { MainTabParamList } from './types';
 import MenuScreen from '@/screens/menu/MenuScreen';
@@ -14,7 +15,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
  * Dua kerangka navigasi:
  * - Tablet (landscape): sidebar ikon di kiri berisi semua layar.
  * - HP (portrait): bottom tab bar 5 item + layar Menu untuk sisanya.
- * Pindah tab dianimasikan (HP: geser/shift, tablet: fade).
+ * Pindah tab dianimasikan dengan transisi "terangkat" yang sama (lihat transitions.ts).
  */
 export default function MainTabNavigator() {
   const { isPhone } = useResponsive();
@@ -27,7 +28,7 @@ export default function MainTabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarPosition: isPhone ? 'bottom' : 'left',
-        animation: isPhone ? 'shift' : 'fade',
+        ...tabTransition,
         sceneStyle: { backgroundColor: colors.canvas },
       }}
     >

@@ -79,6 +79,7 @@ export default function CustomersScreen({ navigation }: Props) {
           }
         />
         <TabletSplitView
+          detailKey={selectedCustomerId}
           searchValue={search}
           onSearchChange={setSearch}
           searchPlaceholder="Cari pelanggan"
