@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "198412174411",
+    "project_id": "cassier-q",
+    "storage_bucket": "cassier-q.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:198412174411:android:f3cfc5e36d809870a539ce",
+        "android_client_info": {
+          "package_name": "com.cassierq.pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoXVani6dmE12z6f1pT0-5rcDjlczId9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

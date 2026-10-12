@@ -17,6 +17,7 @@ import { setupSslPinning } from './src/api/sslPinning';
 import { AnimatedSplash } from './src/components/splash/AnimatedSplash';
 import { lockOrientationForDevice } from './src/config/orientation';
 import RootNavigator from './src/navigation/RootNavigator';
+import { initNotifications } from './src/services/notifications';
 import { store } from './src/store';
 import { useAppDispatch, useAppSelector } from './src/store/hooks';
 import { bootstrapAuth } from './src/store/slices/authSlice';
@@ -84,6 +85,20 @@ function AppShell({ bootReady, fontsLoaded }: { bootReady: boolean; fontsLoaded:
   useEffect(() => {
     if (bootReady && authStatus === 'idle') dispatch(bootstrapAuth());
   }, [bootReady, authStatus, dispatch]);
+
+  // Dialog izin notifikasi baru muncul setelah splash, bukan menimpanya.
+  useEffect(() => {
+    if (splashVisible) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    initNotifications()
+      .then((unsubscribe) => (cancelled ? unsubscribe() : (cleanup = unsubscribe)))
+      .catch((error) => console.warn('[notifications] init failed', error));
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [splashVisible]);
 
   return (
     <>

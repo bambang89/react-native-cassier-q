@@ -1,5 +1,7 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
+import { androidGoogleServicesFile, iosGoogleServicesFile } from './plugins/firebaseFiles';
+
 const API_ENV_NAMES = ['development', 'sit', 'uat', 'production'];
 
 const VARIANT = process.env.APP_VARIANT ?? 'production';
@@ -17,6 +19,11 @@ const BUNDLE_ID: Record<string, string> = {
   preview: 'com.cassierq.pos.preview',
   production: 'com.cassierq.pos',
 };
+
+// Firebase per platform hanya aktif kalau file konfigurasinya ada (dan, untuk
+// Android, terdaftar untuk package variant ini) — lihat plugins/withFirebase.js.
+const GOOGLE_SERVICES_JSON = androidGoogleServicesFile(BUNDLE_ID[VARIANT]);
+const GOOGLE_SERVICE_INFO_PLIST = iosGoogleServicesFile();
 
 const APP_NAME: Record<string, string> = {
   development: 'cassier-Q (Dev)',
@@ -39,6 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     requireFullScreen: true,
     bundleIdentifier: BUNDLE_ID[VARIANT],
+    googleServicesFile: GOOGLE_SERVICE_INFO_PLIST ?? undefined,
     icon: {
       light: './assets/icon-light.png',
       dark: './assets/icon-dark.png',
@@ -55,6 +63,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSLocalNetworkUsageDescription:
         'cassier-Q needs local network access to find network-connected receipt printers.',
       ITSAppUsesNonExemptEncryption: false,
+      // Push FCM (data-only) bisa membangunkan app di background.
+      UIBackgroundModes: ['remote-notification'],
       UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
       'UISupportedInterfaceOrientations~ipad': [
         'UIInterfaceOrientationLandscapeLeft',
@@ -64,6 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: BUNDLE_ID[VARIANT],
+    googleServicesFile: GOOGLE_SERVICES_JSON ?? undefined,
     adaptiveIcon: {
       backgroundColor: '#0A1830',
       foregroundImage: './assets/android-icon-foreground.png',
@@ -81,6 +92,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'android.permission.ACCESS_FINE_LOCATION',
       'android.permission.ACCESS_NETWORK_STATE',
       'android.permission.CHANGE_WIFI_MULTICAST_STATE',
+      // Android 13+: izin menampilkan notifikasi (diminta saat runtime oleh Notifee).
+      'android.permission.POST_NOTIFICATIONS',
     ],
   },
   web: {
@@ -103,11 +116,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-font',
+    './plugins/withFirebase',
     [
       'expo-build-properties',
       {
         ios: {
           deploymentTarget: '16.4',
+          // Firebase Apple SDK lewat SPM butuh dynamic frameworks.
+          ...(GOOGLE_SERVICE_INFO_PLIST ? { useFrameworks: 'dynamic' as const } : {}),
         },
         android: {
           minSdkVersion: 26,
@@ -120,6 +136,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     apiEnv: API_ENV,
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? '',
     appVariant: VARIANT,
+    firebase: {
+      android: GOOGLE_SERVICES_JSON != null,
+      ios: GOOGLE_SERVICE_INFO_PLIST != null,
+    },
     eas: {
       projectId: process.env.EAS_PROJECT_ID ?? 'REPLACE_WITH_EAS_PROJECT_ID',
     },
