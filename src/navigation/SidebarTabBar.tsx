@@ -1,21 +1,35 @@
-import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Alert, Animated, Image, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 import { useAppSelector } from '@/store/hooks';
-import { radii, spacing } from '@/theme';
+import { motion, radii, spacing } from '@/theme';
 import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 import { Pressable } from '@/components/ui/forms';
+import { PressableScale } from '@/components/ui/motion';
 import { HelpIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { TAB_ICONS } from './tabIcons';
 import type { MainTabParamList } from './types';
 
 const RAIL_WIDTH = tabletLayout.sidebarWidth;
+const ITEM_HEIGHT = 50;
+const ITEM_GAP = spacing.xs;
 const ICON_COLOR_INACTIVE = '#8FA3BE';
 
 export default function SidebarTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const user = useAppSelector((reduxState) => reduxState.auth.user);
+  // Sorotan biru bergeser (spring) dari item lama ke item baru, bukan berpindah instan.
+  const highlightY = useRef(new Animated.Value(state.index * (ITEM_HEIGHT + ITEM_GAP))).current;
+
+  useEffect(() => {
+    Animated.spring(highlightY, {
+      toValue: state.index * (ITEM_HEIGHT + ITEM_GAP),
+      useNativeDriver: true,
+      ...motion.spring.gentle,
+    }).start();
+  }, [state.index, highlightY]);
 
   return (
     <SafeAreaView edges={['top', 'left']} style={[styles.safeArea, { width: RAIL_WIDTH }]}>
@@ -31,6 +45,8 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
           contentContainerStyle={styles.menuListContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.menuColumn}>
+          <Animated.View style={[styles.highlight, { transform: [{ translateY: highlightY }] }]} />
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
             const label = (options.title ?? route.name) as string;
@@ -45,10 +61,11 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
             };
 
             return (
-              <Pressable
+              <PressableScale
                 key={route.key}
                 onPress={onPress}
-                style={[styles.menuItem, isFocused && styles.menuItemActive]}
+                activeScale={0.92}
+                style={styles.menuItem}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isFocused }}
               >
@@ -61,9 +78,10 @@ export default function SidebarTabBar({ state, descriptors, navigation }: Bottom
                 >
                   {label}
                 </Text>
-              </Pressable>
+              </PressableScale>
             );
           })}
+          </View>
         </ScrollView>
 
         <View style={styles.bottomSection}>
@@ -108,16 +126,29 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   menuList: { flex: 1, width: '100%' },
-  menuListContent: { alignItems: 'center', paddingHorizontal: spacing.xs, gap: spacing.xs },
+  menuListContent: { alignItems: 'center', paddingHorizontal: spacing.xs },
+  menuColumn: { width: 54, gap: ITEM_GAP },
+  highlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 54,
+    height: ITEM_HEIGHT,
+    borderRadius: radii.xl,
+    backgroundColor: tabletColors.blue600,
+    shadowColor: tabletColors.blue600,
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
   menuItem: {
     width: 54,
-    height: 50,
+    height: ITEM_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
     borderRadius: radii.xl,
   },
-  menuItemActive: { backgroundColor: tabletColors.blue600 },
   menuLabel: { fontSize: 8.5, fontWeight: '600', color: ICON_COLOR_INACTIVE, textAlign: 'center' },
   menuLabelActive: { color: tabletColors.white, fontWeight: '700' },
   bottomSection: { width: '100%', alignItems: 'center' },
