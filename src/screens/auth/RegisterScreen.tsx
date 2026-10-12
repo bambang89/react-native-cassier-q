@@ -19,6 +19,8 @@ export default function RegisterScreen({ navigation }: Props) {
   const { status, error } = useAppSelector((state) => state.auth);
   const [storeCode, setStoreCode] = useState('');
   const [storeName, setStoreName] = useState('');
+  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,7 +41,18 @@ export default function RegisterScreen({ navigation }: Props) {
   );
 
   const onSubmit = () => {
-    dispatch(register({ storeCode, storeName, username, name, email, password }));
+    dispatch(
+      register({
+        storeCode,
+        storeName,
+        username,
+        name,
+        email,
+        password,
+        address: address.trim() || undefined,
+        phone: phone.trim() || undefined,
+      }),
+    );
   };
 
   return (
@@ -75,6 +88,12 @@ export default function RegisterScreen({ navigation }: Props) {
             </FormControl>
           </View>
         </HStack>
+        <FormControl label="Alamat toko" helperText="Opsional — tampil di struk">
+          <Input placeholder="Jalan, kelurahan, kecamatan, kota" value={address} onChangeText={setAddress} />
+        </FormControl>
+        <FormControl label="No. telepon toko">
+          <Input placeholder="Opsional" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+        </FormControl>
 
         <View style={styles.sectionLabelRow}>
           <PersonIcon size={15} color={colors.text.secondary} />

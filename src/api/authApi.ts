@@ -26,6 +26,10 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
+  /** Opsional — bisa dilengkapi belakangan di menu Outlet. */
+  address?: string;
+  city?: string;
+  phone?: string;
 }
 
 export async function register(payload: RegisterPayload): Promise<User> {
