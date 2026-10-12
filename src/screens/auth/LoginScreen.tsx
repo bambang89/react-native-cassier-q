@@ -8,7 +8,7 @@ import { login } from '@/store/slices/authSlice';
 import { clearRememberedUsername, loadRememberedUsername, saveRememberedUsername } from '@/api/tokenStorage';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { AuthStackParamList } from '@/navigation/types';
-import { colors, radii, spacing, staggerDelay } from '@/theme';
+import { colors, fontFamilies, radii, spacing, staggerDelay } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 import { Button, CheckBox, FormControl, Input, Link, PasswordInput } from '@/components/ui/forms';
 import { Divider } from '@/components/ui/dataDisplay';
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 34,
     lineHeight: 44,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: fontFamilies.bold,
     maxWidth: 440,
   },
   brandList: { marginTop: spacing['2xl'], gap: spacing.base },

@@ -8,7 +8,7 @@ import type { SalesSummary } from '@/types/models';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
-import { colors, motion, radii, spacing, staggerDelay } from '@/theme';
+import { colors, fontFamilies, motion, radii, spacing, staggerDelay } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 import { Card, GradientBackground, Header, KpiCard, TabletTopBar } from '@/components/ui/recipes';
 import { Heading, Text } from '@/components/ui/typography';
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 40,
     color: colors.white,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: fontFamilies.bold,
   },
   heroFoot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md },
   heroDelta: {

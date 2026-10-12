@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3.2,
     fontWeight: '600',
   },
-  taglineFont: { fontFamily: 'Inter_600SemiBold', fontWeight: undefined },
+  taglineFont: { fontFamily: 'PlusJakartaSans_600SemiBold', fontWeight: undefined },
   hairlineTrack: {
     position: 'absolute',
     bottom: 72,

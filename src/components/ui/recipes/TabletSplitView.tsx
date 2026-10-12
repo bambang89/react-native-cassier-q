@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import type { ReactNode } from 'react';
 
-import { radii } from '@/theme';
+import { fontFamily, radii } from '@/theme';
 import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 import { Pressable } from '@/components/ui/forms/Pressable';
 import { SearchIcon } from '@/components/icons/LineIcons';
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: tabletColors.gray200,
     backgroundColor: tabletColors.white,
   },
-  searchInput: { flex: 1, fontSize: 13.5, color: tabletColors.gray900, padding: 0 },
+  searchInput: { flex: 1, fontSize: 13.5, color: tabletColors.gray900, padding: 0, fontFamily },
   item: {
     paddingHorizontal: 16,
     paddingVertical: 13,

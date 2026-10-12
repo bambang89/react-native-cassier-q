@@ -1,7 +1,7 @@
-import { Text as RNText } from 'react-native';
+import { StyleSheet, Text as RNText } from 'react-native';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
 
-import { colors, fontFamilies, fontSizes, lineHeights } from '@/theme';
+import { colors, fontFamilies, fontFamilyForWeight, fontSizes, lineHeights } from '@/theme';
 import type { FontSizeToken, FontWeightToken } from '@/theme';
 
 export type TextColorToken = keyof typeof colors.text | 'success' | 'warning' | 'error';
@@ -36,20 +36,36 @@ export function Text({
   style,
   ...rest
 }: TextProps) {
+  // Bobot dari style (fontWeight) diterjemahkan ke file font Plus Jakarta Sans
+  // yang sesuai, jadi semua teks tetap satu keluarga font walau layar menulis
+  // fontWeight sendiri.
+  const flat = StyleSheet.flatten(style) ?? {};
+  const { fontWeight: styleWeight, fontFamily: styleFamily, ...restStyle } = flat;
+  const family =
+    styleFamily && styleFamily.startsWith('PlusJakartaSans')
+      ? styleFamily
+      : styleWeight !== undefined
+        ? fontFamilyForWeight(styleWeight)
+        : fontFamilies[weight];
+
   return (
     <RNText
       style={[
         {
-          fontFamily: fontFamilies[weight],
           fontSize: fontSizes[size],
           lineHeight: Math.round(fontSizes[size] * lineHeights.normal),
           color: resolveColor(color),
           fontStyle: italic ? 'italic' : 'normal',
           textAlign: align,
+          fontVariant: TABULAR_NUMS,
         },
-        style,
+        restStyle,
+        { fontFamily: family },
       ]}
       {...rest}
     />
   );
 }
+
+// Angka tabular: setiap digit sama lebar, jadi kolom harga/total rata.
+const TABULAR_NUMS: TextStyle['fontVariant'] = ['tabular-nums'];

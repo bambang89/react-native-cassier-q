@@ -1,24 +1,48 @@
 import type { TextStyle } from 'react-native';
 
-// Font pairing sesuai cassier-q-brand-presentation.html: Inter untuk body/UI,
-// Poppins untuk heading (h1-h3 di file brand pakai Poppins, sisanya Inter).
-export const fontFamily = 'Inter_400Regular';
+// Satu keluarga font untuk seluruh app: Plus Jakarta Sans (Tokotype, dirancang
+// di Indonesia). x-height tinggi → tetap terbaca di ukuran kecil, karakter
+// geometris yang ramah (sejalan dengan brand), dan punya angka tabular (tnum)
+// sehingga harga/total di daftar & struk rata lurus.
+export const fontFamily = 'PlusJakartaSans_400Regular';
 
 export const fontFamilies = {
-  regular: 'Inter_400Regular',
-  medium: 'Inter_500Medium',
-  semibold: 'Inter_600SemiBold',
-  bold: 'Inter_700Bold',
-  extrabold: 'Inter_800ExtraBold',
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+  extrabold: 'PlusJakartaSans_800ExtraBold',
 } satisfies Record<string, string>;
 
-export const headingFontFamilies = {
-  regular: 'Poppins_400Regular',
-  medium: 'Poppins_500Medium',
-  semibold: 'Poppins_600SemiBold',
-  bold: 'Poppins_700Bold',
-  extrabold: 'Poppins_800ExtraBold',
-} satisfies Record<string, string>;
+// Judul memakai keluarga yang sama — hierarki dibangun dari ukuran & bobot,
+// bukan dari font kedua.
+export const headingFontFamilies = fontFamilies;
+
+/**
+ * Nama file font untuk sebuah fontWeight. Di Expo tiap bobot adalah keluarga
+ * font tersendiri; kalau style hanya menulis fontWeight: '700' tanpa
+ * fontFamily yang cocok, iOS diam-diam jatuh ke font sistem.
+ */
+export function fontFamilyForWeight(weight: TextStyle['fontWeight'] | undefined): string {
+  switch (String(weight ?? '400')) {
+    case '500':
+    case 'medium':
+      return fontFamilies.medium;
+    case '600':
+    case 'semibold':
+      return fontFamilies.semibold;
+    case '700':
+    case 'bold':
+      return fontFamilies.bold;
+    case '800':
+    case '900':
+    case 'heavy':
+    case 'black':
+      return fontFamilies.extrabold;
+    default:
+      return fontFamilies.regular;
+  }
+}
 
 export const fontSizes = {
   xs: 13,
