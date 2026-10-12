@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
+import { apiErrorMessage } from '@/api/errors';
 import * as ordersApi from '@/api/ordersApi';
 import type { CreateOrderPayload, FetchOrdersParams } from '@/api/ordersApi';
 import type { CartItem, Order, Receipt } from '@/types/models';
@@ -54,13 +55,29 @@ export const fetchOrder = createAsyncThunk('orders/fetchOne', async (id: string)
 
 export const createOrder = createAsyncThunk(
   'orders/create',
-  async ({ items, payload }: { items: CartItem[]; payload: CreateOrderPayload }) =>
-    ordersApi.createOrder(items, payload),
+  async (
+    { items, payload, idempotencyKey }: { items: CartItem[]; payload: CreateOrderPayload; idempotencyKey: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      return await ordersApi.createOrder(items, payload, idempotencyKey);
+    } catch (error) {
+      // Pesan dari backend (mis. stok kurang, limit kredit, diskon melebihi batas).
+      return rejectWithValue(apiErrorMessage(error, 'Transaksi gagal, coba lagi.'));
+    }
+  },
 );
 
 export const voidOrder = createAsyncThunk(
   'orders/void',
-  async ({ id, reason }: { id: string; reason: string }) => ordersApi.voidOrder(id, reason),
+  async ({ id, reason }: { id: string; reason: string }, { rejectWithValue }) => {
+    try {
+      return await ordersApi.voidOrder(id, reason);
+    } catch (error) {
+      // 403 untuk kasir: void hanya boleh Kepala Toko / Super Admin.
+      return rejectWithValue(apiErrorMessage(error, 'Gagal membatalkan transaksi.'));
+    }
+  },
 );
 
 export const fetchReceipt = createAsyncThunk('orders/fetchReceipt', async (id: string) => ordersApi.fetchReceipt(id));
@@ -124,7 +141,7 @@ const ordersSlice = createSlice({
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.createStatus = 'failed';
-        state.createError = action.error.message ?? 'Transaksi gagal';
+        state.createError = (action.payload as string | undefined) ?? action.error.message ?? 'Transaksi gagal';
       })
       .addCase(voidOrder.pending, (state) => {
         state.voidStatus = 'loading';
@@ -138,7 +155,7 @@ const ordersSlice = createSlice({
       })
       .addCase(voidOrder.rejected, (state, action) => {
         state.voidStatus = 'failed';
-        state.voidError = action.error.message ?? 'Transaksi tidak bisa dibatalkan';
+        state.voidError = (action.payload as string | undefined) ?? action.error.message ?? 'Transaksi tidak bisa dibatalkan';
       })
       .addCase(fetchReceipt.pending, (state) => {
         state.receiptStatus = 'loading';

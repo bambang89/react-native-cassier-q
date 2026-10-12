@@ -36,12 +36,14 @@ export async function loadTokens(): Promise<TokenSet | null> {
   return { accessToken, refreshToken, expiresAt: Number(expiresAt) };
 }
 
+// Device id sengaja TIDAK ikut dihapus: id ini identitas fisik device
+// (token diikat ke sini oleh server), bukan bagian dari sesi login. Kalau
+// dihapus, setiap login tercatat sebagai device baru di tabel devices.
 export async function clearTokens(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
     SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
     SecureStore.deleteItemAsync(EXPIRES_AT_KEY),
-    SecureStore.deleteItemAsync(DEVICE_ID_KEY),
   ]);
 }
 

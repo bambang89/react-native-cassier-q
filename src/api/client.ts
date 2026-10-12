@@ -43,7 +43,8 @@ let refreshPromise: Promise<TokenSet> | null = null;
 type AuthResponseBody = {
   accessToken: string;
   refreshToken: string;
-  expiresInSeconds: number;
+  /** epoch millis */
+  expiresAt: number;
 };
 
 async function refreshAccessToken(): Promise<TokenSet> {
@@ -59,14 +60,26 @@ async function refreshAccessToken(): Promise<TokenSet> {
   const tokens: TokenSet = {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-    expiresAt: Date.now() + data.expiresInSeconds * 1000,
+    expiresAt: data.expiresAt,
   };
   await saveTokens(tokens);
   return tokens;
 }
 
+// Refresh sedikit sebelum benar-benar kedaluwarsa, supaya request yang sedang
+// jalan tidak sampai ditolak 401 di tengah jalan.
+const EXPIRY_SKEW_MS = 60_000;
+
 function isTokenExpired(tokens: TokenSet): boolean {
-  return tokens.expiresAt <= Date.now();
+  return tokens.expiresAt - EXPIRY_SKEW_MS <= Date.now();
+}
+
+/** Gabungkan permintaan refresh yang datang bersamaan jadi satu panggilan. */
+function sharedRefresh(): Promise<TokenSet> {
+  refreshPromise ??= refreshAccessToken().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
 }
 
 let forceLogoutPromise: Promise<void> | null = null;
@@ -113,11 +126,16 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
   if (PUBLIC_AUTH_PATHS.some((path) => config.url?.includes(path))) {
     return config;
   }
-  const tokens = await loadTokens();
+  let tokens = await loadTokens();
   if (tokens && isTokenExpired(tokens)) {
-    await forceLogoutOnExpiry();
-    // Batalkan request ini — tidak ada gunanya lanjut kirim tanpa token valid.
-    return Promise.reject(new axios.Cancel('Session expired (expiresAt lewat, sesi sudah di-revoke)'));
+    // Access token habis: tukar dengan refresh token (berlaku 30 hari) dulu.
+    // Baru logout kalau refresh token-nya sendiri sudah mati.
+    try {
+      tokens = await sharedRefresh();
+    } catch {
+      await forceLogoutOnExpiry();
+      return Promise.reject(new axios.Cancel('Session expired (refresh token tidak berlaku lagi)'));
+    }
   }
   if (tokens?.accessToken) {
     config.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
@@ -144,10 +162,7 @@ apiClient.interceptors.response.use(
 
     try {
       // Gabungkan 401 yang datang bersamaan jadi satu panggilan refresh saja.
-      refreshPromise ??= refreshAccessToken().finally(() => {
-        refreshPromise = null;
-      });
-      const tokens = await refreshPromise;
+      const tokens = await sharedRefresh();
 
       originalRequest.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
       return apiClient(originalRequest);

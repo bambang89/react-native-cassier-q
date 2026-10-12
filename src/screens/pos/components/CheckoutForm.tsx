@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 
+import { newIdempotencyKey } from '@/api/errors';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createOrder } from '@/store/slices/ordersSlice';
 import { fetchCustomers } from '@/store/slices/customersSlice';
@@ -8,13 +9,13 @@ import type { CartItem, Order } from '@/types/models';
 import { PAYMENT_METHODS, type PaymentMethod } from '@/types/models';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors } from '@/theme';
-import { Button, FormControl, Input, Pressable, Select } from '@/components/ui/forms';
+import { Button, FormControl, Input, Pressable, Select, Switch } from '@/components/ui/forms';
 import { Heading, Text } from '@/components/ui/typography';
 import { VStack } from '@/components/ui/layout';
 import { CreditCardIcon } from '@/components/icons/LineIcons';
 
 import { styles } from '../POSScreen.styles';
-import { CASH_PRESETS, formatRupiah, NO_CUSTOMER } from '../POSScreen.utils';
+import { CASH_PRESETS, formatRupiah, NO_CUSTOMER, PPN_RATE } from '../POSScreen.utils';
 import { CartItemRow } from './CartItemRow';
 
 export function CheckoutForm({
@@ -25,6 +26,8 @@ export function CheckoutForm({
   onCancel,
   externalDiscountAmount,
   externalTaxAmount,
+  ppnEnabled,
+  onChangePpnEnabled,
 }: {
   total: number;
   cartItems: CartItem[];
@@ -35,6 +38,9 @@ export function CheckoutForm({
    * modal Diskon — modal ini cuma menampilkannya sebagai ringkasan, bukan input lagi. */
   externalDiscountAmount?: number;
   externalTaxAmount?: number;
+  /** Dipakai kalau pajak tidak dikunci dari luar (mode HP): PPN dihitung di sini dari total setelah diskon. */
+  ppnEnabled: boolean;
+  onChangePpnEnabled: (value: boolean) => void;
 }) {
   const dispatch = useAppDispatch();
   const { height } = useResponsive();
@@ -43,13 +49,26 @@ export function CheckoutForm({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [discount, setDiscount] = useState('');
-  const taxAmount = externalTaxAmount ?? 0;
   const discountAmount = lockDiscount
     ? (externalDiscountAmount ?? 0)
     : Math.min(total, Math.max(0, Number(discount || 0)));
+  const lockTax = externalTaxAmount !== undefined;
+  const taxAmount = lockTax
+    ? (externalTaxAmount ?? 0)
+    : ppnEnabled
+      ? Math.round((total - discountAmount) * PPN_RATE)
+      : 0;
   const payableTotal = total - discountAmount + taxAmount;
   const [paymentAmount, setPaymentAmount] = useState(String(payableTotal));
   const [submitting, setSubmitting] = useState<'receipt' | 'plain' | null>(null);
+  // Satu key per checkout ini: kalau request pertama timeout padahal sudah
+  // tercatat di server, menekan bayar lagi mengembalikan transaksi yang sama.
+  const idempotencyKey = useRef(newIdempotencyKey());
+
+  // Total berubah (diskon / PPN diubah) → jumlah bayar ikut menyesuaikan.
+  useEffect(() => {
+    setPaymentAmount(String(payableTotal));
+  }, [payableTotal]);
 
   const selectedCustomer = customers.find((c) => c.id === customerId) ?? null;
   const amountNumber = Number(paymentAmount || 0);
@@ -81,17 +100,13 @@ export function CheckoutForm({
             taxAmount: taxAmount > 0 ? taxAmount : undefined,
             customerId: selectedCustomer?.id,
           },
+          idempotencyKey: idempotencyKey.current,
         }),
       ).unwrap();
       if (selectedCustomer) dispatch(fetchCustomers());
       onDone(order, withReceipt);
-    } catch {
-      Alert.alert(
-        'Gagal',
-        selectedCustomer
-          ? 'Transaksi gagal. Coba lagi, atau cek limit kredit pelanggan ini.'
-          : 'Transaksi gagal, coba lagi.',
-      );
+    } catch (error) {
+      Alert.alert('Gagal', typeof error === 'string' ? error : 'Transaksi gagal, coba lagi.');
     } finally {
       setSubmitting(null);
     }
@@ -210,6 +225,15 @@ export function CheckoutForm({
                 </Text>
               </Pressable>
             ) : null}
+          </View>
+        ) : null}
+
+        {!lockTax ? (
+          <View style={styles.ppnRow}>
+            <Text weight="semibold" size="sm">
+              PPN 11%
+            </Text>
+            <Switch value={ppnEnabled} onValueChange={onChangePpnEnabled} />
           </View>
         ) : null}
 

@@ -142,8 +142,8 @@ export function VoidForm({
     try {
       await dispatch(voidOrder({ id: orderId, reason: reason.trim() })).unwrap();
       onDone();
-    } catch {
-      Alert.alert('Gagal', 'Transaksi tidak bisa dibatalkan.');
+    } catch (error) {
+      Alert.alert('Gagal', typeof error === 'string' ? error : 'Transaksi tidak bisa dibatalkan.');
     } finally {
       setSubmitting(false);
     }

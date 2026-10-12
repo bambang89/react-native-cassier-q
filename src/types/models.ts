@@ -19,7 +19,8 @@ export type User = {
 export type AuthResponse = {
   accessToken: string;
   refreshToken: string;
-  expiresInSeconds: number;
+  /** Waktu kedaluwarsa access token, epoch millis (dari server). */
+  expiresAt: number;
   user: User;
 };
 

@@ -375,6 +375,8 @@ export default function POSScreen({ navigation }: POSScreenProps) {
           onCancel={() => setCheckoutModalVisible(false)}
           externalDiscountAmount={isTabletLandscape ? discountAmount : undefined}
           externalTaxAmount={isTabletLandscape ? taxAmount : undefined}
+          ppnEnabled={ppnEnabled}
+          onChangePpnEnabled={setPpnEnabled}
         />
       </Modal>
 

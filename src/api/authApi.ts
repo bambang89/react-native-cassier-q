@@ -6,7 +6,7 @@ async function persistAuthResponse(data: AuthResponse): Promise<TokenSet> {
   const tokens: TokenSet = {
     accessToken: data.accessToken,
     refreshToken: data.refreshToken,
-    expiresAt: Date.now() + data.expiresInSeconds * 1000,
+    expiresAt: data.expiresAt,
   };
   await saveTokens(tokens);
   return tokens;
