@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStoreProfile, updateStoreProfile } from '@/store/slices/storeProfileSlice';
@@ -109,10 +110,10 @@ export function StoreProfileForm({ contentContainerStyle }: { contentContainerSt
 
 export default function StoreProfileScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header title="Outlet" subtitle="Profil & data toko" />
       <StoreProfileForm />
-    </View>
+    </SafeAreaView>
   );
 }
 
