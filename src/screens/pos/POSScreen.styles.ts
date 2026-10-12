@@ -4,7 +4,7 @@ import { colors, radii, spacing } from '@/theme';
 import { tabletColors, tabletLayout } from '@/theme/tabletColors';
 
 export const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   searchWrap: { flexDirection: 'row', paddingHorizontal: spacing.base, marginBottom: spacing.md, gap: spacing.sm },
   searchWrapTablet: { paddingHorizontal: 20, marginBottom: spacing.base, gap: 10 },
   searchInput: { flex: 1 },

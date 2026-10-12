@@ -5,7 +5,8 @@ import type { BadgeVariant } from '@/components/ui/dataDisplay';
 import { Card } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 import { emojiForProduct, LOW_STOCK_THRESHOLD, paletteColorFor } from '@/utils/productDisplay';
-import { radii, spacing } from '@/theme';
+import { radii, spacing, staggerDelay } from '@/theme';
+import { FadeInView } from '@/components/ui/motion';
 import type { Product } from '@/types/models';
 
 export type ProductGridCardVariant = 'pos' | 'catalog';
@@ -20,6 +21,8 @@ interface ProductGridCardProps {
    * pakai Badge dan tap tetap aktif walau stok habis (masih perlu bisa diedit).
    */
   variant?: ProductGridCardVariant;
+  /** Posisi di grid — kartu muncul bergiliran (stagger) saat pertama tampil. */
+  index?: number;
 }
 
 function stockStatus(item: Product): { label: string; variant: BadgeVariant } {
@@ -28,7 +31,7 @@ function stockStatus(item: Product): { label: string; variant: BadgeVariant } {
   return { label: 'Aman', variant: 'success' };
 }
 
-export function ProductGridCard({ item, onPress, tablet, variant = 'pos' }: ProductGridCardProps) {
+export function ProductGridCard({ item, onPress, tablet, variant = 'pos', index = 0 }: ProductGridCardProps) {
   const outOfStock = item.stockQuantity <= 0;
   const lowStock = !outOfStock && item.stockQuantity <= LOW_STOCK_THRESHOLD;
   const stockColor = outOfStock ? 'error' : lowStock ? 'warning' : 'muted';
@@ -37,11 +40,12 @@ export function ProductGridCard({ item, onPress, tablet, variant = 'pos' }: Prod
   const badge = variant === 'catalog' ? stockStatus(item) : null;
 
   return (
-    <Card padding="none" style={styles.card} onPress={disablePress ? undefined : onPress}>
+    <FadeInView delay={staggerDelay(index)} offsetY={14} fromScale={0.97} style={styles.cell}>
+    <Card padding="none" style={[styles.card, outOfStock && styles.cardDisabled]} onPress={disablePress ? undefined : onPress}>
       <View
         style={[
           styles.imageWrap,
-          tablet && styles.imageWrapTablet,
+          tablet ? styles.imageWrapTablet : styles.imageWrapPhone,
           !item.imageUrl && { backgroundColor: thumbnailColor },
         ]}
       >
@@ -69,11 +73,16 @@ export function ProductGridCard({ item, onPress, tablet, variant = 'pos' }: Prod
         </View>
       </View>
     </Card>
+    </FadeInView>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flex: 1, marginBottom: spacing.md, borderRadius: radii.lg, overflow: 'hidden' },
+  cell: { flex: 1 },
+  card: { flex: 1, marginBottom: spacing.md, borderRadius: radii.xl, overflow: 'hidden' },
+  cardDisabled: { opacity: 0.6 },
+  // HP: thumbnail "inset" dengan sudut membulat di dalam kartu, seperti mockup.
+  imageWrapPhone: { width: undefined, margin: spacing.sm, marginBottom: 0, borderRadius: radii.lg, overflow: 'hidden' },
   imageWrap: {
     width: '100%',
     aspectRatio: 1 / 0.8,

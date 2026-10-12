@@ -4,3 +4,4 @@ export { OrderPanel } from './OrderPanel';
 export { DiscountForm } from './DiscountForm';
 export { OpenSessionForm } from './OpenSessionForm';
 export { CheckoutForm } from './CheckoutForm';
+export { CartBar } from './CartBar';

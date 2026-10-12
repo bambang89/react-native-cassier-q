@@ -27,7 +27,7 @@ import { CategoryChip, ProductGridCard } from '@/components/product';
 import type { POSScreenProps } from './POSScreen.types';
 import { styles } from './POSScreen.styles';
 import { formatRupiah, greetingForNow, PPN_RATE, sessionTimeLabel, todayLabel } from './POSScreen.utils';
-import { CheckoutForm, DiscountForm, OpenSessionForm, OrderPanel } from './components';
+import { CartBar, CheckoutForm, DiscountForm, OpenSessionForm, OrderPanel } from './components';
 
 export default function POSScreen({ navigation }: POSScreenProps) {
   const dispatch = useAppDispatch();
@@ -167,8 +167,14 @@ export default function POSScreen({ navigation }: POSScreenProps) {
     Alert.alert('Segera hadir', 'Fitur catatan pesanan belum tersedia.');
   };
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <ProductGridCard item={item} onPress={() => onAddToCart(item)} tablet={isTabletLandscape} variant="pos" />
+  const renderProduct = ({ item, index }: { item: Product; index: number }) => (
+    <ProductGridCard
+      item={item}
+      index={index}
+      onPress={() => onAddToCart(item)}
+      tablet={isTabletLandscape}
+      variant="pos"
+    />
   );
 
   // Search + kategori + grid produk dirender sebagai satu unit supaya, di mode
@@ -268,21 +274,8 @@ export default function POSScreen({ navigation }: POSScreenProps) {
         />
       ) : (
         <Header
-          title={`${greetingForNow()}, ${user?.name?.split(' ')[0] ?? 'Kasir'}! 👋`}
-          subtitle={todayLabel()}
-          rightElement={
-            <Button
-              size="sm"
-              leftIcon={<BarcodeIcon size={16} color={colors.white} />}
-              onPress={() =>
-                navigation.navigate('Scanner', {
-                  onFound: (product) => onAddToCart(product),
-                })
-              }
-            >
-              Scan
-            </Button>
-          }
+          title="Kasir"
+          subtitle={`${storeName} · ${session ? `Sesi dibuka ${sessionTimeLabel(session.openedAt)}` : 'Sesi belum dibuka'}`}
         />
       )}
 
@@ -331,20 +324,7 @@ export default function POSScreen({ navigation }: POSScreenProps) {
       )}
 
       {!isTabletLandscape && cartCount > 0 ? (
-        <View style={styles.cartBar}>
-          <View>
-            <View style={styles.cartLabelRow}>
-              <CartIcon size={12} color={colors.gray[300]} />
-              <Text size="xs" style={styles.cartLabel}>
-                {cartCount} item di keranjang
-              </Text>
-            </View>
-            <Text weight="bold" size="lg" style={styles.cartText}>
-              {formatRupiah(cartTotal)}
-            </Text>
-          </View>
-          <Button onPress={openCheckout}>Checkout →</Button>
-        </View>
+        <CartBar count={cartCount} total={cartTotal} onPress={openCheckout} />
       ) : null}
 
       <Modal isOpen={openSessionModalVisible} onClose={() => setOpenSessionModalVisible(false)}>

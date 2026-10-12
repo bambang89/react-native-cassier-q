@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { Pressable } from '@/components/ui/forms';
+import { PressableScale } from '@/components/ui/motion';
 import { Text } from '@/components/ui/typography';
 import { colors, radii, spacing } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
@@ -20,8 +20,9 @@ export function CategoryChip({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
+      activeScale={0.94}
       style={[
         styles.chip,
         tablet && styles.chipTablet,
@@ -36,7 +37,7 @@ export function CategoryChip({
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -47,10 +48,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.gray[200],
     marginRight: spacing.sm,
   },
-  chipActive: { backgroundColor: colors.primary[600], borderColor: colors.primary[600] },
+  // Navy seperti mockup mobile-pos.html — kontras tinggi tanpa bersaing dengan tombol biru.
+  chipActive: { backgroundColor: colors.darkBg, borderColor: colors.darkBg },
   chipTablet: {
     paddingHorizontal: 18,
     paddingVertical: 8,
