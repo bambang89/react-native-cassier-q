@@ -56,7 +56,7 @@ export function Popover({ trigger, children, placement = 'bottom' }: PopoverProp
         transparent
         animationType="fade"
         onRequestClose={close}
-        supportedOrientations={['landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={close}>
           {anchor ? (

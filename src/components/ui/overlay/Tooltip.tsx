@@ -45,7 +45,7 @@ export function Tooltip({ label, children, duration = 1500 }: TooltipProps) {
         visible={!!anchor}
         transparent
         animationType="fade"
-        supportedOrientations={['landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       >
         {anchor ? (
           <View style={[styles.bubble, { top: anchor.y - 36, left: Math.max(anchor.x, spacing.sm) }]}>

@@ -50,7 +50,7 @@ export function Select<T extends string = string>({
         transparent
         animationType="fade"
         onRequestClose={() => setOpen(false)}
-        supportedOrientations={['landscape-left', 'landscape-right']}
+        supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
       >
         <RNPressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <View style={styles.sheet} onStartShouldSetResponder={() => true}>

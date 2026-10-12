@@ -30,7 +30,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'cassier-Q',
   scheme: 'cassierq',
   version: '1.0.0',
-  orientation: 'landscape',
+  // HP = portrait, tablet = landscape. Dikunci saat runtime oleh
+  // src/config/orientation.ts (expo-screen-orientation) sesuai jenis device.
+  orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   ios: {
@@ -53,6 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSLocalNetworkUsageDescription:
         'cassier-Q needs local network access to find network-connected receipt printers.',
       ITSAppUsesNonExemptEncryption: false,
+      UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
       'UISupportedInterfaceOrientations~ipad': [
         'UIInterfaceOrientationLandscapeLeft',
         'UIInterfaceOrientationLandscapeRight',
@@ -85,6 +88,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-secure-store',
+    'expo-screen-orientation',
     'expo-font',
     [
       'expo-build-properties',

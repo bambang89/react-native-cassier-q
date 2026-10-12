@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/poppins';
 
 import { setupSslPinning } from './src/api/sslPinning';
+import { lockOrientationForDevice } from './src/config/orientation';
 import RootNavigator from './src/navigation/RootNavigator';
 import { store } from './src/store';
 
@@ -39,9 +40,10 @@ export default function App() {
   });
 
   useEffect(() => {
-    setupSslPinning()
-      .catch((error) => console.error('[SSL Pinning] init failed', error))
-      .finally(() => setPinningReady(true));
+    Promise.all([
+      setupSslPinning().catch((error) => console.error('[SSL Pinning] init failed', error)),
+      lockOrientationForDevice(),
+    ]).finally(() => setPinningReady(true));
   }, []);
 
   if (!pinningReady || !fontsLoaded) {

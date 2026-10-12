@@ -4,7 +4,7 @@ import { useWindowDimensions } from 'react-native';
 // cuma 744pt (logical points), di bawah breakpoint iPad "standar" 768pt.
 // Masih jauh di atas sisi pendek HP terbesar (~480pt), jadi tidak salah
 // mengenali HP landscape sebagai tablet.
-const TABLET_BREAKPOINT = 740;
+export const TABLET_BREAKPOINT = 740;
 
 export interface Responsive {
   width: number;
@@ -12,6 +12,8 @@ export interface Responsive {
   isTablet: boolean;
   isLandscape: boolean;
   isTabletLandscape: boolean;
+  /** HP (portrait): bottom tab bar, layout satu kolom. */
+  isPhone: boolean;
 }
 
 export function useResponsive(): Responsive {
@@ -25,5 +27,6 @@ export function useResponsive(): Responsive {
     isTablet,
     isLandscape,
     isTabletLandscape: isTablet && isLandscape,
+    isPhone: !isTablet,
   };
 }

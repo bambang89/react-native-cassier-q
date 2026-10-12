@@ -28,7 +28,7 @@ export function ActionSheet({ isOpen, onClose, title, actions, children }: Actio
       transparent
       animationType="slide"
       onRequestClose={onClose}
-      supportedOrientations={['landscape-left', 'landscape-right']}
+      supportedOrientations={['portrait', 'landscape-left', 'landscape-right']}
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={() => {}}>
