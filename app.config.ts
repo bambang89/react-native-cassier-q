@@ -89,6 +89,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-secure-store',
     'expo-screen-orientation',
+    [
+      // Splash native sengaja polos navy: animasi logo dikerjakan AnimatedSplash
+      // di JS, yang melanjutkan warna yang sama. Gambar transparan 1x1 dibutuhkan
+      // supaya plugin memasang warna latar ke storyboard iOS / tema Android 12+.
+      'expo-splash-screen',
+      {
+        backgroundColor: '#0B1F33',
+        image: './assets/splash-blank.png',
+        imageWidth: 1,
+        resizeMode: 'contain',
+        dark: { backgroundColor: '#0B1F33', image: './assets/splash-blank.png' },
+      },
+    ],
     'expo-font',
     [
       'expo-build-properties',

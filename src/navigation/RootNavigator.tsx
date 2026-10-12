@@ -1,5 +1,5 @@
 import { Fragment, useEffect } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { setSessionExpiredHandler } from '@/api/client';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { bootstrapAuth, sessionExpired } from '@/store/slices/authSlice';
+import { store } from '@/store';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import ScannerScreen from '@/screens/pos/ScannerScreen';
@@ -69,7 +70,8 @@ export default function RootNavigator() {
   const { isPhone } = useResponsive();
 
   useEffect(() => {
-    dispatch(bootstrapAuth());
+    // Biasanya sudah dimulai App selama splash; jangan cek ulang kalau begitu.
+    if (store.getState().auth.status === 'idle') dispatch(bootstrapAuth());
     setSessionExpiredHandler(() => dispatch(sessionExpired()));
     return () => setSessionExpiredHandler(null);
   }, [dispatch]);
@@ -86,7 +88,6 @@ export default function RootNavigator() {
 
   return (
     <Fragment>
-      <StatusBar barStyle="dark-content" />
       <NavigationContainer linking={linking}>
         <Stack.Navigator
           screenOptions={{
