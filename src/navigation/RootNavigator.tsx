@@ -1,6 +1,7 @@
 import { Fragment, useEffect } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { setSessionExpiredHandler } from '@/api/client';
@@ -22,13 +23,50 @@ import PurchaseOrdersScreen from '@/screens/purchaseOrders/PurchaseOrdersScreen'
 import PurchaseOrderFormScreen from '@/screens/purchaseOrders/PurchaseOrderFormScreen';
 import PurchaseOrderDetailScreen from '@/screens/purchaseOrders/PurchaseOrderDetailScreen';
 import type { RootStackParamList } from './types';
+import { useResponsive } from '@/hooks/useResponsive';
 import { colors } from '@/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+// Deep link cassierq://<path>, mis. `cassierq://pos` atau `cassierq://customers`
+// — dari notifikasi, QR, atau `xcrun simctl openurl booted cassierq://menu` saat dev.
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['cassierq://'],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          Dashboard: 'dashboard',
+          POS: 'pos',
+          Orders: 'orders',
+          Pesanan: 'pesanan',
+          Products: 'products',
+          Inventory: 'inventory',
+          Customers: 'customers',
+          Reports: 'reports',
+          Employees: 'employees',
+          StoreProfile: 'outlet',
+          Integrations: 'integrations',
+          Expenses: 'expenses',
+          Profile: 'settings',
+          Menu: 'menu',
+        },
+      },
+      Categories: 'categories',
+      Units: 'units',
+      Suppliers: 'suppliers',
+      PurchaseOrders: 'purchase-orders',
+      PrinterSettings: 'printer',
+      OrderDetail: 'orders/:orderId',
+      CustomerDetail: 'customers/:customerId',
+    },
+  },
+};
+
 export default function RootNavigator() {
   const dispatch = useAppDispatch();
   const status = useAppSelector((state) => state.auth.status);
+  const { isPhone } = useResponsive();
 
   useEffect(() => {
     dispatch(bootstrapAuth());
@@ -49,11 +87,21 @@ export default function RootNavigator() {
   return (
     <Fragment>
       <StatusBar barStyle="dark-content" />
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <NavigationContainer linking={linking}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            // HP: dorong dari kanan (pola iOS/Android); tablet: naik halus dari bawah
+            // seperti panel, karena layar lebar tidak cocok dengan geser penuh.
+            animation: isPhone ? 'slide_from_right' : 'fade_from_bottom',
+            animationDuration: 280,
+            gestureEnabled: true,
+            contentStyle: { backgroundColor: colors.canvas },
+          }}
+        >
           {isAuthenticated ? (
             <Fragment>
-              <Stack.Screen name="Main" component={MainTabNavigator} />
+              <Stack.Screen name="Main" component={MainTabNavigator} options={{ animation: 'fade' }} />
               <Stack.Screen
                 name="Scanner"
                 component={ScannerScreen}
@@ -77,12 +125,11 @@ export default function RootNavigator() {
               <Stack.Screen name="PurchaseOrderDetail" component={PurchaseOrderDetailScreen} />
             </Fragment>
           ) : (
-            <Stack.Screen name="Auth" component={AuthNavigator} />
+            <Stack.Screen name="Auth" component={AuthNavigator} options={{ animation: 'fade' }} />
           )}
         </Stack.Navigator>
       </NavigationContainer>
     </Fragment>
-
   );
 }
 
