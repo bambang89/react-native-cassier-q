@@ -12,7 +12,7 @@ import { Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { CreditCardIcon, HistoryIcon, PinIcon, ReceiptIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
-import { CustomerForm } from './CustomersScreen';
+import { CustomerForm } from './CustomerForm';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CustomerDetail'>;
 
@@ -286,7 +286,7 @@ function RecordPaymentForm({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

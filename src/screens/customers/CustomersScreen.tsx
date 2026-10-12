@@ -16,10 +16,11 @@ import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
-import { Card, EmptyState, Header, SplitItem, TabletSplitView, TabletTopBar } from '@/components/ui/recipes';
-import { CreditCardIcon, PeopleIcon, SearchIcon } from '@/components/icons/LineIcons';
+import { Card, EmptyState, Fab, Header, SplitItem, TabletSplitView, TabletTopBar } from '@/components/ui/recipes';
+import { CreditCardIcon, PeopleIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { CustomerDetailContent } from './CustomerDetailScreen';
+import { CustomerForm } from './CustomerForm';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Customers'>,
@@ -111,16 +112,8 @@ export default function CustomersScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <Header
-        title="Pelanggan"
-        subtitle="Kelola data & piutang pelanggan"
-        rightElement={
-          <Button size="sm" onPress={() => setFormVisible(true)}>
-            + Baru
-          </Button>
-        }
-      />
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <Header title="Pelanggan" subtitle="Kelola data & piutang pelanggan" />
 
       {items.length > 0 ? (
         <View style={styles.summaryBanner}>
@@ -203,87 +196,13 @@ export default function CustomersScreen({ navigation }: Props) {
       <Modal isOpen={formVisible} onClose={() => setFormVisible(false)}>
         <CustomerForm onDone={() => setFormVisible(false)} onCancel={() => setFormVisible(false)} />
       </Modal>
-    </View>
-  );
-}
-
-export function CustomerForm({
-  customer,
-  onDone,
-  onCancel,
-}: {
-  customer?: Customer;
-  onDone: () => void;
-  onCancel: () => void;
-}) {
-  const dispatch = useAppDispatch();
-  const [customerCode, setCustomerCode] = useState(customer?.customerCode ?? '');
-  const [name, setName] = useState(customer?.name ?? '');
-  const [phone, setPhone] = useState(customer?.phone ?? '');
-  const [address, setAddress] = useState(customer?.address ?? '');
-  const [creditLimit, setCreditLimit] = useState(customer ? String(customer.creditLimit) : '');
-  const [submitting, setSubmitting] = useState(false);
-
-  const onSubmit = async () => {
-    setSubmitting(true);
-    try {
-      const payload = {
-        customerCode,
-        name,
-        phone: phone || undefined,
-        address: address || undefined,
-        creditLimit: creditLimit ? Number(creditLimit) : undefined,
-      };
-      if (customer) {
-        await dispatch(updateCustomer({ id: customer.id, payload })).unwrap();
-      } else {
-        await dispatch(createCustomer(payload)).unwrap();
-      }
-      onDone();
-    } catch {
-      Alert.alert('Gagal', 'Data pelanggan tidak bisa disimpan.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <View>
-      <Text weight="semibold" size="lg" style={styles.modalTitle}>
-        {customer ? 'Ubah Pelanggan' : 'Pelanggan Baru'}
-      </Text>
-      <FormControl label="Kode pelanggan" isRequired helperText="mis. CUST-001">
-        <Input value={customerCode} onChangeText={setCustomerCode} placeholder="mis. CUST-001" autoCapitalize="characters" />
-      </FormControl>
-      <FormControl label="Nama" isRequired>
-        <Input value={name} onChangeText={setName} placeholder="Nama pelanggan" />
-      </FormControl>
-      <FormControl label="No. HP">
-        <Input value={phone} onChangeText={setPhone} placeholder="Opsional" keyboardType="phone-pad" />
-      </FormControl>
-      <FormControl label="Alamat">
-        <Input value={address} onChangeText={setAddress} placeholder="Opsional" />
-      </FormControl>
-      <FormControl
-        label="Limit kredit (utang maksimal)"
-        helperText="Kosongkan kalau tidak mau membatasi jumlah utang pelanggan ini"
-      >
-        <Input value={creditLimit} onChangeText={setCreditLimit} placeholder="0" keyboardType="numeric" />
-      </FormControl>
-      <View style={styles.modalActions}>
-        <Button variant="ghost" onPress={onCancel} style={styles.modalAction}>
-          Batal
-        </Button>
-        <Button onPress={onSubmit} loading={submitting} disabled={!customerCode || !name} style={styles.modalAction}>
-          Simpan
-        </Button>
-      </View>
-    </View>
+      <Fab icon={PlusIcon} accessibilityLabel="Tambah pelanggan" onPress={() => setFormVisible(true)} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   containerTablet: { backgroundColor: tabletColors.gray25 },
   detailEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   summaryBanner: {
@@ -313,7 +232,4 @@ const styles = StyleSheet.create({
   },
   info: { flex: 1 },
   empty: { marginTop: spacing['3xl'] },
-  modalTitle: { marginBottom: spacing.base },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.sm },
-  modalAction: { minWidth: 90 },
 });

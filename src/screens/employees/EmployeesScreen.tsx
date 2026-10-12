@@ -19,8 +19,8 @@ import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input, Pressable, Select } from '@/components/ui/forms';
 import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
-import { Card, EmptyState, Header, TabletTopBar } from '@/components/ui/recipes';
-import { EmployeeIcon, MoreIcon, PencilIcon } from '@/components/icons/LineIcons';
+import { Card, EmptyState, Fab, Header, TabletTopBar } from '@/components/ui/recipes';
+import { EmployeeIcon, MoreIcon, PencilIcon, PlusIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 
 // Dipakai kalau GET /roles belum sempat termuat — biar Select role tidak kosong melompong.
@@ -184,16 +184,8 @@ export default function EmployeesScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Header
-        title="Karyawan"
-        subtitle="Kelola akun & akses karyawan"
-        rightElement={
-          <Button size="sm" onPress={() => setEditing('new')}>
-            + Baru
-          </Button>
-        }
-      />
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <Header title="Karyawan" subtitle="Kelola akun & akses karyawan" />
 
       <FlatList
         data={items}
@@ -268,7 +260,8 @@ export default function EmployeesScreen() {
         isDanger={!!toggleTarget?.active}
         onConfirm={() => toggleTarget && onToggleActive(toggleTarget)}
       />
-    </View>
+      <Fab icon={PlusIcon} accessibilityLabel="Tambah karyawan" onPress={() => setEditing('new')} />
+    </SafeAreaView>
   );
 }
 
@@ -364,7 +357,7 @@ function EmployeeForm({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.canvas },
   containerTablet: { backgroundColor: tabletColors.gray25 },
   tabletBody: { flex: 1, padding: 24 },
   tableCard: {
