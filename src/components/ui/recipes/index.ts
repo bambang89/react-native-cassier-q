@@ -8,3 +8,5 @@ export * from './EmptyState';
 export * from './KpiCard';
 export * from './TabletTopBar';
 export * from './TabletSplitView';
+export * from './GradientBackground';
+export * from './Fab';

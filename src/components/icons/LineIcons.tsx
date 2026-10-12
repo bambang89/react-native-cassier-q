@@ -20,6 +20,7 @@ function Base({
       width={size}
       height={size}
       viewBox="0 0 24 24"
+      color={color}
       fill="none"
       stroke={color}
       strokeWidth={strokeWidth}
@@ -514,6 +515,40 @@ export function MoreIcon(props: LineIconProps) {
       <Circle cx={5} cy={12} r={1.4} fill="currentColor" stroke="none" />
       <Circle cx={12} cy={12} r={1.4} fill="currentColor" stroke="none" />
       <Circle cx={19} cy={12} r={1.4} fill="currentColor" stroke="none" />
+    </Base>
+  );
+}
+
+export function ChevronRightIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="m9 6 6 6-6 6" />
+    </Base>
+  );
+}
+
+export function ChevronLeftIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="m15 6-6 6 6 6" />
+    </Base>
+  );
+}
+
+export function LogoutIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <Path d="m16 17 5-5-5-5" />
+      <Path d="M21 12H9" />
+    </Base>
+  );
+}
+
+export function HomeIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" />
     </Base>
   );
 }

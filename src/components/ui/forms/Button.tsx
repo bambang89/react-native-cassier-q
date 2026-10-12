@@ -4,13 +4,13 @@ import type { StyleProp, ViewStyle } from 'react-native';
 
 import { colors, radii, shadows, spacing } from '@/theme';
 import { Text } from '@/components/ui/typography/Text';
-import { Pressable } from './Pressable';
-import type { PressableProps } from './Pressable';
+import { PressableScale } from '@/components/ui/motion/PressableScale';
+import type { PressableScaleProps } from '@/components/ui/motion/PressableScale';
 
 export type ButtonVariant = 'solid' | 'outline' | 'ghost' | 'danger' | 'dangerOutline';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends Omit<PressableProps, 'children'> {
+export interface ButtonProps extends Omit<PressableScaleProps, 'children'> {
   children: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
@@ -85,7 +85,7 @@ export function Button({
   const labelColor = textColor === 'primary' ? colors.primary[600] : textColor === 'danger' ? colors.text.danger : colors.text.inverse;
 
   return (
-    <Pressable
+    <PressableScale
       disabled={isDisabled}
       style={[
         styles.base,
@@ -108,13 +108,13 @@ export function Button({
           {rightIcon}
         </View>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },

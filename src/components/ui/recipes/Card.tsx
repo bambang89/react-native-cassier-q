@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { colors, radii, shadows, spacing } from '@/theme';
 import type { ShadowToken } from '@/theme';
-import { Pressable } from '@/components/ui/forms/Pressable';
+import { PressableScale } from '@/components/ui/motion/PressableScale';
 
 export interface CardProps {
   children: ReactNode;
@@ -14,14 +14,14 @@ export interface CardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function Card({ children, onPress, padding = 'base', shadow = 'sm', style }: CardProps) {
+export function Card({ children, onPress, padding = 'base', shadow = 'card', style }: CardProps) {
   const content = [styles.base, { padding: spacing[padding] }, shadows[shadow], style];
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={content}>
+      <PressableScale onPress={onPress} activeScale={0.985} style={content}>
         {children}
-      </Pressable>
+      </PressableScale>
     );
   }
   return <View style={content}>{children}</View>;
@@ -30,8 +30,8 @@ export function Card({ children, onPress, padding = 'base', shadow = 'sm', style
 const styles = StyleSheet.create({
   base: {
     backgroundColor: colors.background,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radii.xl,
+    borderWidth: 1,
     borderColor: colors.border,
   },
 });
