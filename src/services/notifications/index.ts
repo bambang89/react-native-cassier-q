@@ -1,12 +1,5 @@
 import notifee, { AndroidImportance, AuthorizationStatus, EventType } from '@notifee/react-native';
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  onTokenRefresh,
-  setBackgroundMessageHandler,
-  type RemoteMessage,
-} from '@react-native-firebase/messaging';
+import type { RemoteMessage } from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
@@ -14,6 +7,13 @@ import { Platform } from 'react-native';
 // platform ini dikonfigurasi saat build — lihat plugins/withFirebase.js.
 const firebaseExtra = (Constants.expoConfig?.extra?.firebase ?? {}) as Record<string, boolean>;
 export const isPushAvailable = firebaseExtra[Platform.OS] === true;
+
+// Modul messaging di-require hanya kalau push tersedia: tanpa native Firebase
+// (mis. iOS yang dikecualikan dari autolinking), sekadar meng-import modul ini
+// langsung crash dengan "NativeRNFBTurboApp is not registered".
+function loadMessaging(): typeof import('@react-native-firebase/messaging') {
+  return require('@react-native-firebase/messaging');
+}
 
 export const DEFAULT_CHANNEL_ID = 'default';
 
@@ -65,6 +65,7 @@ async function displayRemoteMessage(message: RemoteMessage): Promise<void> {
  */
 export function registerBackgroundHandlers(): void {
   if (isPushAvailable) {
+    const { getMessaging, setBackgroundMessageHandler } = loadMessaging();
     setBackgroundMessageHandler(getMessaging(), async (message) => {
       // Pesan dengan payload `notification` sudah ditampilkan sistem saat app di
       // background; hanya pesan data-only yang perlu ditampilkan sendiri.
@@ -101,6 +102,7 @@ export async function initNotifications(
   ];
 
   if (isPushAvailable) {
+    const { getMessaging, getToken, onMessage, onTokenRefresh } = loadMessaging();
     const messaging = getMessaging();
     const handleToken = (token: string) => {
       // Token ini yang dipakai untuk "Send test message" di Firebase Console.
