@@ -12,10 +12,12 @@ import { Badge } from '@/components/ui/dataDisplay';
 import { AppBar, Card, EmptyState, KpiCard } from '@/components/ui/recipes';
 import { BoxIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PurchaseOrders'>;
 
 export default function PurchaseOrdersScreen({ navigation }: Props) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const { items, page, totalPages, totalElements, status } = useAppSelector((state) => state.purchaseOrders);
 
@@ -29,9 +31,11 @@ export default function PurchaseOrdersScreen({ navigation }: Props) {
         title="Purchase Order"
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" onPress={() => navigation.navigate('PurchaseOrderForm')}>
-            + Buat PO
-          </Button>
+          can('purchase_orders.create') ? (
+            <Button size="sm" onPress={() => navigation.navigate('PurchaseOrderForm')}>
+              + Buat PO
+            </Button>
+          ) : undefined
         }
       />
 
@@ -90,8 +94,8 @@ export default function PurchaseOrdersScreen({ navigation }: Props) {
               icon={BoxIcon}
               title="Belum Ada Purchase Order"
               description="Buat PO ke pemasok untuk mencatat pembelian barang dagangan secara rapi, lengkap dengan status penerimaannya."
-              actionLabel="+ Buat PO"
-              onAction={() => navigation.navigate('PurchaseOrderForm')}
+              actionLabel={can('purchase_orders.create') ? '+ Buat PO' : undefined}
+              onAction={can('purchase_orders.create') ? () => navigation.navigate('PurchaseOrderForm') : undefined}
             />
           )
         }

@@ -23,6 +23,7 @@ import { Text } from '@/components/ui/typography';
 import { FadeInView, PressableScale } from '@/components/ui/motion';
 import { CategoryChip } from '@/components/product';
 import { VoidForm } from './OrderDetailScreen';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Orders'>,
@@ -257,6 +258,7 @@ function OrderDetailPane({
   onReprint: () => void;
   onRefund: () => void;
 }) {
+  const { can } = usePermissions();
   if (!order) {
     return (
       <View style={styles.detailEmpty}>
@@ -338,7 +340,7 @@ function OrderDetailPane({
               <PrintIcon size={15} color={tabletColors.gray700} />
               <Text style={styles.detailActionLabel}>Cetak Ulang</Text>
             </Pressable>
-            {order.status === 'PAID' ? (
+            {order.status === 'PAID' && can('orders.void') ? (
               <Pressable style={styles.detailActionButton} onPress={onRefund}>
                 <RefundIcon size={15} color={tabletColors.gray700} />
                 <Text style={styles.detailActionLabel}>Refund</Text>

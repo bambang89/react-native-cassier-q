@@ -11,6 +11,7 @@ import { Badge, Divider } from '@/components/ui/dataDisplay';
 import { Modal } from '@/components/ui/overlay';
 import { AppBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OrderDetail'>;
 
@@ -21,6 +22,7 @@ function money(value: number) {
 }
 
 export default function OrderDetailScreen({ navigation, route }: Props) {
+  const { can } = usePermissions();
   const { orderId } = route.params;
   const dispatch = useAppDispatch();
   const order = useAppSelector((state) => state.orders.current);
@@ -93,7 +95,7 @@ export default function OrderDetailScreen({ navigation, route }: Props) {
             Cetak Ulang Struk
           </Button>
 
-          {order.status === 'PAID' ? (
+          {order.status === 'PAID' && can('orders.void') ? (
             <Button variant="danger" style={styles.voidButton} onPress={() => setVoidModalVisible(true)}>
               Batalkan Transaksi
             </Button>

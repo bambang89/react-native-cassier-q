@@ -13,10 +13,12 @@ import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { TruckIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Suppliers'>;
 
 export default function SuppliersScreen({ navigation }: Props) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const { items, status } = useAppSelector((state) => state.suppliers);
   const [editing, setEditing] = useState<Supplier | 'new' | null>(null);
@@ -42,9 +44,11 @@ export default function SuppliersScreen({ navigation }: Props) {
         title="Pemasok"
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" onPress={() => setEditing('new')}>
-            + Baru
-          </Button>
+          can('suppliers.create') ? (
+            <Button size="sm" onPress={() => setEditing('new')}>
+              + Baru
+            </Button>
+          ) : undefined
         }
       />
 
@@ -56,7 +60,7 @@ export default function SuppliersScreen({ navigation }: Props) {
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <Divider spacingY="xs" />}
         renderItem={({ item }) => (
-          <Card shadow="none" style={styles.card} onPress={() => setEditing(item)}>
+          <Card shadow="none" style={styles.card} onPress={can('suppliers.update') ? () => setEditing(item) : undefined}>
             <View style={styles.row}>
               <View style={styles.info}>
                 <Text weight="semibold" numberOfLines={1}>
@@ -69,9 +73,11 @@ export default function SuppliersScreen({ navigation }: Props) {
                 </Text>
               </View>
               {item.active ? (
-                <Button variant="ghost" size="sm" onPress={() => setDeactivateTarget(item)}>
-                  Nonaktifkan
-                </Button>
+                can('suppliers.delete') ? (
+                  <Button variant="ghost" size="sm" onPress={() => setDeactivateTarget(item)}>
+                    Nonaktifkan
+                  </Button>
+                ) : null
               ) : (
                 <Badge variant="neutral">Nonaktif</Badge>
               )}
@@ -88,8 +94,8 @@ export default function SuppliersScreen({ navigation }: Props) {
               icon={TruckIcon}
               title="Belum Ada Pemasok"
               description="Daftarkan pemasok dulu supaya bisa membuat Purchase Order (PO) pembelian barang."
-              actionLabel="+ Tambah Pemasok"
-              onAction={() => setEditing('new')}
+              actionLabel={can('suppliers.create') ? '+ Tambah Pemasok' : undefined}
+              onAction={can('suppliers.create') ? () => setEditing('new') : undefined}
             />
           )
         }

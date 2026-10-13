@@ -21,6 +21,7 @@ import { CreditCardIcon, PeopleIcon, PlusIcon, SearchIcon } from '@/components/i
 import { Text } from '@/components/ui/typography';
 import { CustomerDetailContent } from './CustomerDetailScreen';
 import { CustomerForm } from './CustomerForm';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Customers'>,
@@ -28,6 +29,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function CustomersScreen({ navigation }: Props) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.customers);
@@ -73,9 +75,11 @@ export default function CustomersScreen({ navigation }: Props) {
           storeName={storeName}
           userName={user?.name ?? 'Kasir'}
           rightAction={
-            <Button size="sm" style={{ backgroundColor: tabletColors.blue600 }} onPress={() => setFormVisible(true)}>
-              + Baru
-            </Button>
+            can('customers.create') ? (
+              <Button size="sm" style={{ backgroundColor: tabletColors.blue600 }} onPress={() => setFormVisible(true)}>
+                + Baru
+              </Button>
+            ) : undefined
           }
         />
         <TabletSplitView
@@ -187,8 +191,8 @@ export default function CustomersScreen({ navigation }: Props) {
               icon={PeopleIcon}
               title="Belum Ada Pelanggan"
               description="Daftarkan pelanggan langganan supaya bisa mencatat penjualan bon/utang di kasir."
-              actionLabel="+ Tambah Pelanggan"
-              onAction={() => setFormVisible(true)}
+              actionLabel={can('customers.create') ? '+ Tambah Pelanggan' : undefined}
+              onAction={can('customers.create') ? () => setFormVisible(true) : undefined}
             />
           )
         }
@@ -197,7 +201,9 @@ export default function CustomersScreen({ navigation }: Props) {
       <Modal isOpen={formVisible} onClose={() => setFormVisible(false)}>
         <CustomerForm onDone={() => setFormVisible(false)} onCancel={() => setFormVisible(false)} />
       </Modal>
-      <Fab icon={PlusIcon} accessibilityLabel="Tambah pelanggan" onPress={() => setFormVisible(true)} />
+      {can('customers.create') ? (
+        <Fab icon={PlusIcon} accessibilityLabel="Tambah pelanggan" onPress={() => setFormVisible(true)} />
+      ) : null}
     </SafeAreaView>
   );
 }

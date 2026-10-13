@@ -15,10 +15,12 @@ import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { ScaleIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Units'>;
 
 export default function UnitsScreen({ navigation }: Props) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.units);
@@ -45,9 +47,11 @@ export default function UnitsScreen({ navigation }: Props) {
         title="Satuan"
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" onPress={() => setEditing('new')}>
-            + Baru
-          </Button>
+          can('units.create') ? (
+            <Button size="sm" onPress={() => setEditing('new')}>
+              + Baru
+            </Button>
+          ) : undefined
         }
       />
 
@@ -59,7 +63,7 @@ export default function UnitsScreen({ navigation }: Props) {
         contentContainerStyle={[styles.list, isTabletLandscape && styles.listTablet]}
         ItemSeparatorComponent={() => <Divider spacingY="xs" />}
         renderItem={({ item }) => (
-          <Card shadow="none" style={styles.card} onPress={() => setEditing(item)}>
+          <Card shadow="none" style={styles.card} onPress={can('units.update') ? () => setEditing(item) : undefined}>
             <View style={styles.row}>
               <View style={styles.info}>
                 <Text weight="semibold">{item.unitName}</Text>
@@ -67,9 +71,11 @@ export default function UnitsScreen({ navigation }: Props) {
                   {item.unitCode}
                 </Text>
               </View>
-              <Button variant="ghost" size="sm" onPress={() => setDeleteTarget(item)}>
-                Hapus
-              </Button>
+              {can('units.delete') ? (
+                <Button variant="ghost" size="sm" onPress={() => setDeleteTarget(item)}>
+                  Hapus
+                </Button>
+              ) : null}
             </View>
           </Card>
         )}

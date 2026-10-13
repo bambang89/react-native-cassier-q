@@ -15,10 +15,12 @@ import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { FolderIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Categories'>;
 
 export default function CategoriesScreen({ navigation }: Props) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
   const { items, status } = useAppSelector((state) => state.categories);
@@ -45,9 +47,11 @@ export default function CategoriesScreen({ navigation }: Props) {
         title="Kategori"
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" onPress={() => setFormOpen(true)}>
-            + Baru
-          </Button>
+          can('categories.create') ? (
+            <Button size="sm" onPress={() => setFormOpen(true)}>
+              + Baru
+            </Button>
+          ) : undefined
         }
       />
 
@@ -68,9 +72,11 @@ export default function CategoriesScreen({ navigation }: Props) {
                   {item.parentCategoryName ? ` · sub dari ${item.parentCategoryName}` : ''}
                 </Text>
               </View>
-              <Button variant="ghost" size="sm" onPress={() => setDeleteTarget(item)}>
-                Hapus
-              </Button>
+              {can('categories.delete') ? (
+                <Button variant="ghost" size="sm" onPress={() => setDeleteTarget(item)}>
+                  Hapus
+                </Button>
+              ) : null}
             </View>
           </Card>
         )}

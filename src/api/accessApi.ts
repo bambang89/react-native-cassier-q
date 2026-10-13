@@ -11,9 +11,19 @@ export type AdminStore = {
   parentStoreId: string | null;
 };
 
-export type MyMenuAccess = { restricted: boolean; menus: string[] };
+/** `actions` = izin aksi di dalam menu, mis. "products.create" (semua aksi untuk Kepala Toko). */
+export type MyMenuAccess = { restricted: boolean; menus: string[]; actions?: string[] };
 
-export type MenuAccessMatrix = { menus: string[]; roles: Record<string, string[]> };
+export type ActionDef = { code: string; label: string };
+
+export type MenuAccessMatrix = {
+  menus: string[];
+  roles: Record<string, string[]>;
+  /** Menu → aksi yang bisa diatur; menu yang tidak ada di sini hanya bisa dilihat. */
+  actions?: Record<string, ActionDef[]>;
+  /** Role staf → aksi yang diizinkan. */
+  roleActions?: Record<string, string[]>;
+};
 
 /** SUPERADMIN: semua toko di aplikasi. */
 export async function fetchAdminStores(): Promise<AdminStore[]> {
@@ -33,7 +43,7 @@ export async function fetchMenuAccess(): Promise<MenuAccessMatrix> {
   return data;
 }
 
-export async function updateMenuAccess(roleCode: string, menus: string[]): Promise<MenuAccessMatrix> {
-  const { data } = await apiClient.put<MenuAccessMatrix>(`/store/menu-access/${roleCode}`, { menus });
+export async function updateMenuAccess(roleCode: string, menus: string[], actions?: string[]): Promise<MenuAccessMatrix> {
+  const { data } = await apiClient.put<MenuAccessMatrix>(`/store/menu-access/${roleCode}`, { menus, actions });
   return data;
 }

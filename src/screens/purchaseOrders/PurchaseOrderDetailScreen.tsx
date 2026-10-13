@@ -21,10 +21,12 @@ import { AppBar, Card } from '@/components/ui/recipes';
 import { ReceiptIcon, ReceiveIcon, StickyNoteIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { VStack } from '@/components/ui/layout';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PurchaseOrderDetail'>;
 
 export default function PurchaseOrderDetailScreen({ navigation, route }: Props) {
+  const { can } = usePermissions();
   const { purchaseOrderId } = route.params;
   const dispatch = useAppDispatch();
   const po = useAppSelector((state) => state.purchaseOrders.current);
@@ -135,7 +137,7 @@ export default function PurchaseOrderDetailScreen({ navigation, route }: Props) 
           })}
         </Card>
 
-        {receivable ? (
+        {receivable && can('purchase_orders.receive') ? (
           <Button
             style={styles.actionButton}
             leftIcon={<ReceiveIcon size={16} color={colors.white} />}
@@ -144,7 +146,7 @@ export default function PurchaseOrderDetailScreen({ navigation, route }: Props) 
             Terima Barang
           </Button>
         ) : null}
-        {cancellable ? (
+        {cancellable && can('purchase_orders.cancel') ? (
           <Button variant="outline" style={styles.actionButton} onPress={() => setCancelConfirmVisible(true)}>
             Batalkan PO
           </Button>

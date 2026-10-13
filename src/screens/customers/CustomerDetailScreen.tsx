@@ -13,10 +13,12 @@ import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { CreditCardIcon, HistoryIcon, PinIcon, ReceiptIcon } from '@/components/icons/LineIcons';
 import { Heading, Text } from '@/components/ui/typography';
 import { CustomerForm } from './CustomerForm';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CustomerDetail'>;
 
 export default function CustomerDetailScreen({ navigation, route }: Props) {
+  const { can } = usePermissions();
   const { customerId } = route.params;
   const customer = useAppSelector((state) => state.customers.items.find((c) => c.id === customerId));
   const listStatus = useAppSelector((state) => state.customers.status);
@@ -39,9 +41,11 @@ export default function CustomerDetailScreen({ navigation, route }: Props) {
         title={customer.name}
         onBack={navigation.goBack}
         rightElement={
-          <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
-            Ubah
-          </Button>
+          can('customers.update') ? (
+            <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
+              Ubah
+            </Button>
+          ) : undefined
         }
       />
       <CustomerDetailContent customerId={customerId} showEditInline={false} />
@@ -65,6 +69,7 @@ export function CustomerDetailContent({
   showEditInline?: boolean;
   contentContainerStyle?: object;
 }) {
+  const { can } = usePermissions();
   const dispatch = useAppDispatch();
   const customer = useAppSelector((state) => state.customers.items.find((c) => c.id === customerId));
   const listStatus = useAppSelector((state) => state.customers.status);
@@ -117,7 +122,7 @@ export function CustomerDetailContent({
                 </View>
               ) : null}
             </View>
-            {showEditInline ? (
+            {showEditInline && can('customers.update') ? (
               <Button size="sm" variant="outline" onPress={() => setEditVisible(true)}>
                 Ubah
               </Button>
@@ -137,6 +142,7 @@ export function CustomerDetailContent({
               Limit kredit: Rp {customer.creditLimit.toLocaleString('id-ID')}
             </Text>
           ) : null}
+          {can('customers.payment') ? (
           <Button
             style={styles.paymentButton}
             disabled={!hasDebt}
@@ -145,6 +151,7 @@ export function CustomerDetailContent({
           >
             {hasDebt ? 'Catat Pembayaran' : 'Tidak Ada Utang'}
           </Button>
+          ) : null}
         </Card>
 
         <View style={styles.sectionTitleRow}>

@@ -20,6 +20,9 @@ import { CategoryChip, ProductGridCard } from '@/components/product';
 
 import type { ProductsScreenProps } from './ProductsScreen.types';
 import { styles } from './ProductsScreen.styles';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useMenuAccess } from '@/navigation/menuCatalog';
+import { isBundle } from '@/utils/bundles';
 import { ProductListItem, RestockForm } from './components';
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -32,6 +35,14 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
   const user = useAppSelector((state) => state.auth.user);
   const storeProfile = useAppSelector((state) => state.storeProfile.profile);
   const [searchDraft, setSearchDraft] = useState(search);
+  const { canCreateProduct, canUpdateProduct, canDeleteProduct, canRestock } = usePermissions();
+  const { isManager } = useMenuAccess();
+
+  /** Tap action for a product row: bundles open the bundle form (Kepala Toko), others the product form. */
+  const openProductFor = (item: Product) => {
+    if (isBundle(item)) return isManager ? () => navigation.navigate('BundleForm', { bundle: item }) : undefined;
+    return canUpdateProduct ? () => navigation.navigate('ProductForm', { product: item }) : undefined;
+  };
   const [restockTarget, setRestockTarget] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -129,14 +140,16 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
           storeName={storeName}
           userName={user?.name ?? 'Kasir'}
           rightAction={
-            <Button
-              size="sm"
-              leftIcon={<PlusIcon size={14} color={colors.white} />}
-              onPress={() => navigation.navigate('ProductForm', { product: undefined })}
-              style={{ backgroundColor: tabletColors.blue600 }}
-            >
-              Tambah
-            </Button>
+            canCreateProduct ? (
+              <Button
+                size="sm"
+                leftIcon={<PlusIcon size={14} color={colors.white} />}
+                onPress={() => navigation.navigate('ProductForm', { product: undefined })}
+                style={{ backgroundColor: tabletColors.blue600 }}
+              >
+                Tambah
+              </Button>
+            ) : undefined
           }
         />
 
@@ -198,7 +211,7 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
                 item={item}
                 tablet
                 variant="catalog"
-                onPress={() => navigation.navigate('ProductForm', { product: item })}
+                onPress={openProductFor(item)}
               />
             )}
             ListEmptyComponent={
@@ -221,8 +234,8 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
                   icon={BoxIcon}
                   title="Belum Ada Produk"
                   description="Yuk tambahkan produk pertamamu supaya bisa langsung mulai jualan di kasir."
-                  actionLabel="+ Tambah Produk"
-                  onAction={() => navigation.navigate('ProductForm', { product: undefined })}
+                  actionLabel={canCreateProduct ? '+ Tambah Produk' : undefined}
+                  onAction={canCreateProduct ? () => navigation.navigate('ProductForm', { product: undefined }) : undefined}
                 />
               )
             }
@@ -254,7 +267,10 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Header title="Produk" subtitle={`${items.length} produk · geser kiri untuk restock`} />
+      <Header
+        title="Produk"
+        subtitle={`${items.length} produk${canRestock || canDeleteProduct ? ` · geser kiri untuk ${canRestock ? 'restock' : 'hapus'}` : ''}`}
+      />
 
       {lowStockBanner}
 
@@ -307,11 +323,19 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
         onEndReachedThreshold={0.4}
         contentContainerStyle={styles.list}
         rightActions={(item) => [
-          { label: 'Restock', onPress: () => setRestockTarget(item), color: colors.primary[600] },
-          { label: 'Hapus', onPress: () => setDeleteTarget(item) },
+          // A bundle has no stock of its own (it follows its items) and only the store head may delete it.
+          ...(canRestock && !isBundle(item)
+            ? [{ label: 'Restock', onPress: () => setRestockTarget(item), color: colors.primary[600] }]
+            : []),
+          ...((isBundle(item) ? isManager : canDeleteProduct)
+            ? [{ label: 'Hapus', onPress: () => setDeleteTarget(item) }]
+            : []),
         ]}
         renderItem={(item) => (
-          <ProductListItem item={item} onPress={() => navigation.navigate('ProductForm', { product: item })} />
+          <ProductListItem
+            item={item}
+            onPress={openProductFor(item)}
+          />
         )}
         ListEmptyComponent={
           status === 'loading' ? (
@@ -337,8 +361,8 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
               icon={BoxIcon}
               title="Belum Ada Produk"
               description="Yuk tambahkan produk pertamamu supaya bisa langsung mulai jualan di kasir."
-              actionLabel="+ Tambah Produk"
-              onAction={() => navigation.navigate('ProductForm', { product: undefined })}
+              actionLabel={canCreateProduct ? '+ Tambah Produk' : undefined}
+              onAction={canCreateProduct ? () => navigation.navigate('ProductForm', { product: undefined }) : undefined}
             />
           )
         }
@@ -364,11 +388,13 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
         onConfirm={() => deleteTarget && onDelete(deleteTarget)}
       />
 
-      <Fab
-        icon={PlusIcon}
-        accessibilityLabel="Tambah produk"
-        onPress={() => navigation.navigate('ProductForm', { product: undefined })}
-      />
+      {canCreateProduct ? (
+        <Fab
+          icon={PlusIcon}
+          accessibilityLabel="Tambah produk"
+          onPress={() => navigation.navigate('ProductForm', { product: undefined })}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

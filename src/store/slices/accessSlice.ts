@@ -17,6 +17,8 @@ interface AccessState {
   storesStatus: LoadStatus;
   /** null = belum dimuat / tanpa batasan; array = menu yang boleh tampil. */
   allowedMenus: string[] | null;
+  /** null = tanpa batasan (Kepala Toko/Superadmin, atau belum dimuat); array = aksi yang diizinkan. */
+  allowedActions: string[] | null;
   matrix: MenuAccessMatrix | null;
   matrixStatus: LoadStatus;
   error: string | null;
@@ -28,6 +30,7 @@ const initialState: AccessState = {
   stores: [],
   storesStatus: 'idle',
   allowedMenus: null,
+  allowedActions: null,
   matrix: null,
   matrixStatus: 'idle',
   error: null,
@@ -44,16 +47,21 @@ export const fetchAdminStores = createAsyncThunk('access/fetchAdminStores', acce
 
 export const fetchMyMenus = createAsyncThunk('access/fetchMyMenus', async () => {
   const result = await accessApi.fetchMyMenus();
-  return result.restricted ? result.menus : null;
+  return result.restricted
+    ? { menus: result.menus, actions: result.actions ?? null }
+    : { menus: null, actions: null };
 });
 
 export const fetchMenuAccess = createAsyncThunk('access/fetchMenuAccess', accessApi.fetchMenuAccess);
 
 export const saveMenuAccess = createAsyncThunk(
   'access/saveMenuAccess',
-  async ({ roleCode, menus }: { roleCode: string; menus: string[] }, { rejectWithValue }) => {
+  async (
+    { roleCode, menus, actions }: { roleCode: string; menus: string[]; actions?: string[] },
+    { rejectWithValue },
+  ) => {
     try {
-      return await accessApi.updateMenuAccess(roleCode, menus);
+      return await accessApi.updateMenuAccess(roleCode, menus, actions);
     } catch (error) {
       return rejectWithValue(apiErrorMessage(error, 'Pengaturan menu gagal disimpan.'));
     }
@@ -63,6 +71,7 @@ export const saveMenuAccess = createAsyncThunk(
 const resetOnSignOut = (state: AccessState) => {
   state.activeStore = null;
   state.allowedMenus = null;
+  state.allowedActions = null;
   state.matrix = null;
   state.stores = [];
 };
@@ -97,7 +106,8 @@ const accessSlice = createSlice({
         state.error = action.error.message ?? 'Daftar toko gagal dimuat';
       })
       .addCase(fetchMyMenus.fulfilled, (state, action) => {
-        state.allowedMenus = action.payload;
+        state.allowedMenus = action.payload.menus;
+        state.allowedActions = action.payload.actions;
       })
       .addCase(fetchMenuAccess.pending, (state) => {
         state.matrixStatus = 'loading';
