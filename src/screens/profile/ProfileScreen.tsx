@@ -14,6 +14,7 @@ import { changePassword, logout, logoutAll } from '@/store/slices/authSlice';
 import { closeSession, fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useMenuAccess } from '@/navigation/menuCatalog';
 import type { MainTabParamList, RootStackParamList } from '@/navigation/types';
 import type { CashierSession, User } from '@/types/models';
 import { colors, radii, spacing } from '@/theme';
@@ -63,6 +64,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const user = useAppSelector((state) => state.auth.user);
   const storeProfile = useAppSelector((state) => state.storeProfile.profile);
   const session = useAppSelector((state) => state.cashierSession.current);
+  // Link pintas di sini ikut aturan Hak Akses Menu, sama seperti layar Menu.
+  const { can } = useMenuAccess();
   const [closeSessionVisible, setCloseSessionVisible] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
@@ -176,7 +179,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 {user?.name ?? '-'}
               </Text>
               <Text color="secondary" size="sm">
-                {user?.email ?? '-'} · @{user?.username ?? '-'}
+                {[user?.email, `@${user?.username ?? '-'}`].filter(Boolean).join(' · ')}
               </Text>
             </View>
           </View>
@@ -189,48 +192,69 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         </Card>
 
-        <View style={styles.sectionTitleRow}>
-          <StoreIcon size={15} color={colors.text.secondary} />
-          <Text weight="bold">Toko</Text>
-        </View>
-        <Card padding="none">
-          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('StoreProfile')}>
-            Profil Toko
-          </Button>
-          <Divider />
-          <Button
-            variant="ghost"
-            style={styles.rowButton}
-            leftIcon={<PeopleIcon size={16} color={colors.text.secondary} />}
-            onPress={() => navigation.navigate('Customers')}
-          >
-            Pelanggan & Utang
-          </Button>
-        </Card>
+        {can('outlet') || can('customers') ? (
+          <Fragment>
+            <View style={styles.sectionTitleRow}>
+              <StoreIcon size={15} color={colors.text.secondary} />
+              <Text weight="bold">Toko</Text>
+            </View>
+            <Card padding="none">
+              {can('outlet') ? (
+                <Button
+                  variant="ghost"
+                  style={styles.rowButton}
+                  leftIcon={<StoreIcon size={16} color={colors.text.secondary} />}
+                  onPress={() => navigation.navigate('StoreProfile')}
+                >
+                  Profil Toko
+                </Button>
+              ) : null}
+              {can('outlet') && can('customers') ? <Divider /> : null}
+              {can('customers') ? (
+                <Button
+                  variant="ghost"
+                  style={styles.rowButton}
+                  leftIcon={<PeopleIcon size={16} color={colors.text.secondary} />}
+                  onPress={() => navigation.navigate('Customers')}
+                >
+                  Pelanggan & Utang
+                </Button>
+              ) : null}
+            </Card>
+          </Fragment>
+        ) : null}
 
-        <View style={styles.sectionTitleRow}>
-          <ReceiptIcon size={15} color={colors.text.secondary} />
-          <Text weight="bold">Pembelian</Text>
-        </View>
-        <Card padding="none">
-          <Button
-            variant="ghost"
-            style={styles.rowButton}
-            leftIcon={<TruckIcon size={16} color={colors.text.secondary} />}
-            onPress={() => navigation.navigate('Suppliers')}
-          >
-            Pemasok
-          </Button>
-          <Divider />
-          <Button
-            variant="ghost"
-            style={styles.rowButton}
-            leftIcon={<ReceiptIcon size={16} color={colors.text.secondary} />}
-            onPress={() => navigation.navigate('PurchaseOrders')}
-          >
-            Purchase Order
-          </Button>
-        </Card>
+        {can('suppliers') || can('purchase_orders') ? (
+          <Fragment>
+            <View style={styles.sectionTitleRow}>
+              <ReceiptIcon size={15} color={colors.text.secondary} />
+              <Text weight="bold">Pembelian</Text>
+            </View>
+            <Card padding="none">
+              {can('suppliers') ? (
+                <Button
+                  variant="ghost"
+                  style={styles.rowButton}
+                  leftIcon={<TruckIcon size={16} color={colors.text.secondary} />}
+                  onPress={() => navigation.navigate('Suppliers')}
+                >
+                  Pemasok
+                </Button>
+              ) : null}
+              {can('suppliers') && can('purchase_orders') ? <Divider /> : null}
+              {can('purchase_orders') ? (
+                <Button
+                  variant="ghost"
+                  style={styles.rowButton}
+                  leftIcon={<ReceiptIcon size={16} color={colors.text.secondary} />}
+                  onPress={() => navigation.navigate('PurchaseOrders')}
+                >
+                  Purchase Order
+                </Button>
+              ) : null}
+            </Card>
+          </Fragment>
+        ) : null}
 
         <View style={styles.sectionTitleRow}>
           <PrintIcon size={15} color={colors.text.secondary} />
@@ -247,15 +271,24 @@ export default function ProfileScreen({ navigation }: Props) {
           </Button>
         </Card>
 
-        <View style={styles.sectionTitleRow}>
-          <EmployeeIcon size={15} color={colors.text.secondary} />
-          <Text weight="bold">Tim</Text>
-        </View>
-        <Card padding="none">
-          <Button variant="ghost" style={styles.rowButton} onPress={() => navigation.navigate('Employees')}>
-            Karyawan
-          </Button>
-        </Card>
+        {can('employees') ? (
+          <Fragment>
+            <View style={styles.sectionTitleRow}>
+              <EmployeeIcon size={15} color={colors.text.secondary} />
+              <Text weight="bold">Tim</Text>
+            </View>
+            <Card padding="none">
+              <Button
+                variant="ghost"
+                style={styles.rowButton}
+                leftIcon={<EmployeeIcon size={16} color={colors.text.secondary} />}
+                onPress={() => navigation.navigate('Employees')}
+              >
+                Karyawan
+              </Button>
+            </Card>
+          </Fragment>
+        ) : null}
 
         <View style={styles.sectionTitleRow}>
           <RegisterIcon size={15} color={colors.text.secondary} />
@@ -454,7 +487,7 @@ function SettingsDetailPane({
                 {user?.name ?? '-'}
               </Text>
               <Text color="secondary" size="sm">
-                {user?.email ?? '-'} · @{user?.username ?? '-'}
+                {[user?.email, `@${user?.username ?? '-'}`].filter(Boolean).join(' · ')}
               </Text>
             </View>
           </View>
