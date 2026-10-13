@@ -28,7 +28,8 @@ type Slot = PhoneTabBarRoute | 'spacer';
 /**
  * Susun slot tab bar dari menu yang diizinkan. Kasir tetap di tengah: kalau
  * jumlah item kiri & kanan tidak sama (karena ada menu disembunyikan), sisi
- * yang lebih sedikit diberi slot kosong.
+ * yang lebih sedikit diberi slot kosong di sebelah Kasir — supaya Beranda
+ * tetap di ujung kiri dan Menu tetap di ujung kanan seperti biasa.
  */
 function buildSlots(canShow: (route: PhoneTabBarRoute) => boolean): Slot[] {
   const left = (['Dashboard', 'Orders'] as const).filter(canShow);
@@ -36,7 +37,7 @@ function buildSlots(canShow: (route: PhoneTabBarRoute) => boolean): Slot[] {
   if (!canShow('POS')) return [...left, ...right];
   const pad = (n: number): Slot[] => Array.from({ length: n }, () => 'spacer' as const);
   const diff = left.length - right.length;
-  return [...pad(Math.max(0, -diff)), ...left, 'POS', ...right, ...pad(Math.max(0, diff))];
+  return [...left, ...pad(Math.max(0, -diff)), 'POS', ...pad(Math.max(0, diff)), ...right];
 }
 
 /**
