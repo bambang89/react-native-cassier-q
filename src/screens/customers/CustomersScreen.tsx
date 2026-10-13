@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     marginHorizontal: spacing.base,
-    marginBottom: spacing.sm,
+    marginTop: spacing.md,
     padding: spacing.sm + 2,
     borderRadius: 12,
     borderWidth: 1,
@@ -219,7 +219,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   summaryText: { flex: 1 },
-  searchBar: { paddingHorizontal: spacing.base, marginBottom: spacing.sm },
+  // Jarak dari header sama seperti layar Produk, supaya kolom cari tidak menempel.
+  searchBar: { paddingHorizontal: spacing.base, paddingTop: spacing.md, marginBottom: spacing.sm },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   card: { marginBottom: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
