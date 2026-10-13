@@ -101,6 +101,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-secure-store',
+    [
+      // Foto produk dari kamera atau galeri (src/services/photos/pickPhoto.ts).
+      'expo-image-picker',
+      {
+        photosPermission: 'cassier-Q needs photo library access to choose product photos.',
+        cameraPermission: 'cassier-Q needs camera access to take product photos and scan barcodes.',
+        microphonePermission: false,
+      },
+    ],
     'expo-screen-orientation',
     [
       // Splash native sengaja polos navy: animasi logo dikerjakan AnimatedSplash

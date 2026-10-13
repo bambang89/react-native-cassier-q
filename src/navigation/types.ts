@@ -1,7 +1,6 @@
 import type { ComponentType } from 'react';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { Product } from '@/types/models';
-import type { ProductPhotoFile } from '@/api/productsApi';
 
 import DashboardScreen from '@/screens/dashboard/DashboardScreen';
 import POSScreen from '@/screens/pos/POSScreen';
@@ -48,9 +47,6 @@ export type RootStackParamList = {
   Scanner: {
     onFound: (product: Product) => void;
     onNotFound?: (barcode: string) => void;
-  };
-  ProductPhotoCamera: {
-    onCaptured: (photo: ProductPhotoFile) => void;
   };
   Categories: undefined;
   Units: undefined;

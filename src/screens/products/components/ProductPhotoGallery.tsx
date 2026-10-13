@@ -4,28 +4,18 @@ import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, View } from 'r
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addProductPhoto, deleteProductPhoto, fetchProductPhotos } from '@/store/slices/productPhotosSlice';
 import type { ProductPhotoFile } from '@/api/productsApi';
-import type { RootStackParamList } from '@/navigation/types';
+import { choosePhoto } from '@/services/photos/pickPhoto';
 import { colors, radii, spacing } from '@/theme';
 import { FormControl, Pressable } from '@/components/ui/forms';
 import { Text } from '@/components/ui/typography';
 import { PlusIcon, TrashIcon } from '@/components/icons/LineIcons';
-
-type PhotoCameraNavigation = {
-  navigate: (screen: 'ProductPhotoCamera', params: RootStackParamList['ProductPhotoCamera']) => void;
-};
 
 // Sama dengan MAX_PRODUCT_PHOTOS di ProductService (backend) — batasi di sini
 // juga biar tombol tambah hilang duluan, bukan cuma nunggu error dari server.
 const MAX_PHOTOS = 5;
 
 /** Galeri foto tambahan produk (di luar foto utama) — cuma tersedia saat edit, karena butuh id produk. */
-export function ProductPhotoGallery({
-  productId,
-  navigation,
-}: {
-  productId: string;
-  navigation: PhotoCameraNavigation;
-}) {
+export function ProductPhotoGallery({ productId }: { productId: string }) {
   const dispatch = useAppDispatch();
   const photos = useAppSelector((state) => state.productPhotos.byProductId[productId]) ?? [];
   const status = useAppSelector((state) => state.productPhotos.statusByProductId[productId]);
@@ -37,14 +27,12 @@ export function ProductPhotoGallery({
 
   const onAddPhoto = () => {
     if (atLimit) return;
-    navigation.navigate('ProductPhotoCamera', {
-      onCaptured: async (file: ProductPhotoFile) => {
-        try {
-          await dispatch(addProductPhoto({ productId, file })).unwrap();
-        } catch {
-          Alert.alert('Gagal', 'Foto tidak bisa diupload, coba lagi.');
-        }
-      },
+    choosePhoto(async (file: ProductPhotoFile) => {
+      try {
+        await dispatch(addProductPhoto({ productId, file })).unwrap();
+      } catch {
+        Alert.alert('Gagal', 'Foto tidak bisa diupload, coba lagi.');
+      }
     });
   };
 

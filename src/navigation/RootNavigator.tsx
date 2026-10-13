@@ -17,7 +17,6 @@ import ScannerScreen from '@/screens/pos/ScannerScreen';
 import CategoriesScreen from '@/screens/products/CategoriesScreen';
 import UnitsScreen from '@/screens/products/UnitsScreen';
 import ProductFormScreen from '@/screens/products/ProductFormScreen';
-import ProductPhotoCameraScreen from '@/screens/products/ProductPhotoCameraScreen';
 import OrderDetailScreen from '@/screens/orders/OrderDetailScreen';
 import ReceiptScreen from '@/screens/orders/ReceiptScreen';
 import PrinterSettingsScreen from '@/screens/profile/PrinterSettingsScreen';
@@ -141,11 +140,6 @@ export default function RootNavigator() {
               <Stack.Screen name="Categories" component={CategoriesScreen} />
               <Stack.Screen name="Units" component={UnitsScreen} />
               <Stack.Screen name="ProductForm" component={ProductFormScreen} />
-              <Stack.Screen
-                name="ProductPhotoCamera"
-                component={ProductPhotoCameraScreen}
-                options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-              />
               <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
               <Stack.Screen name="Receipt" component={ReceiptScreen} />
               <Stack.Screen name="PrinterSettings" component={PrinterSettingsScreen} />

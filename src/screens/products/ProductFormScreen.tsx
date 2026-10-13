@@ -8,6 +8,7 @@ import { fetchUnits } from '@/store/slices/unitsSlice';
 import { createProduct, updateProduct, uploadProductPhoto } from '@/store/slices/productsSlice';
 import type { ProductPhotoFile } from '@/api/productsApi';
 import { useResponsive } from '@/hooks/useResponsive';
+import { choosePhoto } from '@/services/photos/pickPhoto';
 import type { RootStackParamList } from '@/navigation/types';
 import { colors, spacing } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
@@ -113,7 +114,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   };
 
   const onOpenCamera = () => {
-    navigation.navigate('ProductPhotoCamera', { onCaptured: setPickedImage });
+    choosePhoto(setPickedImage);
   };
 
   const onRemovePhoto = () => {
@@ -234,7 +235,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
           </View>
         </HStack>
 
-        {editing ? <ProductPhotoGallery productId={editing.id} navigation={navigation} /> : null}
+        {editing ? <ProductPhotoGallery productId={editing.id} /> : null}
 
         {editing ? <ProductUnitsSection product={editing} allUnits={units} /> : null}
 
