@@ -104,8 +104,9 @@ export default function ProductFormScreen({ navigation, route }: Props) {
       }
 
       navigation.goBack();
-    } catch {
-      Alert.alert('Gagal', 'Produk tidak bisa disimpan. Cek kembali data yang diisi.');
+    } catch (error) {
+      // Pesan dari backend (mis. "SKU sudah dipakai", "Barcode sudah dipakai produk lain").
+      Alert.alert('Gagal', typeof error === 'string' ? error : 'Produk tidak bisa disimpan. Cek kembali data yang diisi.');
     } finally {
       setSubmitting(false);
     }

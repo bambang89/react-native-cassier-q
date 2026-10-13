@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
+import { apiErrorMessage } from '@/api/errors';
 import * as productsApi from '@/api/productsApi';
 import type { FetchProductsParams, ProductPayload, ProductPhotoFile, RestockPayload } from '@/api/productsApi';
 import type { Product } from '@/types/models';
@@ -36,13 +37,26 @@ export const fetchProductByBarcode = createAsyncThunk(
   async (barcode: string) => productsApi.fetchProductByBarcode(barcode),
 );
 
-export const createProduct = createAsyncThunk('products/create', async (payload: ProductPayload) =>
-  productsApi.createProduct(payload),
+export const createProduct = createAsyncThunk(
+  'products/create',
+  async (payload: ProductPayload, { rejectWithValue }) => {
+    try {
+      return await productsApi.createProduct(payload);
+    } catch (error) {
+      return rejectWithValue(apiErrorMessage(error, 'Produk tidak bisa disimpan. Cek kembali data yang diisi.'));
+    }
+  },
 );
 
 export const updateProduct = createAsyncThunk(
   'products/update',
-  async ({ id, payload }: { id: string; payload: ProductPayload }) => productsApi.updateProduct(id, payload),
+  async ({ id, payload }: { id: string; payload: ProductPayload }, { rejectWithValue }) => {
+    try {
+      return await productsApi.updateProduct(id, payload);
+    } catch (error) {
+      return rejectWithValue(apiErrorMessage(error, 'Produk tidak bisa disimpan. Cek kembali data yang diisi.'));
+    }
+  },
 );
 
 export const uploadProductPhoto = createAsyncThunk(
@@ -94,7 +108,7 @@ const productsSlice = createSlice({
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.mutationStatus = 'failed';
-        state.mutationError = action.error.message ?? 'Produk tidak bisa disimpan';
+        state.mutationError = (action.payload as string | undefined) ?? action.error.message ?? 'Produk tidak bisa disimpan';
       })
       .addCase(updateProduct.pending, (state) => {
         state.mutationStatus = 'loading';
@@ -107,7 +121,7 @@ const productsSlice = createSlice({
       })
       .addCase(updateProduct.rejected, (state, action) => {
         state.mutationStatus = 'failed';
-        state.mutationError = action.error.message ?? 'Produk tidak bisa disimpan';
+        state.mutationError = (action.payload as string | undefined) ?? action.error.message ?? 'Produk tidak bisa disimpan';
       })
       .addCase(uploadProductPhoto.fulfilled, (state, action) => {
         const index = state.items.findIndex((item) => item.id === action.payload.id);
