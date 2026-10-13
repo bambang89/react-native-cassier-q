@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchUnits } from '@/store/slices/unitsSlice';
-import { createProduct, updateProduct, uploadProductPhoto } from '@/store/slices/productsSlice';
+import { createProduct, fetchProducts, updateProduct, uploadProductPhoto } from '@/store/slices/productsSlice';
 import type { ProductPhotoFile } from '@/api/productsApi';
 import { useResponsive } from '@/hooks/useResponsive';
 import { choosePhoto } from '@/services/photos/pickPhoto';
@@ -17,8 +17,12 @@ import { AppBar } from '@/components/ui/recipes';
 import { BarcodeIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
-import { ProductPhotoGallery, ProductUnitsSection } from './components';
+import { PriceTiersSection, ProductPhotoGallery, ProductUnitsSection } from './components';
+import type { TierDraft } from './components';
+import * as productsApi from '@/api/productsApi';
+import { apiErrorMessage } from '@/api/errors';
 import { generateSku } from './ProductsScreen.utils';
+import { usePermissions } from '@/hooks/usePermissions';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
@@ -28,6 +32,23 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   const categories = useAppSelector((state) => state.categories.items);
   const units = useAppSelector((state) => state.units.items);
   const editing = route.params?.product;
+  const { canCreateProduct, canUpdateProduct } = usePermissions();
+  // Hak Akses Menu → Produk → "Atur harga grosir".
+  const canEditTiers = usePermissions().can('products.price_tiers');
+  // Adding needs products.create, editing needs products.update (Hak Akses Menu).
+  const canManageProducts = editing ? canUpdateProduct : canCreateProduct;
+
+  // Kasir/Gudang cannot add or edit products (the API returns 403), so leave the form right away.
+  // Bundles are edited in their own form (Kepala Toko only).
+  useEffect(() => {
+    if (editing?.productType === 'BUNDLE') navigation.replace('BundleForm', { bundle: editing });
+  }, [editing, navigation]);
+
+  useEffect(() => {
+    if (canManageProducts) return;
+    Alert.alert('Akses ditolak', editing ? 'Role Anda tidak diizinkan mengubah produk.' : 'Role Anda tidak diizinkan menambah produk.');
+    navigation.goBack();
+  }, [canManageProducts, navigation]);
 
   const [sku, setSku] = useState('');
   const [barcode, setBarcode] = useState('');
@@ -40,6 +61,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
   const [baseUnitId, setBaseUnitId] = useState<string | null>(null);
   const [sellingPrice, setSellingPrice] = useState('');
   const [costPrice, setCostPrice] = useState('');
+  const [tiers, setTiers] = useState<TierDraft[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -60,6 +82,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
     setBaseUnitId(p?.baseUnitId ?? null);
     setSellingPrice(p?.sellingPrice ? String(p.sellingPrice) : '');
     setCostPrice(p?.costPrice ? String(p.costPrice) : '');
+    setTiers((p?.priceTiers ?? []).map((t) => ({ minQuantity: String(t.minQuantity), unitPrice: String(t.unitPrice) })));
   }, [route.params?.product, route.params?.prefillBarcode]);
 
   const canSubmit = !!(sku && productName && categoryId && baseUnitId && sellingPrice);
@@ -96,6 +119,24 @@ export default function ProductFormScreen({ navigation, route }: Props) {
       const saved = editing
         ? await dispatch(updateProduct({ id: editing.id, payload })).unwrap()
         : await dispatch(createProduct(payload)).unwrap();
+
+      // Wholesale steps need the products.update permission (Hak Akses Menu).
+      if (canEditTiers) {
+        const parsed = tiers
+          .filter((t) => t.minQuantity !== '' && t.unitPrice !== '')
+          .map((t) => ({ minQuantity: Number(t.minQuantity), unitPrice: Number(t.unitPrice) }));
+        const before = JSON.stringify(editing?.priceTiers ?? []);
+        if (JSON.stringify(parsed) !== before) {
+          try {
+            await productsApi.updatePriceTiers(saved.id, parsed);
+            dispatch(fetchProducts({}));
+          } catch (error) {
+            Alert.alert('Harga grosir belum tersimpan', apiErrorMessage(error, 'Produk tersimpan, tetapi harga grosir gagal disimpan.'));
+            setSubmitting(false);
+            return;
+          }
+        }
+      }
 
       if (pickedImage) {
         try {
@@ -252,6 +293,14 @@ export default function ProductFormScreen({ navigation, route }: Props) {
             </FormControl>
           </View>
         </HStack>
+
+        <PriceTiersSection
+          tiers={tiers}
+          onChange={setTiers}
+          normalPrice={Number(sellingPrice || 0)}
+          unitName={units.find((u) => u.id === baseUnitId)?.unitName ?? 'pcs'}
+          disabled={!canEditTiers}
+        />
 
         {editing ? <ProductPhotoGallery productId={editing.id} /> : null}
 

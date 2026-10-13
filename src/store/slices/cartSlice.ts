@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 import type { CartItem, Product } from '@/types/models';
+import { baseTotals, linePricing } from '@/utils/priceTiers';
 
 type CartState = {
   items: CartItem[];
@@ -59,11 +60,11 @@ const cartSlice = createSlice({
 export const { addItem, incrementItem, decrementItem, removeItem, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;
 
-export const selectCartTotal = (state: { cart: CartState }) =>
-  state.cart.items.reduce(
-    (sum, item) => sum + item.product.sellingPrice * item.unitConversionToBase * item.quantity,
-    0,
-  );
+/** Cart total with wholesale (grosir) steps applied per product. */
+export const selectCartTotal = (state: { cart: CartState }) => {
+  const totals = baseTotals(state.cart.items);
+  return state.cart.items.reduce((sum, item) => sum + linePricing(item, totals).subtotal, 0);
+};
 
 export const selectCartCount = (state: { cart: CartState }) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0);

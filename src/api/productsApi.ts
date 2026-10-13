@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Page, Product, ProductPhoto, ProductUnit, Stock } from '@/types/models';
+import type { Page, PriceTier, Product, ProductPhoto, ProductUnit, Stock } from '@/types/models';
 
 export interface FetchProductsParams {
   search?: string;
@@ -124,5 +124,17 @@ export async function registerProductUnit(
   payload: RegisterProductUnitPayload,
 ): Promise<ProductUnit> {
   const { data } = await apiClient.post<ProductUnit>(`/products/${productId}/units`, payload);
+  return data;
+}
+
+/** Harga grosir bertingkat produk di toko ini. */
+export async function fetchPriceTiers(productId: string): Promise<PriceTier[]> {
+  const { data } = await apiClient.get<PriceTier[]>(`/products/${productId}/price-tiers`);
+  return data;
+}
+
+/** Ganti semua tingkat harga grosir produk (daftar kosong = tanpa harga grosir). */
+export async function updatePriceTiers(productId: string, tiers: PriceTier[]): Promise<PriceTier[]> {
+  const { data } = await apiClient.put<PriceTier[]>(`/products/${productId}/price-tiers`, { tiers });
   return data;
 }
