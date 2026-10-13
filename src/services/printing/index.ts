@@ -5,6 +5,14 @@ export {
 } from './bluetooth/BluetoothPrinterManager';
 export { getPrinter } from './registry';
 export { saveReceiptText } from './saveReceiptText';
-export { clearPrinterConfig, getPrinterConfig, savePrinterConfig } from './settings';
-export type { StoredPrinterConfig } from './settings';
+export {
+  clearPrinterConfig,
+  getPaperWidth,
+  getPrinterConfig,
+  PAPER_CHARS,
+  PAPER_WIDTHS,
+  savePaperWidth,
+  savePrinterConfig,
+} from './settings';
+export type { PaperWidth, StoredPrinterConfig } from './settings';
 export type { PrinterType, ReceiptPrinter } from './types';

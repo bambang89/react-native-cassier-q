@@ -7,17 +7,20 @@ import type { IBLEPrinter } from 'react-native-earl-thermal-printer';
 import {
   clearPrinterConfig,
   connectBluetoothPrinter,
+  getPaperWidth,
   getPrinterConfig,
+  savePaperWidth,
   savePrinterConfig,
   scanBluetoothPrinters,
 } from '@/services/printing';
-import type { PrinterType, StoredPrinterConfig } from '@/services/printing';
+import type { PaperWidth, PrinterType, StoredPrinterConfig } from '@/services/printing';
 import type { RootStackParamList } from '@/navigation/types';
 import { colors, radii, spacing } from '@/theme';
 import { Button, Pressable } from '@/components/ui/forms';
 import { AppBar, Card, EmptyState } from '@/components/ui/recipes';
 import { PrintIcon, TrashIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
+import { PaperWidthPicker } from '@/components/printing';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PrinterSettings'>;
 
@@ -29,19 +32,29 @@ const PRINTER_TYPE_OPTIONS: { value: PairablePrinterType; label: string; enabled
   { value: 'LABEL', label: 'Label (ZPL/TSPL)', enabled: false },
 ];
 
+/** Printer settings: paper width, printer type, and pairing a Bluetooth printer. */
 export default function PrinterSettingsScreen({ navigation }: Props) {
   const [selectedType, setSelectedType] = useState<PairablePrinterType>('THERMAL');
   const [scanning, setScanning] = useState(false);
   const [devices, setDevices] = useState<IBLEPrinter[]>([]);
   const [connectingAddress, setConnectingAddress] = useState<string | null>(null);
   const [config, setConfig] = useState<StoredPrinterConfig | null>(null);
+  const [paperWidth, setPaperWidth] = useState<PaperWidth>(58);
 
   useFocusEffect(
     useCallback(() => {
       getPrinterConfig().then(setConfig);
+      getPaperWidth().then(setPaperWidth);
     }, []),
   );
 
+  /** Updates and persists the receipt paper width (58mm / 80mm). */
+  const onChangePaperWidth = (width: PaperWidth) => {
+    setPaperWidth(width);
+    savePaperWidth(width);
+  };
+
+  /** Lists Bluetooth printers already paired with this device. */
   const onScan = async () => {
     setScanning(true);
     setDevices([]);
@@ -58,6 +71,7 @@ export default function PrinterSettingsScreen({ navigation }: Props) {
     }
   };
 
+  /** Connects to the chosen printer and saves it as the default printer. */
   const onConnect = async (device: IBLEPrinter) => {
     setConnectingAddress(device.inner_mac_address);
     try {
@@ -80,6 +94,7 @@ export default function PrinterSettingsScreen({ navigation }: Props) {
     }
   };
 
+  /** Asks for confirmation, then removes the saved printer. */
   const onForget = () => {
     Alert.alert('Lupakan printer?', 'Printer yang tersimpan akan dilepas dari aplikasi ini.', [
       { text: 'Batal', style: 'cancel' },
@@ -128,6 +143,13 @@ export default function PrinterSettingsScreen({ navigation }: Props) {
                 pengaturan Bluetooth perangkat, lalu pindai di bawah.
               </Text>
             )}
+
+            <Text weight="semibold" size="sm" style={styles.sectionLabel}>
+              Ukuran kertas
+            </Text>
+            <View style={styles.paperRow}>
+              <PaperWidthPicker value={paperWidth} onChange={onChangePaperWidth} showChars />
+            </View>
 
             <Text weight="semibold" size="sm" style={styles.sectionLabel}>
               Jenis printer
@@ -225,6 +247,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error[50],
   },
   sectionLabel: { marginBottom: spacing.sm, marginTop: spacing.sm },
+  paperRow: { marginBottom: spacing.base },
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.base },
   typeChip: {
     paddingHorizontal: spacing.base,
