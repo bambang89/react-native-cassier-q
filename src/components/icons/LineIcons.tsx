@@ -286,6 +286,14 @@ export function PlusIcon(props: LineIconProps) {
   );
 }
 
+export function CloseIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="M18 6 6 18M6 6l12 12" />
+    </Base>
+  );
+}
+
 export function FilterIcon(props: LineIconProps) {
   return (
     <Base {...props}>

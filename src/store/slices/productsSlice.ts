@@ -8,6 +8,7 @@ import type { Product } from '@/types/models';
 type ProductsState = {
   items: Product[];
   search: string;
+  latestFetchId: string | null;
   page: number;
   totalPages: number;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
@@ -19,6 +20,7 @@ type ProductsState = {
 const initialState: ProductsState = {
   items: [],
   search: '',
+  latestFetchId: null,
   page: 0,
   totalPages: 0,
   status: 'idle',
@@ -84,17 +86,22 @@ const productsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProducts.pending, (state) => {
+      .addCase(fetchProducts.pending, (state, action) => {
         state.status = 'loading';
+        state.latestFetchId = action.meta.requestId;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
+        // Respons pencarian lama yang datang belakangan tidak boleh menimpa hasil terbaru.
+        if (action.meta.requestId !== state.latestFetchId) return;
         state.status = 'succeeded';
+        state.error = null;
         const isNextPage = action.meta.arg.page && action.meta.arg.page > 0;
         state.items = isNextPage ? [...state.items, ...action.payload.content] : action.payload.content;
         state.page = action.payload.page;
         state.totalPages = action.payload.totalPages;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
+        if (action.meta.requestId !== state.latestFetchId) return;
         state.status = 'failed';
         state.error = action.error.message ?? 'Gagal memuat produk';
       })

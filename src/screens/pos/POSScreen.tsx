@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchProducts } from '@/store/slices/productsSlice';
+import * as productsApi from '@/api/productsApi';
 import { fetchProductUnits } from '@/store/slices/productUnitsSlice';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchCustomers } from '@/store/slices/customersSlice';
@@ -21,7 +22,7 @@ import { Button, Input, Pressable } from '@/components/ui/forms';
 import { Modal } from '@/components/ui/overlay';
 import { EmptyState, Header, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { BarcodeIcon, BoxIcon, CartIcon, SearchIcon, UnlockIcon } from '@/components/icons/LineIcons';
+import { BarcodeIcon, BoxIcon, CartIcon, CloseIcon, SearchIcon, UnlockIcon } from '@/components/icons/LineIcons';
 import { CategoryChip, ProductGridCard } from '@/components/product';
 
 import type { POSScreenProps } from './POSScreen.types';
@@ -29,12 +30,14 @@ import { styles } from './POSScreen.styles';
 import { formatRupiah, greetingForNow, PPN_RATE, sessionTimeLabel, todayLabel } from './POSScreen.utils';
 import { CartBar, CheckoutForm, DiscountForm, OpenSessionForm, OrderPanel } from './components';
 
+const SEARCH_DEBOUNCE_MS = 350;
+
 export default function POSScreen({ navigation }: POSScreenProps) {
   const dispatch = useAppDispatch();
   const { isTabletLandscape } = useResponsive();
   const user = useAppSelector((state) => state.auth.user);
   const storeProfile = useAppSelector((state) => state.storeProfile.profile);
-  const { items, status } = useAppSelector((state) => state.products);
+  const { items, status, search: productsTabSearch } = useAppSelector((state) => state.products);
   const categories = useAppSelector((state) => state.categories.items);
   const cartItems = useAppSelector((state) => state.cart.items);
   const cartCount = useAppSelector(selectCartCount);
@@ -44,6 +47,11 @@ export default function POSScreen({ navigation }: POSScreenProps) {
   const productUnitsById = useAppSelector((state) => state.productUnits.byProductId);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Hasil pencarian dari server. Daftar di store cuma berisi halaman pertama
+  // (dan bisa sedang difilter oleh pencarian di tab Produk), jadi Kasir
+  // mencari sendiri ke backend supaya semua produk toko bisa ketemu.
+  const [remoteProducts, setRemoteProducts] = useState<Product[] | null>(null);
+  const [remoteLoading, setRemoteLoading] = useState(false);
   const [openSessionModalVisible, setOpenSessionModalVisible] = useState(false);
   const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
   const [discountModalVisible, setDiscountModalVisible] = useState(false);
@@ -90,16 +98,65 @@ export default function POSScreen({ navigation }: POSScreenProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canOpenCheckout, session]);
 
+  const trimmedQuery = searchQuery.trim();
+  // null = cukup pakai daftar di store; string = ambil dari server dengan kata kunci ini.
+  const remoteTerm = trimmedQuery ? trimmedQuery : productsTabSearch ? '' : null;
+
+  useEffect(() => {
+    if (remoteTerm === null) {
+      setRemoteProducts(null);
+      setRemoteLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setRemoteLoading(true);
+    const timer = setTimeout(
+      () => {
+        productsApi
+          .fetchProducts({ search: remoteTerm, size: 100 })
+          .then((result) => {
+            if (!cancelled) setRemoteProducts(result.content);
+          })
+          .catch(() => {
+            if (!cancelled) setRemoteProducts(null);
+          })
+          .finally(() => {
+            if (!cancelled) setRemoteLoading(false);
+          });
+      },
+      remoteTerm ? SEARCH_DEBOUNCE_MS : 0,
+    );
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [remoteTerm]);
+
   const filteredProducts = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return items.filter((p) => {
+    const query = trimmedQuery.toLowerCase();
+    // Selagi menunggu server, saring daftar yang ada supaya hasil terasa instan.
+    const source = remoteProducts ?? items;
+    return source.filter((p) => {
       const matchesCategory = selectedCategoryId ? p.categoryId === selectedCategoryId : true;
-      const matchesQuery = query
-        ? p.productName.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query)
-        : true;
+      const matchesQuery =
+        !query ||
+        remoteProducts !== null ||
+        [p.productName, p.sku, p.barcode, p.brand].some((field) => field?.toLowerCase().includes(query));
       return matchesCategory && matchesQuery;
     });
-  }, [items, selectedCategoryId, searchQuery]);
+  }, [items, remoteProducts, selectedCategoryId, trimmedQuery]);
+
+  // Enter di kolom cari (atau scanner barcode model keyboard): kalau barcode/SKU
+  // cocok persis, langsung masukkan ke keranjang.
+  const onSearchSubmit = () => {
+    const query = trimmedQuery.toLowerCase();
+    if (!query) return;
+    const exact = filteredProducts.find((p) => p.barcode?.toLowerCase() === query || p.sku.toLowerCase() === query);
+    if (exact) {
+      onAddToCart(exact);
+      setSearchQuery('');
+    }
+  };
 
   const subtotal = cartTotal;
   const discountAmount =
@@ -190,6 +247,17 @@ export default function POSScreen({ navigation }: POSScreenProps) {
             placeholder={isTabletLandscape ? 'Cari produk atau scan barcode' : 'Cari produk (F2)'}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={onSearchSubmit}
+            returnKeyType="search"
+            autoCorrect={false}
+            autoCapitalize="none"
+            rightElement={
+              searchQuery ? (
+                <Pressable onPress={() => setSearchQuery('')} hitSlop={8} accessibilityLabel="Hapus pencarian">
+                  <CloseIcon size={16} color={colors.text.muted} />
+                </Pressable>
+              ) : null
+            }
             leftElement={
               <SearchIcon size={17} color={isTabletLandscape ? tabletColors.gray400 : colors.text.muted} strokeWidth={1.7} />
             }
@@ -245,14 +313,20 @@ export default function POSScreen({ navigation }: POSScreenProps) {
         onRefresh={() => dispatch(fetchProducts({}))}
         refreshing={status === 'loading'}
         ListEmptyComponent={
-          status === 'loading' ? (
+          status === 'loading' || remoteLoading ? (
             <Text color="muted" align="center" style={styles.empty}>
               Memuat produk...
             </Text>
+          ) : trimmedQuery ? (
+            <EmptyState
+              icon={SearchIcon}
+              title="Tidak Ada Produk Cocok"
+              description={`Tidak ada produk dengan nama, SKU, barcode, atau merek "${trimmedQuery}".`}
+            />
           ) : (
             <EmptyState
               icon={BoxIcon}
-              title={selectedCategoryId || searchQuery ? 'Tidak Ada Produk Cocok' : 'Belum Ada Produk'}
+              title={selectedCategoryId ? 'Tidak Ada Produk Cocok' : 'Belum Ada Produk'}
               description="Tambahkan produk dulu di menu Produk supaya bisa langsung dijual di sini."
               actionLabel="Buka Menu Produk"
               onAction={() => navigation.navigate('Products')}

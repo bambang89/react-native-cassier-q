@@ -28,8 +28,9 @@ export const styles = StyleSheet.create({
   sessionBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.sm,
-    marginHorizontal: spacing.base,
+    gap: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
     marginBottom: spacing.sm,
     padding: spacing.base,
     borderRadius: 14,

@@ -15,12 +15,14 @@ import { Button, Input, Pressable } from '@/components/ui/forms';
 import { AlertDialog, Modal } from '@/components/ui/overlay';
 import { EmptyState, Fab, Header, SwipeList, TabletTopBar } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { AlertTriangleIcon, BarcodeIcon, BoxIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
+import { AlertTriangleIcon, BarcodeIcon, BoxIcon, CloseIcon, PlusIcon, SearchIcon } from '@/components/icons/LineIcons';
 import { CategoryChip, ProductGridCard } from '@/components/product';
 
 import type { ProductsScreenProps } from './ProductsScreen.types';
 import { styles } from './ProductsScreen.styles';
 import { ProductListItem, RestockForm } from './components';
+
+const SEARCH_DEBOUNCE_MS = 350;
 
 export default function ProductsScreen({ navigation }: ProductsScreenProps) {
   const dispatch = useAppDispatch();
@@ -55,9 +57,28 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
     dispatch(fetchStoreProfile());
   }, [dispatch]);
 
+  // Cari otomatis saat berhenti mengetik, tanpa harus tekan Enter.
+  useEffect(() => {
+    const term = searchDraft.trim();
+    if (term === search) return;
+    const timer = setTimeout(() => dispatch(setSearch(term)), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [dispatch, searchDraft, search]);
+
   const onSearchSubmit = () => {
     dispatch(setSearch(searchDraft.trim()));
   };
+
+  const onClearSearch = () => {
+    setSearchDraft('');
+    dispatch(setSearch(''));
+  };
+
+  const clearSearchButton = searchDraft ? (
+    <Pressable onPress={onClearSearch} hitSlop={8} accessibilityRole="button" accessibilityLabel="Hapus pencarian">
+      <CloseIcon size={16} color={colors.text.muted} />
+    </Pressable>
+  ) : null;
 
   const onScanSearch = () => {
     navigation.navigate('Scanner', {
@@ -129,7 +150,10 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
               onChangeText={setSearchDraft}
               onSubmitEditing={onSearchSubmit}
               returnKeyType="search"
+              autoCorrect={false}
+              autoCapitalize="none"
               leftElement={<SearchIcon size={16} color={tabletColors.gray400} />}
+              rightElement={clearSearchButton}
               style={styles.tabletSearchInput}
             />
           </View>
@@ -241,11 +265,16 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
           onChangeText={setSearchDraft}
           onSubmitEditing={onSearchSubmit}
           returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
           leftElement={<SearchIcon size={16} color={colors.text.muted} />}
           rightElement={
-            <Pressable onPress={onScanSearch} hitSlop={8} accessibilityLabel="Cari lewat scan barcode">
-              <BarcodeIcon size={18} color={colors.text.secondary} />
-            </Pressable>
+            <View style={styles.searchActions}>
+              {clearSearchButton}
+              <Pressable onPress={onScanSearch} hitSlop={8} accessibilityLabel="Cari lewat scan barcode">
+                <BarcodeIcon size={18} color={colors.text.secondary} />
+              </Pressable>
+            </View>
           }
         />
       </View>
