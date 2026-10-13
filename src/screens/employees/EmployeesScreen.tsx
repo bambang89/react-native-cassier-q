@@ -1,19 +1,21 @@
 import { Fragment, useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Image, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  createEmployee,
   deactivateEmployee,
   fetchEmployees,
   reactivateEmployee,
-  updateEmployee,
 } from '@/store/slices/employeesSlice';
 import { fetchRoles } from '@/store/slices/rolesSlice';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { Employee } from '@/types/models';
+import * as employeesApi from '@/api/employeesApi';
+import type { ProductPhotoFile } from '@/api/productsApi';
+import { apiErrorMessage } from '@/api/errors';
+import { choosePhoto } from '@/services/photos/pickPhoto';
 import { colors, radii, spacing } from '@/theme';
 import { tabletColors } from '@/theme/tabletColors';
 import { Button, FormControl, Input, Pressable, Select } from '@/components/ui/forms';
@@ -142,9 +144,13 @@ export default function EmployeesScreen() {
                 <View style={styles.tableRow}>
                   <View style={[styles.colName, styles.nameCell]}>
                     <View style={styles.tableAvatar}>
-                      <Text weight="bold" color="inverse" size="xs">
-                        {item.name.charAt(0).toUpperCase()}
-                      </Text>
+                      {item.photoUrl ? (
+                        <Image source={{ uri: item.photoUrl }} style={styles.photoImage} />
+                      ) : (
+                        <Text weight="bold" color="inverse" size="xs">
+                          {item.name.charAt(0).toUpperCase()}
+                        </Text>
+                      )}
                     </View>
                     <View style={styles.nameCellInfo}>
                       <Text style={styles.cellMain} numberOfLines={1}>
@@ -214,9 +220,13 @@ export default function EmployeesScreen() {
           <Card shadow="none" style={styles.card} onPress={() => setEditing(item)}>
             <View style={styles.row}>
               <View style={styles.avatar}>
-                <Text weight="bold" color="inverse">
-                  {item.name.charAt(0).toUpperCase()}
-                </Text>
+                {item.photoUrl ? (
+                  <Image source={{ uri: item.photoUrl }} style={styles.photoImage} />
+                ) : (
+                  <Text weight="bold" color="inverse">
+                    {item.name.charAt(0).toUpperCase()}
+                  </Text>
+                )}
               </View>
               <View style={styles.info}>
                 <Text weight="semibold" numberOfLines={1}>
@@ -301,31 +311,66 @@ function EmployeeForm({
   const [phone, setPhone] = useState(employee?.phone ?? '');
   const [password, setPassword] = useState('');
   const [roleCode, setRoleCode] = useState<string | null>(employee?.roles[0] ?? null);
+  const [nationalId, setNationalId] = useState(employee?.nationalId ?? '');
+  const [employeeNumber, setEmployeeNumber] = useState(employee?.employeeNumber ?? '');
+  // Photo chosen in the form; uploaded after the employee is saved. 'remove' clears the current one.
+  const [photo, setPhoto] = useState<ProductPhotoFile | 'remove' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = employee
-    ? !!name && !!roleCode
-    : !!name && !!username && password.length >= 8 && !!roleCode;
+  const nationalIdValid = nationalId === '' || /^\d{16}$/.test(nationalId);
+  const canSubmit =
+    nationalIdValid &&
+    (employee ? !!name && !!roleCode : !!name && !!username && password.length >= 8 && !!roleCode);
+  const previewUri = photo === 'remove' ? null : photo ? photo.uri : (employee?.photoUrl ?? null);
+
+  /** Picks a photo (camera/gallery) or marks the current one for removal. */
+  const pickEmployeePhoto = () =>
+    choosePhoto((file) => setPhoto(file), {
+      title: 'Foto karyawan',
+      onRemove: previewUri ? () => setPhoto('remove') : undefined,
+    });
 
   const onSubmit = async () => {
     if (!roleCode) return;
     setSubmitting(true);
+    const identity = {
+      nationalId: nationalId.trim() || undefined,
+      employeeNumber: employeeNumber.trim() || undefined,
+    };
     try {
-      if (employee) {
-        await dispatch(
-          updateEmployee({
-            id: employee.employeeId,
-            payload: { name, email: email || undefined, phone: phone || undefined, roleCode },
-          }),
-        ).unwrap();
-      } else {
-        await dispatch(
-          createEmployee({ name, username, email: email || undefined, phone: phone || undefined, password, roleCode }),
-        ).unwrap();
+      const saved = employee
+        ? await employeesApi.updateEmployee(employee.employeeId, {
+            name,
+            email: email || undefined,
+            phone: phone || undefined,
+            roleCode,
+            ...identity,
+          })
+        : await employeesApi.createEmployee({
+            name,
+            username,
+            email: email || undefined,
+            phone: phone || undefined,
+            password,
+            roleCode,
+            ...identity,
+          });
+      try {
+        if (photo === 'remove') await employeesApi.removeEmployeePhoto(saved.employeeId);
+        else if (photo) await employeesApi.uploadEmployeePhoto(saved.employeeId, photo);
+      } catch (error) {
+        Alert.alert('Foto belum tersimpan', apiErrorMessage(error, 'Data karyawan tersimpan, tetapi fotonya gagal diunggah.'));
       }
+      dispatch(fetchEmployees());
       onDone();
-    } catch {
-      Alert.alert('Gagal', employee ? 'Data karyawan tidak bisa disimpan.' : 'Karyawan tidak bisa ditambahkan (mungkin username sudah dipakai).');
+    } catch (error) {
+      Alert.alert(
+        'Gagal',
+        apiErrorMessage(
+          error,
+          employee ? 'Data karyawan tidak bisa disimpan.' : 'Karyawan tidak bisa ditambahkan (mungkin username sudah dipakai).',
+        ),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -336,6 +381,35 @@ function EmployeeForm({
       <Text weight="semibold" size="lg" style={styles.modalTitle}>
         {employee ? 'Ubah Karyawan' : 'Karyawan Baru'}
       </Text>
+      <View style={styles.photoRow}>
+        <Pressable onPress={pickEmployeePhoto} accessibilityRole="button" accessibilityLabel="Pilih foto karyawan">
+          <View style={styles.photoCircle}>
+            {previewUri ? (
+              <Image source={{ uri: previewUri }} style={styles.photoImage} />
+            ) : (
+              <Text weight="bold" size="xl" color="inverse">
+                {(name || '?').charAt(0).toUpperCase()}
+              </Text>
+            )}
+          </View>
+          <View style={styles.photoBadge}>
+            <PencilIcon size={11} color={colors.white} />
+          </View>
+        </Pressable>
+        <View style={styles.photoInfo}>
+          <Text weight="semibold" size="sm">
+            Foto karyawan
+          </Text>
+          <Text size="xs" color="muted">
+            Opsional · JPG/PNG/WEBP maks. 5MB
+          </Text>
+          <Pressable onPress={pickEmployeePhoto} hitSlop={6}>
+            <Text size="xs" weight="semibold" style={styles.photoLink}>
+              {previewUri ? 'Ganti / hapus foto' : 'Tambah foto'}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
       <FormControl label="Nama" isRequired>
         <Input value={name} onChangeText={setName} placeholder="Nama lengkap" />
       </FormControl>
@@ -361,6 +435,29 @@ function EmployeeForm({
       </FormControl>
       <FormControl label="Role" isRequired>
         <Select value={roleCode} onChange={setRoleCode} placeholder="Pilih role" options={roleOptions} />
+      </FormControl>
+      <FormControl
+        label="NIK KTP"
+        isInvalid={!nationalIdValid}
+        errorText="NIK KTP harus 16 angka"
+        helperText="Opsional · 16 angka sesuai KTP"
+      >
+        <Input
+          value={nationalId}
+          onChangeText={(v) => setNationalId(v.replace(/\D/g, '').slice(0, 16))}
+          placeholder="Opsional"
+          keyboardType="number-pad"
+          maxLength={16}
+        />
+      </FormControl>
+      <FormControl label="NIK Karyawan" helperText="Opsional · nomor induk karyawan di toko">
+        <Input
+          value={employeeNumber}
+          onChangeText={setEmployeeNumber}
+          placeholder="mis. HDY-2026-001"
+          autoCapitalize="characters"
+          maxLength={50}
+        />
       </FormControl>
       <View style={styles.modalActions}>
         <Button variant="ghost" onPress={onCancel} style={styles.modalAction}>
@@ -423,7 +520,34 @@ const styles = StyleSheet.create({
     backgroundColor: tabletColors.blue600,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  photoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.base },
+  photoCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary[600],
+    overflow: 'hidden',
+  },
+  photoImage: { width: '100%', height: '100%' },
+  photoBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary[600],
+    borderWidth: 2,
+    borderColor: colors.white,
+  },
+  photoInfo: { flex: 1, gap: 2 },
+  photoLink: { color: colors.primary[600], marginTop: 2 },
   cellMain: { fontSize: 13, fontWeight: '600', color: tabletColors.gray900 },
   cellMuted: { fontSize: 11.5, color: tabletColors.gray500, marginTop: 1 },
   actionCell: { flexDirection: 'row', gap: 6 },
@@ -446,6 +570,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary[600],
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   info: { flex: 1 },
   rightCol: { alignItems: 'flex-end', gap: spacing.xs },

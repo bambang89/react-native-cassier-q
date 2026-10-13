@@ -9,6 +9,8 @@ export interface CreateEmployeePayload {
   password: string;
   /** KEPALA_TOKO | PRODUCT | GUDANG | KASIR */
   roleCode: string;
+  nationalId?: string;
+  employeeNumber?: string;
 }
 
 export interface UpdateEmployeePayload {
@@ -16,6 +18,8 @@ export interface UpdateEmployeePayload {
   email?: string;
   phone?: string;
   roleCode: string;
+  nationalId?: string;
+  employeeNumber?: string;
 }
 
 export async function fetchEmployees(): Promise<Employee[]> {
@@ -47,5 +51,24 @@ export async function deactivateEmployee(id: string): Promise<Employee> {
 
 export async function reactivateEmployee(id: string): Promise<Employee> {
   const { data } = await apiClient.post<Employee>(`/employees/${id}/reactivate`);
+  return data;
+}
+
+/** Upload/ganti foto karyawan (Kepala Toko). */
+export async function uploadEmployeePhoto(
+  id: string,
+  file: { uri: string; name: string; type: string },
+): Promise<Employee> {
+  const formData = new FormData();
+  formData.append('file', file as unknown as Blob);
+  const { data } = await apiClient.post<Employee>(`/employees/${id}/photo`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+/** Hapus foto karyawan. */
+export async function removeEmployeePhoto(id: string): Promise<Employee> {
+  const { data } = await apiClient.delete<Employee>(`/employees/${id}/photo`);
   return data;
 }
