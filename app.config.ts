@@ -25,6 +25,8 @@ const BUNDLE_ID: Record<string, string> = {
 const GOOGLE_SERVICES_JSON = androidGoogleServicesFile(BUNDLE_ID[VARIANT]);
 const GOOGLE_SERVICE_INFO_PLIST = iosGoogleServicesFile();
 
+const EAS_PROJECT_ID = '85e24c4a-62a7-45d2-b2d1-b4e347e37c46';
+
 const APP_NAME: Record<string, string> = {
   development: 'cassier-Q (Dev)',
   preview: 'cassier-Q (Preview)',
@@ -35,10 +37,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: APP_NAME[VARIANT],
   slug: 'cassier-Q',
+  owner: 'bamsari',
   scheme: 'cassierq',
   version: '1.0.1',
-  // HP = portrait, tablet = landscape. Dikunci saat runtime oleh
-  // src/config/orientation.ts (expo-screen-orientation) sesuai jenis device.
+  runtimeVersion: { policy: 'appVersion' },
+  updates: {
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+    fallbackToCacheTimeout: 0,
+  },
   orientation: 'default',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -63,7 +69,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSLocalNetworkUsageDescription:
         'cassier-Q needs local network access to find network-connected receipt printers.',
       ITSAppUsesNonExemptEncryption: false,
-      // Push FCM (data-only) bisa membangunkan app di background.
       UIBackgroundModes: ['remote-notification'],
       UISupportedInterfaceOrientations: ['UIInterfaceOrientationPortrait'],
       'UISupportedInterfaceOrientations~ipad': [
@@ -151,7 +156,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       ios: GOOGLE_SERVICE_INFO_PLIST != null,
     },
     eas: {
-      projectId: process.env.EAS_PROJECT_ID ?? 'REPLACE_WITH_EAS_PROJECT_ID',
+      projectId: EAS_PROJECT_ID,
     },
   },
 });
