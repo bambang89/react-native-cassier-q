@@ -36,7 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: APP_NAME[VARIANT],
   slug: 'cassier-Q',
   scheme: 'cassierq',
-  version: '1.0.0',
+  version: '1.0.1',
   // HP = portrait, tablet = landscape. Dikunci saat runtime oleh
   // src/config/orientation.ts (expo-screen-orientation) sesuai jenis device.
   orientation: 'default',
@@ -74,6 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: BUNDLE_ID[VARIANT],
+    versionCode: 2,
     googleServicesFile: GOOGLE_SERVICES_JSON ?? undefined,
     adaptiveIcon: {
       backgroundColor: '#0A1830',
