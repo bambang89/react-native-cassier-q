@@ -264,6 +264,9 @@ export const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
+  cartPriceRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  cartPriceStrike: { textDecorationLine: 'line-through' },
+  cartTierHint: { color: colors.warning[700], marginTop: 1 },
   itemsSection: { marginTop: spacing.sm },
   itemsSectionTitle: { marginBottom: spacing.xs },
   changeBox: {

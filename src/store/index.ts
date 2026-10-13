@@ -17,6 +17,7 @@ import purchaseOrdersReducer from './slices/purchaseOrdersSlice';
 import employeesReducer from './slices/employeesSlice';
 import rolesReducer from './slices/rolesSlice';
 import accessReducer from './slices/accessSlice';
+import checkoutSettingsReducer from './slices/checkoutSettingsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -37,6 +38,7 @@ export const store = configureStore({
     employees: employeesReducer,
     roles: rolesReducer,
     access: accessReducer,
+    checkoutSettings: checkoutSettingsReducer,
   },
 });
 

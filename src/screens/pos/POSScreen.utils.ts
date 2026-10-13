@@ -31,3 +31,16 @@ export function sessionTimeLabel(iso: string): string {
 export function formatRupiah(value: number): string {
   return `Rp ${Math.round(value).toLocaleString('id-ID')}`;
 }
+
+/**
+ * Likely cash amounts a buyer hands over for `total`: the next round-ups to
+ * Rp5.000, Rp10.000, Rp20.000, Rp50.000 and Rp100.000, without duplicates
+ * and never equal to the exact amount (that is the "Uang Pas" chip).
+ */
+export function cashSuggestions(total: number, limit = 4): number[] {
+  const steps = [5000, 10000, 20000, 50000, 100000];
+  const values = steps
+    .map((step) => Math.ceil(total / step) * step)
+    .filter((value) => value > total);
+  return [...new Set(values)].slice(0, limit);
+}

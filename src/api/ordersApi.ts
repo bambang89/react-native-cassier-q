@@ -7,6 +7,8 @@ export interface CreateOrderPayload {
   discountAmount?: number;
   taxAmount?: number;
   customerId?: string;
+  /** Server menghitung ulang potongannya; discountAmount di atas hanya diskon manual. */
+  promoCode?: string;
 }
 
 /**

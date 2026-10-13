@@ -36,7 +36,8 @@ export function OrderPanel({
   canCheckout: boolean;
   onCheckout: () => void;
   onClearCart: () => void;
-  onOpenDiscount: () => void;
+  /** Omitted when the user may not give a manual discount (Hak Akses Menu → Kasir). */
+  onOpenDiscount?: () => void;
   onHold: () => void;
   onAddNote: () => void;
 }) {
@@ -107,10 +108,12 @@ export function OrderPanel({
           <ClockIcon size={14} color={tabletColors.gray700} />
           <Text style={styles.actionButtonLabelTablet}>Tahan</Text>
         </Pressable>
-        <Pressable style={styles.actionButtonTablet} onPress={onOpenDiscount}>
-          <DiscountIcon size={14} color={tabletColors.gray700} />
-          <Text style={styles.actionButtonLabelTablet}>Diskon</Text>
-        </Pressable>
+        {onOpenDiscount ? (
+          <Pressable style={styles.actionButtonTablet} onPress={onOpenDiscount}>
+            <DiscountIcon size={14} color={tabletColors.gray700} />
+            <Text style={styles.actionButtonLabelTablet}>Diskon</Text>
+          </Pressable>
+        ) : null}
         <Pressable style={styles.actionButtonTablet} onPress={onAddNote}>
           <NoteIcon size={14} color={tabletColors.gray700} />
           <Text style={styles.actionButtonLabelTablet}>Catatan</Text>

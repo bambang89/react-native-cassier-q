@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react';
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { Product } from '@/types/models';
+import type { Product, PromoCode } from '@/types/models';
 
 import DashboardScreen from '@/screens/dashboard/DashboardScreen';
 import POSScreen from '@/screens/pos/POSScreen';
@@ -53,6 +53,18 @@ export type RootStackParamList = {
   ProductForm: { product?: Product; prefillBarcode?: string };
   OrderDetail: { orderId: string };
   Receipt: { orderId: string };
+  /** Full-page checkout on phones; tablet landscape uses the modal in POS. */
+  Checkout: undefined;
+  /** Pengaturan metode pembayaran & PPN (dari menu Pengaturan). */
+  CheckoutSettings: undefined;
+  PromoCodes: undefined;
+  PromoCodeForm: { promo?: PromoCode };
+  /** Paket bundling — khusus Kepala Toko. */
+  Bundles: undefined;
+  BundleForm: { bundle?: Product };
+  /** Inventori: hitung stok fisik & catat barang rusak. */
+  StockOpname: undefined;
+  BadStockForm: undefined;
   PrinterSettings: undefined;
   CustomerDetail: { customerId: string };
   Suppliers: undefined;

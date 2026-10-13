@@ -19,6 +19,14 @@ import UnitsScreen from '@/screens/products/UnitsScreen';
 import ProductFormScreen from '@/screens/products/ProductFormScreen';
 import OrderDetailScreen from '@/screens/orders/OrderDetailScreen';
 import ReceiptScreen from '@/screens/orders/ReceiptScreen';
+import CheckoutScreen from '@/screens/pos/CheckoutScreen';
+import CheckoutSettingsScreen from '@/screens/settings/CheckoutSettingsScreen';
+import PromoCodesScreen from '@/screens/settings/PromoCodesScreen';
+import PromoCodeFormScreen from '@/screens/settings/PromoCodeFormScreen';
+import BundlesScreen from '@/screens/settings/BundlesScreen';
+import BundleFormScreen from '@/screens/settings/BundleFormScreen';
+import StockOpnameScreen from '@/screens/inventory/StockOpnameScreen';
+import BadStockFormScreen from '@/screens/inventory/BadStockFormScreen';
 import PrinterSettingsScreen from '@/screens/profile/PrinterSettingsScreen';
 import CustomerDetailScreen from '@/screens/customers/CustomerDetailScreen';
 import SuppliersScreen from '@/screens/suppliers/SuppliersScreen';
@@ -141,6 +149,14 @@ export default function RootNavigator() {
               <Stack.Screen name="Units" component={UnitsScreen} />
               <Stack.Screen name="ProductForm" component={ProductFormScreen} />
               <Stack.Screen name="OrderDetail" component={OrderDetailScreen} />
+              <Stack.Screen name="Checkout" component={CheckoutScreen} />
+              <Stack.Screen name="CheckoutSettings" component={CheckoutSettingsScreen} />
+              <Stack.Screen name="PromoCodes" component={PromoCodesScreen} />
+              <Stack.Screen name="PromoCodeForm" component={PromoCodeFormScreen} />
+              <Stack.Screen name="Bundles" component={BundlesScreen} />
+              <Stack.Screen name="BundleForm" component={BundleFormScreen} />
+              <Stack.Screen name="StockOpname" component={StockOpnameScreen} />
+              <Stack.Screen name="BadStockForm" component={BadStockFormScreen} />
               <Stack.Screen name="Receipt" component={ReceiptScreen} />
               <Stack.Screen name="PrinterSettings" component={PrinterSettingsScreen} />
               <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />

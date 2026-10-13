@@ -14,6 +14,8 @@ export type User = {
   email: string;
   superadmin: boolean;
   roles: RoleAssignment[];
+  /** Foto profil (hanya bisa diatur akun Kepala Toko). */
+  avatarUrl?: string | null;
 };
 
 export type AuthResponse = {
@@ -55,8 +57,40 @@ export type Product = {
   status: ProductStatus;
   sellingPrice: number;
   costPrice: number | null;
-  /** Stok di toko user yang sedang login, dalam base unit. */
+  /** Stok di toko user yang sedang login, dalam base unit. Untuk paket: jumlah paket yang bisa dibuat dari stok isinya. */
   stockQuantity: number;
+  /** SINGLE = produk biasa; BUNDLE = paket bundling (stok mengikuti isinya). */
+  productType?: 'SINGLE' | 'BUNDLE';
+  bundleItems?: BundleItem[] | null;
+  /** Harga grosir bertingkat per satuan dasar di toko ini (kosong = tanpa harga grosir). */
+  priceTiers?: PriceTier[] | null;
+};
+
+/** Mulai `minQuantity` satuan dasar (total di satu transaksi), harga per satuan dasar = `unitPrice`. */
+export type PriceTier = { minQuantity: number; unitPrice: number };
+
+/** Satu isi paket bundling. */
+export type BundleItem = {
+  productId: string;
+  productName: string;
+  unitId: string;
+  unitName: string;
+  quantity: number;
+  /** Jumlah per paket dalam satuan dasar produk isi. */
+  quantityBase: number;
+  /** Stok produk isi di toko ini (satuan dasar). */
+  stockBase: number;
+};
+
+export type BundlePayload = {
+  sku: string;
+  barcode?: string;
+  productName: string;
+  categoryId: string;
+  description?: string;
+  imageUrl?: string;
+  sellingPrice: number;
+  items: { productId: string; unitId: string; quantity: number }[];
 };
 
 /** Hasil konversi jumlah dari satuan lain ke satuan dasar produk (GET /products/{id}/convert). */
@@ -152,7 +186,44 @@ export type Order = {
   customerId: string | null;
   /** Sisa yang belum dibayar, kalau transaksi ini sebagian/seluruhnya kredit. */
   debtAmount: number | null;
+  /** Kode promo yang dipakai; potongannya sudah termasuk di discountAmount. */
+  promoCode?: string | null;
+  promoDiscountAmount?: number | null;
 };
+
+// --- Pengaturan checkout & kode promo -------------------------------------
+
+export type PaymentMethodSetting = { code: PaymentMethod; label: string; enabled: boolean };
+
+/** GET /store/checkout-settings — metode bayar yang diterima toko + PPN. */
+export type CheckoutSettings = {
+  paymentMethods: PaymentMethodSetting[];
+  defaultPaymentMethod: PaymentMethod;
+  taxEnabled: boolean;
+  taxRatePercent: number;
+};
+
+export type PromoDiscountType = 'PERCENT' | 'AMOUNT';
+
+export type PromoCode = {
+  id: string;
+  code: string;
+  name: string;
+  discountType: PromoDiscountType;
+  discountValue: number;
+  maxDiscountAmount: number | null;
+  minPurchaseAmount: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  usageLimit: number | null;
+  usedCount: number;
+  active: boolean;
+};
+
+export type PromoCodePayload = Omit<PromoCode, 'id' | 'usedCount'>;
+
+/** POST /promo-codes/validate — hasil cek kode promo terhadap subtotal keranjang. */
+export type PromoQuote = { code: string; name: string; description: string; discountAmount: number };
 
 /** Data resmi struk dari backend (GET /orders/{id}/receipt) — sudah termasuk
  * profil toko & metode pembayaran, jadi lebih lengkap daripada OrderResponse. */
@@ -274,6 +345,11 @@ export type Employee = {
   phone: string | null;
   active: boolean;
   roles: string[];
+  /** NIK KTP (16 angka), opsional. */
+  nationalId?: string | null;
+  /** NIK / nomor induk karyawan, opsional. */
+  employeeNumber?: string | null;
+  photoUrl?: string | null;
 };
 
 export type Role = {
@@ -332,6 +408,8 @@ export type StoreProfile = {
   status: string;
   headOffice: boolean;
   settings: Record<string, string>;
+  /** Foto toko (settings LOGO_URL), URL lengkap. */
+  logoUrl?: string | null;
 };
 
 // --- Pagination --------------------------------------------------------
@@ -342,4 +420,92 @@ export type Page<T> = {
   size: number;
   totalElements: number;
   totalPages: number;
+};
+
+// --- Inventori ---------------------------------------------------------
+
+export type StockStatus = 'OUT' | 'LOW' | 'OK';
+
+export type StockItem = {
+  productId: string;
+  sku: string;
+  productName: string;
+  categoryName: string;
+  baseUnitName: string;
+  imageUrl: string | null;
+  stock: number;
+  minimumStock: number;
+  costPrice: number | null;
+  /** stok × harga modal */
+  stockValue: number | null;
+  status: StockStatus;
+};
+
+export type StockSummary = {
+  products: number;
+  outOfStock: number;
+  lowStock: number;
+  totalValue: number;
+  items: StockItem[];
+};
+
+export type StockMovementItem = {
+  id: string;
+  createdAt: string;
+  productId: string;
+  productName: string;
+  movementType: string;
+  quantity: number;
+  unitName: string;
+  quantityBase: number;
+  stockBefore: number;
+  stockAfter: number;
+  referenceType: string | null;
+  referenceId: string | null;
+  notes: string | null;
+  createdBy: string | null;
+};
+
+export type OpnameResult = {
+  lines: {
+    productId: string;
+    productName: string;
+    systemQuantity: number;
+    countedQuantity: number;
+    difference: number;
+    differenceValue: number;
+  }[];
+  totalDifferenceValue: number;
+};
+
+export type BadStockReason = 'DAMAGED' | 'EXPIRED' | 'LOST' | 'DEFECT' | 'CUSTOMER_RETURN';
+export type BadStockStatus = 'PENDING' | 'QUARANTINED' | 'RETURNED' | 'DISPOSED' | 'CANCELLED';
+
+export type BadStockItem = {
+  id: string;
+  createdAt: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitName: string;
+  quantityBase: number;
+  reason: BadStockReason;
+  notes: string | null;
+  photoUrl: string | null;
+  status: BadStockStatus;
+  costValue: number | null;
+  stockDeducted: boolean;
+  reportedBy: string | null;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  supplierName: string | null;
+  resolutionNote: string | null;
+};
+
+export type BadStockReport = {
+  totalValue: number;
+  records: number;
+  byReason: { reason: BadStockReason; count: number; value: number }[];
+  topProducts: { productId: string; productName: string; quantityBase: number; value: number }[];
+  pending: number;
 };

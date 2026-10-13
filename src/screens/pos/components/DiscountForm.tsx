@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { Button, Input, Pressable, Switch } from '@/components/ui/forms';
+import { Button, Input, Pressable } from '@/components/ui/forms';
 import { Text } from '@/components/ui/typography';
 import { ChevronDownIcon } from '@/components/icons/LineIcons';
 import { colors } from '@/theme';
@@ -13,15 +13,14 @@ export function DiscountForm({
   discountValue,
   onChangeDiscountValue,
   ppnEnabled,
-  onChangePpnEnabled,
   onDone,
 }: {
   discountType: 'percent' | 'amount';
   onChangeDiscountType: () => void;
   discountValue: string;
   onChangeDiscountValue: (value: string) => void;
+  /** From the store settings — shown read-only; changed in Pengaturan → Pembayaran & PPN. */
   ppnEnabled: boolean;
-  onChangePpnEnabled: (value: boolean) => void;
   onDone: () => void;
 }) {
   return (
@@ -50,10 +49,17 @@ export function DiscountForm({
       </View>
 
       <View style={styles.ppnRow}>
-        <Text weight="semibold" size="sm">
-          PPN 11%
+        <View>
+          <Text weight="semibold" size="sm">
+            PPN 11%
+          </Text>
+          <Text size="xs" color="muted">
+            Diatur di Pengaturan → Pembayaran & PPN
+          </Text>
+        </View>
+        <Text weight="semibold" size="sm" color={ppnEnabled ? 'success' : 'muted'}>
+          {ppnEnabled ? 'Aktif' : 'Tidak aktif'}
         </Text>
-        <Switch value={ppnEnabled} onValueChange={onChangePpnEnabled} />
       </View>
 
       <Button fullWidth onPress={onDone} style={styles.payButton}>

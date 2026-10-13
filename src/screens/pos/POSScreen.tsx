@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, Platform, ScrollView, View } from 'react-native';
+import { Alert, AppState, FlatList, Platform, ScrollView, View } from 'react-native';
 import type { TextInput as RNTextInputRef } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,6 +10,7 @@ import { fetchProductUnits } from '@/store/slices/productUnitsSlice';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchCustomers } from '@/store/slices/customersSlice';
 import { fetchCurrentSession } from '@/store/slices/cashierSessionSlice';
+import { fetchCheckoutSettings } from '@/store/slices/checkoutSettingsSlice';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
 import { addItem, clearCart, selectCartCount, selectCartTotal } from '@/store/slices/cartSlice';
 import type { AddItemPayload } from '@/store/slices/cartSlice';
@@ -29,8 +30,11 @@ import type { POSScreenProps } from './POSScreen.types';
 import { styles } from './POSScreen.styles';
 import { formatRupiah, greetingForNow, PPN_RATE, sessionTimeLabel, todayLabel } from './POSScreen.utils';
 import { CartBar, CheckoutForm, DiscountForm, OpenSessionForm, OrderPanel } from './components';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const SEARCH_DEBOUNCE_MS = 350;
+/** Hour (store time) at which the backend auto-closes open cashier sessions. */
+const SESSION_AUTO_CLOSE_HOUR = 23;
 
 export default function POSScreen({ navigation }: POSScreenProps) {
   const dispatch = useAppDispatch();
@@ -61,13 +65,41 @@ export default function POSScreen({ navigation }: POSScreenProps) {
   // bisa menampilkannya di ringkasan sebelum kasir menekan Bayar.
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
   const [discountValue, setDiscountValue] = useState('');
-  const [ppnEnabled, setPpnEnabled] = useState(true);
+  // PPN on/off comes from the store settings (Pengaturan → Pembayaran & PPN).
+  const checkoutSettings = useAppSelector((state) => state.checkoutSettings.settings);
+  const { can } = usePermissions();
+  const ppnEnabled = checkoutSettings?.taxEnabled ?? true;
 
   const searchInputRef = useRef<RNTextInputRef>(null);
+
+  // The backend closes open cashier sessions at 23:00 store time. Re-check the session
+  // when the app comes back to the foreground and right after 23:00, so the
+  // "session not opened" banner shows without a restart.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') dispatch(fetchCurrentSession());
+    });
+    let timer: ReturnType<typeof setTimeout>;
+    const scheduleAfterCutoff = () => {
+      const cutoff = new Date();
+      cutoff.setHours(SESSION_AUTO_CLOSE_HOUR, 0, 30, 0);
+      if (cutoff.getTime() <= Date.now()) cutoff.setDate(cutoff.getDate() + 1);
+      timer = setTimeout(() => {
+        dispatch(fetchCurrentSession());
+        scheduleAfterCutoff();
+      }, cutoff.getTime() - Date.now());
+    };
+    scheduleAfterCutoff();
+    return () => {
+      subscription.remove();
+      clearTimeout(timer);
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     if (status === 'idle') dispatch(fetchProducts({}));
     dispatch(fetchCurrentSession());
+    dispatch(fetchCheckoutSettings());
     dispatch(fetchCategories());
     dispatch(fetchCustomers());
     dispatch(fetchStoreProfile());
@@ -77,8 +109,10 @@ export default function POSScreen({ navigation }: POSScreenProps) {
 
   const openCheckout = () => {
     if (!canOpenCheckout) return;
-    if (session) setCheckoutModalVisible(true);
-    else setOpenSessionModalVisible(true);
+    if (!session) setOpenSessionModalVisible(true);
+    // Phones get a full checkout page; tablet landscape keeps the modal beside the order panel.
+    else if (isTabletLandscape) setCheckoutModalVisible(true);
+    else navigation.navigate('Checkout');
   };
 
   // Shortcut keyboard cuma masuk akal di web (tablet kasir yang dipasangi keyboard fisik).
@@ -387,7 +421,7 @@ export default function POSScreen({ navigation }: POSScreenProps) {
               canCheckout={canOpenCheckout}
               onCheckout={openCheckout}
               onClearCart={onClearCart}
-              onOpenDiscount={() => setDiscountModalVisible(true)}
+              onOpenDiscount={can('pos.discount') ? () => setDiscountModalVisible(true) : undefined}
               onHold={onHoldOrder}
               onAddNote={onAddNote}
             />
@@ -415,7 +449,6 @@ export default function POSScreen({ navigation }: POSScreenProps) {
           discountValue={discountValue}
           onChangeDiscountValue={setDiscountValue}
           ppnEnabled={ppnEnabled}
-          onChangePpnEnabled={setPpnEnabled}
           onDone={() => setDiscountModalVisible(false)}
         />
       </Modal>
@@ -428,9 +461,6 @@ export default function POSScreen({ navigation }: POSScreenProps) {
           onDone={onCheckoutDone}
           onCancel={() => setCheckoutModalVisible(false)}
           externalDiscountAmount={isTabletLandscape ? discountAmount : undefined}
-          externalTaxAmount={isTabletLandscape ? taxAmount : undefined}
-          ppnEnabled={ppnEnabled}
-          onChangePpnEnabled={setPpnEnabled}
         />
       </Modal>
 
