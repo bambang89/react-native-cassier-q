@@ -8,10 +8,11 @@ import { emojiForProduct, paletteColorFor } from '@/utils/productDisplay';
 import type { Product } from '@/types/models';
 
 import { productStockBadgeVariant } from '../ProductsScreen.utils';
+import { bundleContents, isBundle } from '@/utils/bundles';
 
 // Baris produk di daftar mode HP (SwipeList) — mode tablet pakai ProductGridCard
 // dari '@/components/product' langsung di ProductsScreen.tsx.
-export function ProductListItem({ item, onPress }: { item: Product; onPress: () => void }) {
+export function ProductListItem({ item, onPress }: { item: Product; onPress?: () => void }) {
   return (
     <Card onPress={onPress} style={styles.card} shadow="none">
       <View style={styles.row}>
@@ -19,15 +20,15 @@ export function ProductListItem({ item, onPress }: { item: Product; onPress: () 
           <Image source={{ uri: item.imageUrl }} style={styles.rowImage} />
         ) : (
           <View style={[styles.rowImagePlaceholder, { backgroundColor: paletteColorFor(item.id) }]}>
-            <Text size="xl">{emojiForProduct(item)}</Text>
+            <Text size="xl">{isBundle(item) ? '🎁' : emojiForProduct(item)}</Text>
           </View>
         )}
         <View style={styles.info}>
           <Text weight="semibold" numberOfLines={1}>
             {item.productName}
           </Text>
-          <Text size="xs" color="secondary">
-            {item.sku} · {item.categoryName}
+          <Text size="xs" color="secondary" numberOfLines={1}>
+            {isBundle(item) ? `Paket · ${bundleContents(item)}` : `${item.sku} · ${item.categoryName}`}
           </Text>
         </View>
         <View style={styles.right}>

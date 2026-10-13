@@ -1,11 +1,13 @@
 import { Image, StyleSheet, View } from 'react-native';
 
 import { Badge } from '@/components/ui/dataDisplay';
+import { isBundle } from '@/utils/bundles';
+import { firstStep } from '@/utils/priceTiers';
 import type { BadgeVariant } from '@/components/ui/dataDisplay';
 import { Card } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
 import { emojiForProduct, LOW_STOCK_THRESHOLD, paletteColorFor } from '@/utils/productDisplay';
-import { radii, spacing, staggerDelay } from '@/theme';
+import { colors, radii, spacing, staggerDelay } from '@/theme';
 import { FadeInView } from '@/components/ui/motion';
 import type { Product } from '@/types/models';
 
@@ -52,13 +54,25 @@ export function ProductGridCard({ item, onPress, tablet, variant = 'pos', index 
         {item.imageUrl ? (
           <Image source={{ uri: item.imageUrl }} style={styles.image} />
         ) : (
-          <Text size={tablet ? '5xl' : '4xl'}>{emojiForProduct(item)}</Text>
+          <Text size={tablet ? '5xl' : '4xl'}>{isBundle(item) ? '🎁' : emojiForProduct(item)}</Text>
         )}
+        {isBundle(item) ? (
+          <View style={styles.bundleTag}>
+            <Text size="xs" weight="bold" style={styles.bundleTagText}>
+              PAKET
+            </Text>
+          </View>
+        ) : null}
       </View>
       <View style={[styles.body, tablet && styles.bodyTablet]}>
         <Text size="xs" weight="semibold" numberOfLines={2} style={styles.name}>
           {item.productName}
         </Text>
+        {firstStep(item) ? (
+          <Text size="xs" weight="semibold" numberOfLines={1} style={styles.wholesale}>
+            Grosir ≥{firstStep(item)!.minQuantity} {item.baseUnitName} · Rp{firstStep(item)!.unitPrice.toLocaleString('id-ID')}
+          </Text>
+        ) : null}
         <View style={styles.footer}>
           <Text size="xs" weight="bold">
             Rp {item.sellingPrice.toLocaleString('id-ID')}
@@ -96,5 +110,16 @@ const styles = StyleSheet.create({
   body: { padding: spacing.sm, flex: 1, justifyContent: 'space-between' },
   bodyTablet: { padding: 14 },
   name: { minHeight: 34 },
+  wholesale: { color: colors.success[700], fontSize: 10, marginTop: 2 },
+  bundleTag: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: colors.warning[500],
+  },
+  bundleTagText: { color: colors.white, fontSize: 10, letterSpacing: 0.5 },
   footer: { marginTop: spacing.xs, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });
