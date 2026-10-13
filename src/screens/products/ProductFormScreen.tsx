@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -18,6 +18,7 @@ import { BarcodeIcon } from '@/components/icons/LineIcons';
 import { Text } from '@/components/ui/typography';
 import { HStack } from '@/components/ui/layout';
 import { ProductPhotoGallery, ProductUnitsSection } from './components';
+import { generateSku } from './ProductsScreen.utils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductForm'>;
 
@@ -82,7 +83,7 @@ export default function ProductFormScreen({ navigation, route }: Props) {
     try {
       const payload = {
         sku,
-        barcode: barcode || undefined,
+        barcode: barcode.trim() || undefined,
         productName,
         categoryId,
         brand: brand || undefined,
@@ -149,13 +150,30 @@ export default function ProductFormScreen({ navigation, route }: Props) {
       >
         <HStack space="md">
           <View style={styles.formHalf}>
-            <FormControl label="SKU" isRequired>
-              <Input value={sku} onChangeText={setSku} placeholder="mis. SKU-001" autoCapitalize="characters" />
+            <FormControl label="SKU" isRequired helperText="Ketik manual atau tekan Auto">
+              <Input
+                value={sku}
+                onChangeText={setSku}
+                placeholder="mis. SKU-001"
+                autoCapitalize="characters"
+                rightElement={
+                  <Pressable
+                    onPress={() => setSku(generateSku(categories.find((c) => c.id === categoryId)?.categoryName))}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Buat SKU otomatis"
+                  >
+                    <Text size="sm" weight="semibold" style={styles.skuAuto}>
+                      Auto
+                    </Text>
+                  </Pressable>
+                }
+              />
             </FormControl>
           </View>
           <View style={styles.formHalf}>
-            <FormControl label="Barcode" helperText="Isi otomatis lewat tombol Scan">
-              <Input value={barcode} onChangeText={setBarcode} placeholder="Opsional" keyboardType="numeric" />
+            <FormControl label="Barcode (opsional)" helperText="Kosongkan jika produk tidak punya barcode">
+              <Input value={barcode} onChangeText={setBarcode} placeholder="Tanpa barcode" keyboardType="numeric" />
             </FormControl>
           </View>
         </HStack>
@@ -260,6 +278,7 @@ const styles = StyleSheet.create({
   body: { padding: spacing.base, paddingBottom: spacing['3xl'] },
   bodyTablet: { maxWidth: 760, width: '100%', alignSelf: 'center', paddingVertical: 22, paddingHorizontal: 24 },
   formHalf: { flex: 1 },
+  skuAuto: { color: colors.primary[600] },
   unitsLink: { marginTop: spacing.xs },
   photoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.base },
   imagePreview: { width: 72, height: 72, borderRadius: 8, backgroundColor: colors.gray[100] },
