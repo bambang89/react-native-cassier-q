@@ -494,6 +494,14 @@ export function PrintIcon(props: LineIconProps) {
   );
 }
 
+export function BluetoothIcon(props: LineIconProps) {
+  return (
+    <Base {...props}>
+      <Path d="m7 7 10 10-5 5V2l5 5L7 17" />
+    </Base>
+  );
+}
+
 // Path persis tombol "Refund" di cassier-q-webapp/tablet-transactions.html.
 export function RefundIcon(props: LineIconProps) {
   return (
