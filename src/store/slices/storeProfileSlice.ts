@@ -32,7 +32,12 @@ export const updateStoreProfile = createAsyncThunk(
 const storeProfileSlice = createSlice({
   name: 'storeProfile',
   initialState,
-  reducers: {},
+  reducers: {
+    /** Replaces the store profile (e.g. after changing the store photo). */
+    storeProfileUpdated(state, action: { payload: StoreProfile }) {
+      state.profile = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchStoreProfile.pending, (state) => {
@@ -61,4 +66,5 @@ const storeProfileSlice = createSlice({
   },
 });
 
+export const { storeProfileUpdated } = storeProfileSlice.actions;
 export default storeProfileSlice.reducer;

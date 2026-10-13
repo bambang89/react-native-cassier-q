@@ -79,3 +79,19 @@ export async function resetPassword(token: string, newPassword: string): Promise
 export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
   await apiClient.post('/auth/change-password', { currentPassword, newPassword });
 }
+
+/** Upload/ganti foto profil (khusus Kepala Toko). */
+export async function uploadAvatar(file: { uri: string; name: string; type: string }): Promise<User> {
+  const formData = new FormData();
+  formData.append('file', file as unknown as Blob);
+  const { data } = await apiClient.post<User>('/auth/me/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+/** Hapus foto profil (khusus Kepala Toko). */
+export async function removeAvatar(): Promise<User> {
+  const { data } = await apiClient.delete<User>('/auth/me/avatar');
+  return data;
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ComponentType } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
@@ -47,7 +47,7 @@ export default function MenuScreen() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const activeStore = useAppSelector((state) => state.access.activeStore);
-  const { can, isManager, isSuperadmin } = useMenuAccess();
+  const { can, isSuperadmin } = useMenuAccess();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -64,10 +64,7 @@ export default function MenuScreen() {
     {
       title: 'Akun & Perangkat',
       items: [
-        ...(isManager
-          ? [{ label: 'Hak Akses Menu', hint: 'Atur menu untuk Produk, Gudang & Kasir', icon: LockIcon, tint: colors.primary[600], tintBg: colors.primary[50], target: { stack: 'MenuAccess' } as MenuAction }]
-          : []),
-        { label: 'Pengaturan', hint: 'Akun, sesi kasir, kata sandi', icon: SettingsIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { tab: 'Profile' } as MenuAction },
+        { label: 'Pengaturan', hint: 'Akun, toko, hak akses & keamanan', icon: SettingsIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { tab: 'Profile' } as MenuAction },
         ...(can('printer') ? [fromCatalog('printer')] : []),
         { label: 'Bantuan', hint: 'Hubungi dukungan cassier-Q', icon: HelpIcon, tint: colors.gray[700], tintBg: colors.gray[100], target: { action: 'help' } as MenuAction },
       ],
@@ -108,9 +105,13 @@ export default function MenuScreen() {
         <FadeInView fromScale={0.97}>
           <View style={styles.profileCard}>
             <View style={styles.profileAvatar}>
-              <Text weight="bold" style={styles.profileInitials}>
-                {initials}
-              </Text>
+              {user?.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} style={styles.profileAvatarImage} />
+              ) : (
+                <Text weight="bold" style={styles.profileInitials}>
+                  {initials}
+                </Text>
+              )}
             </View>
             <View style={styles.profileInfo}>
               <Heading level="h5" numberOfLines={1} style={styles.profileName}>
@@ -215,7 +216,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.18)',
+    overflow: 'hidden',
   },
+  profileAvatarImage: { width: '100%', height: '100%' },
   profileInitials: { color: colors.white, fontSize: 17 },
   switchStore: {
     flexDirection: 'row',

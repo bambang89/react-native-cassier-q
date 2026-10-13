@@ -1,4 +1,4 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import type { ReactNode } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -84,9 +84,13 @@ export function Header({ title, subtitle, rightElement, showAccount }: HeaderPro
               onPress={() => navigation.navigate('Main', { screen: 'Menu' })}
               accessibilityLabel="Menu akun"
             >
-              <Text size="xs" weight="bold" style={styles.avatarLabel}>
-                {initials}
-              </Text>
+              {user?.avatarUrl ? (
+                <Image source={{ uri: user.avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Text size="xs" weight="bold" style={styles.avatarLabel}>
+                  {initials}
+                </Text>
+              )}
             </PressableScale>
           </>
         ) : null}
@@ -138,6 +142,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary[600],
+    overflow: 'hidden',
   },
   avatarLabel: { color: colors.white },
+  avatarImage: { width: '100%', height: '100%' },
 });

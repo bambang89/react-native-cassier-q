@@ -56,15 +56,22 @@ export async function pickPhoto(source: PhotoSource): Promise<ProductPhotoFile |
   }
 }
 
-/** Tanya sumber foto (Kamera / Galeri) lalu ambil fotonya. */
-export function choosePhoto(onPicked: (file: ProductPhotoFile) => void) {
+/**
+ * Tanya sumber foto (Kamera / Galeri) lalu ambil fotonya. Dengan `onRemove`,
+ * muncul juga pilihan "Hapus Foto" (untuk foto yang sudah ada).
+ */
+export function choosePhoto(
+  onPicked: (file: ProductPhotoFile) => void,
+  options: { title?: string; onRemove?: () => void } = {},
+) {
   const pick = async (source: PhotoSource) => {
     const file = await pickPhoto(source);
     if (file) onPicked(file);
   };
-  Alert.alert('Foto produk', 'Ambil foto dari mana?', [
+  Alert.alert(options.title ?? 'Foto produk', 'Ambil foto dari mana?', [
     { text: 'Kamera', onPress: () => pick('camera') },
     { text: 'Galeri', onPress: () => pick('library') },
+    ...(options.onRemove ? [{ text: 'Hapus Foto', style: 'destructive' as const, onPress: options.onRemove }] : []),
     { text: 'Batal', style: 'cancel' },
   ]);
 }

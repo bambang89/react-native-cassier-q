@@ -84,6 +84,10 @@ const authSlice = createSlice({
       state.user = null;
       state.status = 'unauthenticated';
     },
+    /** Replaces the logged-in user (e.g. after changing the profile photo). */
+    userUpdated(state, action: { payload: User }) {
+      state.user = action.payload;
+    },
     resetPasswordActionState(state) {
       state.passwordAction = { status: 'idle', error: null };
     },
@@ -172,5 +176,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { sessionExpired, resetPasswordActionState } = authSlice.actions;
+export const { sessionExpired, resetPasswordActionState, userUpdated } = authSlice.actions;
 export default authSlice.reducer;

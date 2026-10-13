@@ -20,3 +20,19 @@ export async function updateStoreProfile(payload: UpdateStoreProfilePayload): Pr
   const { data } = await apiClient.put<StoreProfile>('/store', payload);
   return data;
 }
+
+/** Upload/ganti foto toko (khusus Kepala Toko). */
+export async function uploadStoreLogo(file: { uri: string; name: string; type: string }): Promise<StoreProfile> {
+  const formData = new FormData();
+  formData.append('file', file as unknown as Blob);
+  const { data } = await apiClient.post<StoreProfile>('/store/logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+/** Hapus foto toko (khusus Kepala Toko). */
+export async function removeStoreLogo(): Promise<StoreProfile> {
+  const { data } = await apiClient.delete<StoreProfile>('/store/logo');
+  return data;
+}
