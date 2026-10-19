@@ -1,21 +1,23 @@
-import { useCallback, useState } from 'react';
-import { Alert, FlatList, Image, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Image, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import * as inventoryApi from '@/api/inventoryApi';
+import * as suppliersApi from '@/api/suppliersApi';
 import { apiErrorMessage } from '@/api/errors';
 import { useAppSelector } from '@/store/hooks';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useMenuAccess } from '@/navigation/menuCatalog';
 import type { RootStackParamList } from '@/navigation/types';
-import type { BadStockItem, BadStockReport, BadStockStatus } from '@/types/models';
-import { colors } from '@/theme';
+import type { BadStockItem, BadStockReport, BadStockStatus, Supplier } from '@/types/models';
+import { colors, radii, spacing } from '@/theme';
+import { Modal } from '@/components/ui/overlay';
 import { Button, Pressable, Switch } from '@/components/ui/forms';
 import { Badge } from '@/components/ui/dataDisplay';
 import { EmptyState } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { AlertTriangleIcon, PlusIcon } from '@/components/icons/LineIcons';
+import { AlertTriangleIcon, CheckIcon, PlusIcon, TruckIcon } from '@/components/icons/LineIcons';
 
 import { BS_STATUS, dateTime, qty, reasonLabel, REASONS, rupiah } from '../inventoryLabels';
 import { FilterChips, HeroCard, styles } from './shared';
@@ -43,6 +45,7 @@ export function BadStockTab() {
   const [report, setReport] = useState<BadStockReport | null>(null);
   const [requireApproval, setRequireApproval] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [returnTarget, setReturnTarget] = useState<BadStockItem | null>(null);
 
   /** Loads reports, this month's loss report and the approval setting. */
   const load = useCallback(async () => {
@@ -96,7 +99,7 @@ export function BadStockTab() {
     }
     if (item.status === 'QUARANTINED') {
       if (can('inventory.bad_stock_resolve')) {
-        buttons.push({ text: 'Sudah diretur ke supplier', onPress: () => act(item, 'return') });
+        buttons.push({ text: 'Sudah diretur ke supplier', onPress: () => setReturnTarget(item) });
         buttons.push({ text: 'Sudah dimusnahkan', onPress: () => act(item, 'dispose') });
       }
       if (isManager) {
@@ -114,6 +117,7 @@ export function BadStockTab() {
   const countOf = (status: BadStockStatus) => items.filter((i) => i.status === status).length;
 
   return (
+    <>
     <FlatList
       data={visible}
       keyExtractor={(item) => item.id}
@@ -222,5 +226,145 @@ export function BadStockTab() {
         );
       }}
     />
+    <Modal isOpen={!!returnTarget} onClose={() => setReturnTarget(null)}>
+      {returnTarget ? (
+        <ReturnForm
+          item={returnTarget}
+          onDone={() => {
+            setReturnTarget(null);
+            load();
+          }}
+          onCancel={() => setReturnTarget(null)}
+        />
+      ) : null}
+    </Modal>
+    </>
   );
 }
+
+/** Retur bad stock: pilih supplier tujuan (tercatat di laporan) + catatan opsional. */
+function ReturnForm({ item, onDone, onCancel }: { item: BadStockItem; onDone: () => void; onCancel: () => void }) {
+  const [suppliers, setSuppliers] = useState<Supplier[] | null>(null);
+  const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    suppliersApi
+      .fetchSuppliers()
+      .then((list) => setSuppliers(list.filter((s) => s.active)))
+      .catch(() => setSuppliers([]));
+  }, []);
+
+  const submit = async () => {
+    setSaving(true);
+    try {
+      await inventoryApi.actOnBadStock(item.id, 'return', { supplierId: supplierId ?? undefined, note: note.trim() || undefined });
+      onDone();
+    } catch (error) {
+      Alert.alert('Gagal', apiErrorMessage(error, 'Retur tidak bisa dicatat.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <View>
+      <Text weight="bold" size="lg">
+        Retur ke Supplier
+      </Text>
+      <Text size="sm" color="secondary" style={local.hint}>
+        {qty(item.quantity)} {item.unitName} {item.productName} · {reasonLabel(item.reason)}
+      </Text>
+      <Text size="xs" weight="semibold" color="muted" style={local.label}>
+        DIRETUR KE
+      </Text>
+      <ScrollView style={local.list} keyboardShouldPersistTaps="handled">
+        {suppliers === null ? (
+          <Text size="sm" color="muted">
+            Memuat supplier...
+          </Text>
+        ) : suppliers.length === 0 ? (
+          <Text size="sm" color="muted">
+            Belum ada supplier aktif. Retur tetap bisa dicatat tanpa supplier.
+          </Text>
+        ) : (
+          suppliers.map((s) => {
+            const active = s.id === supplierId;
+            return (
+              <Pressable key={s.id} onPress={() => setSupplierId(active ? null : s.id)} style={[local.option, active && local.optionActive]}>
+                <View style={[local.optionIcon, active && local.optionIconActive]}>
+                  <TruckIcon size={16} color={active ? colors.white : colors.teal[700]} />
+                </View>
+                <View style={local.optionBody}>
+                  <Text weight="semibold" numberOfLines={1}>
+                    {s.supplierName}
+                  </Text>
+                  <Text size="xs" color="muted" numberOfLines={1}>
+                    {[s.supplierCode, s.contactPerson, s.phone].filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+                {active ? <CheckIcon size={16} color={colors.primary[600]} /> : null}
+              </Pressable>
+            );
+          })
+        )}
+      </ScrollView>
+      <TextInput
+        value={note}
+        onChangeText={setNote}
+        placeholder="Catatan (opsional), mis. no. surat jalan retur"
+        placeholderTextColor={colors.gray[400]}
+        maxLength={500}
+        style={local.note}
+      />
+      <View style={local.actions}>
+        <Button variant="ghost" onPress={onCancel} disabled={saving}>
+          Batal
+        </Button>
+        <Button onPress={submit} loading={saving}>
+          {supplierId ? 'Catat Retur' : 'Catat Tanpa Supplier'}
+        </Button>
+      </View>
+    </View>
+  );
+}
+
+const local = StyleSheet.create({
+  hint: { marginTop: 4 },
+  label: { letterSpacing: 0.8, marginTop: spacing.base, marginBottom: spacing.sm },
+  list: { maxHeight: 280 },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  optionActive: { borderColor: colors.primary[600], backgroundColor: colors.primary[50] },
+  optionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.teal[50],
+  },
+  optionIconActive: { backgroundColor: colors.primary[600] },
+  optionBody: { flex: 1, gap: 1 },
+  note: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    fontSize: 15,
+    color: colors.text.primary,
+  },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.sm, marginTop: spacing.lg },
+});
