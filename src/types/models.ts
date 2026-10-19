@@ -391,12 +391,32 @@ export type BestSellerItem = {
   totalRevenue: number;
 };
 
+export type PaymentMethodSales = { method: string; orderCount: number; amount: number };
+export type DailySales = { date: string; orderCount: number; grossSales: number };
+export type HourlySales = { hour: number; orderCount: number; grossSales: number };
+
 export type SalesSummary = {
   from: string;
   to: string;
   orderCount: number;
   grossSales: number;
   topSellers: BestSellerItem[];
+  // Field di bawah ini ada di backend v1.0.5+; opsional supaya aman ke server lama.
+  previousFrom?: string;
+  previousTo?: string;
+  previousOrderCount?: number;
+  previousGrossSales?: number;
+  subtotal?: number;
+  discountTotal?: number;
+  taxTotal?: number;
+  averageOrder?: number;
+  voidCount?: number;
+  voidAmount?: number;
+  /** Bagian penjualan yang dicatat sebagai utang pelanggan. */
+  creditAmount?: number;
+  paymentMethods?: PaymentMethodSales[];
+  daily?: DailySales[];
+  hourly?: HourlySales[];
 };
 
 // --- Store profile -----------------------------------------------------
