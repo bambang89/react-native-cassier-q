@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useSettleCustomerOrder } from '@/hooks/useSettleCustomerOrder';
 import { clearCart, selectCartTotal } from '@/store/slices/cartSlice';
 import type { RootStackParamList } from '@/navigation/types';
 import type { Order } from '@/types/models';
@@ -23,7 +24,10 @@ export default function CheckoutScreen({ navigation }: Props) {
   const cartTotal = useAppSelector(selectCartTotal);
 
   /** Clears the cart, then shows the receipt or goes back to the POS. */
+  const settleCustomerOrder = useSettleCustomerOrder();
+
   const onDone = (order: Order, withReceipt: boolean) => {
+    settleCustomerOrder(order);
     dispatch(clearCart());
     if (withReceipt) navigation.replace('Receipt', { orderId: order.id });
     else navigation.goBack();

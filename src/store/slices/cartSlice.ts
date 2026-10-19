@@ -3,11 +3,15 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { CartItem, Product } from '@/types/models';
 import { baseTotals, linePricing } from '@/utils/priceTiers';
 
+export type CartCustomerOrder = { id: string; orderNumber: string; customerName: string };
+
 type CartState = {
   items: CartItem[];
+  /** Pesanan (menu Pesanan) yang sedang dibayar lewat keranjang ini; ditandai lunas setelah checkout. */
+  customerOrder: CartCustomerOrder | null;
 };
 
-const initialState: CartState = { items: [] };
+const initialState: CartState = { items: [], customerOrder: null };
 
 export interface AddItemPayload {
   product: Product;
@@ -53,11 +57,16 @@ const cartSlice = createSlice({
     },
     clearCart(state) {
       state.items = [];
+      state.customerOrder = null;
+    },
+    loadOrderIntoCart(state, action: PayloadAction<{ items: CartItem[]; order: CartCustomerOrder }>) {
+      state.items = action.payload.items;
+      state.customerOrder = action.payload.order;
     },
   },
 });
 
-export const { addItem, incrementItem, decrementItem, removeItem, clearCart } = cartSlice.actions;
+export const { addItem, incrementItem, decrementItem, removeItem, clearCart, loadOrderIntoCart } = cartSlice.actions;
 export default cartSlice.reducer;
 
 /** Cart total with wholesale (grosir) steps applied per product. */

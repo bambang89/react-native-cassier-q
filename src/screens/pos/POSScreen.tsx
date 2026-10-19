@@ -4,6 +4,7 @@ import type { TextInput as RNTextInputRef } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useSettleCustomerOrder } from '@/hooks/useSettleCustomerOrder';
 import { fetchProducts } from '@/store/slices/productsSlice';
 import * as productsApi from '@/api/productsApi';
 import { fetchProductUnits } from '@/store/slices/productUnitsSlice';
@@ -47,6 +48,7 @@ export default function POSScreen({ navigation }: POSScreenProps) {
   const cartCount = useAppSelector(selectCartCount);
   const cartTotal = useAppSelector(selectCartTotal);
   const session = useAppSelector((state) => state.cashierSession.current);
+  const customerOrder = useAppSelector((state) => state.cart.customerOrder);
   const sessionStatus = useAppSelector((state) => state.cashierSession.status);
   const productUnitsById = useAppSelector((state) => state.productUnits.byProductId);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -233,7 +235,10 @@ export default function POSScreen({ navigation }: POSScreenProps) {
     }
   };
 
+  const settleCustomerOrder = useSettleCustomerOrder();
+
   const onCheckoutDone = (order: Order, withReceipt: boolean) => {
+    settleCustomerOrder(order);
     setCheckoutModalVisible(false);
     dispatch(clearCart());
     setDiscountValue('');
@@ -387,6 +392,21 @@ export default function POSScreen({ navigation }: POSScreenProps) {
         />
       )}
 
+      {customerOrder ? (
+        <View style={styles.orderBanner}>
+          <View style={styles.flexOne}>
+            <Text size="sm" weight="bold">
+              Membayar pesanan {customerOrder.orderNumber} · {customerOrder.customerName}
+            </Text>
+            <Text size="xs" color="secondary">
+              Setelah dibayar, pesanan otomatis ditandai selesai.
+            </Text>
+          </View>
+          <Button size="sm" variant="ghost" onPress={() => dispatch(clearCart())}>
+            Lepas
+          </Button>
+        </View>
+      ) : null}
       {sessionStatus !== 'loading' && !session ? (
         <View style={styles.sessionBanner}>
           <View style={styles.sessionBannerGlyph}>
