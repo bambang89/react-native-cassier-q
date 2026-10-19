@@ -6,7 +6,7 @@ import { firstStep } from '@/utils/priceTiers';
 import type { BadgeVariant } from '@/components/ui/dataDisplay';
 import { Card } from '@/components/ui/recipes';
 import { Text } from '@/components/ui/typography';
-import { emojiForProduct, LOW_STOCK_THRESHOLD, paletteColorFor } from '@/utils/productDisplay';
+import { emojiForProduct, lowStockThresholdOf, paletteColorFor } from '@/utils/productDisplay';
 import { colors, radii, spacing, staggerDelay } from '@/theme';
 import { FadeInView } from '@/components/ui/motion';
 import type { Product } from '@/types/models';
@@ -29,13 +29,13 @@ interface ProductGridCardProps {
 
 function stockStatus(item: Product): { label: string; variant: BadgeVariant } {
   if (item.stockQuantity <= 0) return { label: 'Habis', variant: 'error' };
-  if (item.stockQuantity <= LOW_STOCK_THRESHOLD) return { label: 'Menipis', variant: 'warning' };
+  if (item.stockQuantity <= lowStockThresholdOf(item)) return { label: 'Menipis', variant: 'warning' };
   return { label: 'Aman', variant: 'success' };
 }
 
 export function ProductGridCard({ item, onPress, tablet, variant = 'pos', index = 0 }: ProductGridCardProps) {
   const outOfStock = item.stockQuantity <= 0;
-  const lowStock = !outOfStock && item.stockQuantity <= LOW_STOCK_THRESHOLD;
+  const lowStock = !outOfStock && item.stockQuantity <= lowStockThresholdOf(item);
   const stockColor = outOfStock ? 'error' : lowStock ? 'warning' : 'muted';
   const thumbnailColor = paletteColorFor(item.id);
   const disablePress = variant === 'pos' && outOfStock;

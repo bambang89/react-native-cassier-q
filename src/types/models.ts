@@ -64,6 +64,10 @@ export type Product = {
   bundleItems?: BundleItem[] | null;
   /** Harga grosir bertingkat per satuan dasar di toko ini (kosong = tanpa harga grosir). */
   priceTiers?: PriceTier[] | null;
+  /** Minimum stok di toko ini (0 = belum diatur); null untuk paket. */
+  minimumStock?: number | null;
+  /** Ambang "menipis" yang berlaku: minimum stok produk, atau default backend bila belum diatur. */
+  lowStockThreshold?: number | null;
 };
 
 /** Mulai `minQuantity` satuan dasar (total di satu transaksi), harga per satuan dasar = `unitPrice`. */

@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import type {
   BadStockItem,
+  StockItem,
   BadStockReason,
   BadStockReport,
   BadStockStatus,
@@ -13,6 +14,12 @@ import type {
 /** Stock of every product with status (habis/menipis/aman) and value at cost. */
 export async function fetchStock(): Promise<StockSummary> {
   const { data } = await apiClient.get<StockSummary>('/inventory/stock');
+  return data;
+}
+
+/** Sets a product's minimum stock in base units (0 = use the default threshold). */
+export async function updateMinimumStock(productId: string, minimumStock: number): Promise<StockItem> {
+  const { data } = await apiClient.put<StockItem>(`/inventory/stock/${productId}/minimum`, { minimumStock });
   return data;
 }
 

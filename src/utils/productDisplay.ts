@@ -5,6 +5,16 @@ import type { Product } from '@/types/models';
 // "Menipis" konsisten di kedua layar.
 export const LOW_STOCK_THRESHOLD = 5;
 
+/** Ambang stok menipis produk ini — dari backend (minimum stok per toko), fallback ke default. */
+export function lowStockThresholdOf(product: Pick<Product, 'lowStockThreshold'>): number {
+  return product.lowStockThreshold ?? LOW_STOCK_THRESHOLD;
+}
+
+/** True bila stok masih ada tapi sudah di/bawah ambang menipis. */
+export function isLowStock(product: Pick<Product, 'stockQuantity' | 'lowStockThreshold'>): boolean {
+  return product.stockQuantity > 0 && product.stockQuantity <= lowStockThresholdOf(product);
+}
+
 // Warna pastel bergantian buat latar thumbnail produk (kartu grid Kasir/Produk,
 // baris keranjang) supaya konsisten walau produk belum punya foto — dipilih
 // dari hash id produk biar produk yang sama selalu dapat warna yang sama di

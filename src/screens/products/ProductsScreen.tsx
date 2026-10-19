@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteProduct, fetchProducts, setSearch } from '@/store/slices/productsSlice';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { fetchStoreProfile } from '@/store/slices/storeProfileSlice';
-import { LOW_STOCK_THRESHOLD } from '@/utils/productDisplay';
+import { lowStockThresholdOf } from '@/utils/productDisplay';
 import { useResponsive } from '@/hooks/useResponsive';
 import type { Product } from '@/types/models';
 import { colors } from '@/theme';
@@ -49,7 +49,7 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
 
   const allPagesLoaded = totalPages === 0 || page + 1 >= totalPages;
   const lowStockCount = useMemo(
-    () => items.filter((p) => p.stockQuantity <= LOW_STOCK_THRESHOLD).length,
+    () => items.filter((p) => p.stockQuantity <= lowStockThresholdOf(p)).length,
     [items],
   );
   const gridProducts = useMemo(
@@ -126,7 +126,7 @@ export default function ProductsScreen({ navigation }: ProductsScreenProps) {
           <AlertTriangleIcon size={18} color={colors.warning[600]} />
         </View>
         <Text size="sm" weight="semibold" color="warning" style={styles.lowStockBannerText}>
-          {lowStockCount} produk{allPagesLoaded ? '' : ' (dari yang termuat)'} stoknya di bawah minimum ({LOW_STOCK_THRESHOLD}). Yuk restock sebelum kehabisan.
+          {lowStockCount} produk{allPagesLoaded ? '' : ' (dari yang termuat)'} stoknya di bawah minimum. Yuk restock sebelum kehabisan.
         </Text>
       </View>
     ) : null;
