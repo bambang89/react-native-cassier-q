@@ -20,7 +20,7 @@ export const API_ENVIRONMENTS: Record<ApiEnvName, ApiEnvironmentConfig> = {
   },
   production: {
     label: 'Production',
-    apiBaseUrl: 'https://api.43-134-16-30.sslip.io/api/v1',
+    apiBaseUrl: 'https://api.cassier-q.web.id/api/v1',
   },
 };
 
